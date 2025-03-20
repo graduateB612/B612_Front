@@ -319,7 +319,7 @@ export async function getCollisionMap(): Promise<ImageCollisionMap> {
     collisionMapInstance = new ImageCollisionMap()
     // 파일 이름이 대소문자를 구분할 수 있으므로 정확한 파일 이름 사용
     // 파일 경로를 콘솔에 출력하여 디버깅에 도움이 되도록 함
-    const imagePath = "/image/collision.PNG"
+    const imagePath = "/image/collision.png"
     console.log("Loading collision map from:", imagePath)
     await collisionMapInstance.loadFromImage(imagePath)
   }
