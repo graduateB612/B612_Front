@@ -42,21 +42,42 @@ export class ImageCollisionMap {
           .fill(0)
           .map(() => Array(this.width).fill(false))
 
+        // 첫 몇 개 픽셀의 색상 값 로깅 (디버깅용)
+        console.log("이미지 크기:", this.width, "x", this.height)
+        console.log("첫 10x10 픽셀의 색상 값:")
+        let foundColorPixels = 0
+
         // 파란색 픽셀(이동 가능 영역)만 true로 설정
-        // 샘플 이미지의 파란색과 유사한 색상 감지 (RGB: 0, 102, 204 주변)
+        // #1870B9 (RGB: 24, 112, 185) 색상 감지
         for (let y = 0; y < this.height; y++) {
           for (let x = 0; x < this.width; x++) {
             const idx = (y * this.width + x) * 4
 
-            // 정확한 파란색 감지 (RGB: 0, 102, 204 주변)
-            // 색상 범위를 넓게 잡아 유사한 파란색도 인식
-            if (
-              pixelData[idx] < 30 &&
-              pixelData[idx + 1] > 80 &&
-              pixelData[idx + 1] < 130 &&
-              pixelData[idx + 2] > 180
-            ) {
-              this.collisionData[y][x] = true
+            // 첫 10x10 픽셀의 색상 값 로깅
+            if (y < 10 && x < 10) {
+              console.log(
+                `픽셀(${x},${y}): R=${pixelData[idx]}, G=${pixelData[idx + 1]}, B=${pixelData[idx + 2]}, A=${pixelData[idx + 3]}`,
+              )
+            }
+
+            // #1870B9 (RGB: 24, 112, 185) 색상 감지 - 넓은 범위 적용
+            const r = pixelData[idx]
+            const g = pixelData[idx + 1]
+            const b = pixelData[idx + 2]
+            const a = pixelData[idx + 3]
+
+            // 알파 채널이 0이 아닌 경우에만 확인 (투명하지 않은 픽셀)
+            if (a > 0) {
+              // 색상 범위를 넓게 설정 (±20)
+              if (Math.abs(r - 24) <= 20 && Math.abs(g - 112) <= 20 && Math.abs(b - 185) <= 20) {
+                this.collisionData[y][x] = true
+                foundColorPixels++
+
+                // 처음 발견된 몇 개의 픽셀 위치 로깅
+                if (foundColorPixels <= 5) {
+                  console.log(`발견된 #1870B9 픽셀: (${x}, ${y}), 정확한 색상: R=${r}, G=${g}, B=${b}`)
+                }
+              }
             }
           }
         }
@@ -71,6 +92,42 @@ export class ImageCollisionMap {
           }
         }
         console.log(`이동 가능한 픽셀 수: ${bluePixelCount} / ${this.width * this.height}`)
+        console.log(`#1870B9 색상 픽셀 발견 수: ${foundColorPixels}`)
+
+        // 이동 가능한 픽셀이 없으면 경고
+        if (bluePixelCount === 0) {
+          console.warn("경고: 이동 가능한 픽셀이 발견되지 않았습니다! 색상 감지 로직을 확인하세요.")
+
+          // 대안으로 다른 파란색 계열 감지 시도
+          console.log("대안 색상 감지 시도 중...")
+          let alternativeFound = 0
+
+          for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+              const idx = (y * this.width + x) * 4
+
+              // 일반적인 파란색 계열 감지
+              if (
+                pixelData[idx] < 50 && // R: 낮음
+                pixelData[idx + 1] > 80 &&
+                pixelData[idx + 1] < 150 && // G: 중간
+                pixelData[idx + 2] > 150 // B: 높음
+              ) {
+                this.collisionData[y][x] = true
+                alternativeFound++
+
+                // 처음 발견된 몇 개의 픽셀 위치 로깅
+                if (alternativeFound <= 5) {
+                  console.log(
+                    `대안 파란색 픽셀: (${x}, ${y}), 색상: R=${pixelData[idx]}, G=${pixelData[idx + 1]}, B=${pixelData[idx + 2]}`,
+                  )
+                }
+              }
+            }
+          }
+
+          console.log(`대안 파란색 픽셀 발견 수: ${alternativeFound}`)
+        }
 
         this.loaded = true
         resolve(true)
@@ -156,10 +213,10 @@ export class ImageCollisionMap {
       for (let x = 0; x < this.width; x++) {
         const idx = (y * this.width + x) * 4
         if (this.collisionData[y][x]) {
-          // 이동 가능한 영역은 반투명 파란색으로 표시
-          data[idx] = 0 // R
-          data[idx + 1] = 102 // G
-          data[idx + 2] = 204 // B
+          // 이동 가능한 영역은 반투명 파란색으로 표시 (RGB: 24, 112, 185)
+          data[idx] = 24 // R
+          data[idx + 1] = 112 // G
+          data[idx + 2] = 185 // B
           data[idx + 3] = 128 // Alpha
         } else {
           // 이동 불가능한 영역은 투명하게 표시
