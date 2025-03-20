@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 
@@ -9,6 +9,7 @@ export default function Page() {
   const [name, setName] = useState("")
   const [showNameInput, setShowNameInput] = useState(false)
   const [afterNameDialog, setAfterNameDialog] = useState<string[]>([])
+  const [rejectMessage, setRejectMessage] = useState<string | null>(null)
 
   const dialogs = [
     "아! 안녕하세요. 오늘 방문 해 주시기로 한 의뢰자 분이시죠?",
@@ -16,6 +17,7 @@ export default function Page() {
     "조금만 기다려주신다면 안으로 안내 해 드리겠습니다.",
     "무슨 일이냐구요?",
     "큰 일은 아니에요. 저희가 관리하는 물건들이 쏟아져서..",
+    "실례가 안된다면 저를 도와주시겠어요?"
   ]
 
   const [showChoices, setShowChoices] = useState(false)
@@ -82,23 +84,28 @@ export default function Page() {
       }
       setDisplayedText(fullTextRef.current)
       setIsTyping(false)
+    } else if (rejectMessage) {
+      // 거절 메시지가 표시된 경우 홈으로 리다이렉트
+      window.location.href = "/"
     } else {
-      // 타이핑이 끝났으면 다음 대화로 진행
-      const totalDialogs = dialogs.length + afterNameDialog.length
+      // 현재 대화 텍스트 가져오기
+      const currentText =
+        dialogStep < dialogs.length ? dialogs[dialogStep] : afterNameDialog[dialogStep - dialogs.length]
 
+      // 타이핑이 끝났으면 다음 대화로 진행
       if (dialogStep < dialogs.length - 1) {
         // 기본 대화 진행
         setDialogStep((prev) => prev + 1)
       } else if (dialogStep === dialogs.length - 1) {
         // 마지막 대화 후 선택지 표시
         setShowChoices(true)
-      } else if (dialogStep === dialogs.length + 1) {
-        // "아, 혹시 의뢰자분 성함이 어떻게 되시나요?" 대화 후 이름 입력 모달 표시
+      } else if (currentText === "아, 혹시 의뢰자분 성함이 어떻게 되시나요?") {
+        // 이름을 물어보는 대화 후에는 이름 입력창 표시
         setShowNameInput(true)
-      } else if (dialogStep < totalDialogs - 1) {
-        // 이름 입력 후 대화 진행
+      } else if (dialogStep < dialogs.length + afterNameDialog.length - 1) {
+        // 일반 대화 진행
         setDialogStep((prev) => prev + 1)
-      } else if (dialogStep === totalDialogs - 1) {
+      } else {
         // 모든 대화가 끝난 후 페이지 이동
         setShouldRedirect(true)
       }
@@ -111,31 +118,43 @@ export default function Page() {
     if (choice === "help") {
       // 도와준다를 선택한 경우
       setAfterNameDialog([
-        "염치없지만 정말 감사합니다.\n최선을 다해서 의뢰를 해결 해 드릴게요.",
+        "염치없지만 정말 감사합니다.",
+        "최선을 다해서 의뢰를 해결 해 드릴게요.",
         "아, 혹시 의뢰자분 성함이 어떻게 되시나요?",
       ])
       // 대화 시작
       setDialogStep(dialogs.length)
     } else {
-      // 도와주지 않는다를 선택한 경우
-      window.location.href = "/"
+      // 거절한다를 선택한 경우
+      setRejectMessage("알겠습니다! 잠시 후 다시 방문 해 주세요!")
+      startTypingEffect("알겠습니다! 잠시 후 다시 방문 해 주세요!")
+
+      // 타이핑이 끝난 후 3초 후에 홈으로 리다이렉트
+      setTimeout(() => {
+        window.location.href = "/"
+      }, 3000)
     }
   }
 
   const handleSubmitName = (e: React.FormEvent) => {
     e.preventDefault()
     if (name.trim()) {
-      // 이름 입력 후 대화 설정 (기존 대화에 추가)
+      // 이름 입력 후 대화 설정
       const newDialogs = [
-        `${name}님 반갑습니다.\n저는 해결단 '장미'의 단장 어린왕자라고 합니다.`,
+        `${name}님 반갑습니다. 저는 해결단 '장미'의 단장 어린왕자라고 합니다.`,
         "그럼 이제 안으로 안내하겠습니다.",
         "'장미'에 어서오세요.",
       ]
 
-      setAfterNameDialog((prev) => [...prev, ...newDialogs])
+      // 이름 입력 전 대화와 이름 입력 후 대화를 합침
+      const nameAskingIndex = afterNameDialog.findIndex((d) => d === "아, 혹시 의뢰자분 성함이 어떻게 되시나요?")
+      const updatedDialogs = [...afterNameDialog.slice(0, nameAskingIndex + 1), ...newDialogs]
+
+      setAfterNameDialog(updatedDialogs)
       setShowNameInput(false)
-      // 이름 입력 후 다음 대화로 진행
-      setDialogStep((prev) => prev + 1)
+
+      // 이름 입력 후 다음 대화로 진행 (이름 물어보는 대화 다음으로)
+      setDialogStep(dialogs.length + nameAskingIndex + 1)
     }
   }
 
@@ -151,64 +170,85 @@ export default function Page() {
   const formatTextWithCursor = (text: string, showCursor: boolean) => {
     if (!text) return null
 
-    const lines = text.split("\n")
-    const lastLineIndex = lines.length - 1
+    // Replace newline characters with spaces to keep everything on one line
+    const singleLineText = text.replace(/\n/g, " ")
 
-    return lines.map((line, i) => (
-      <React.Fragment key={i}>
-        {i === lastLineIndex ? (
-          <span>
-            {line}
-            {showCursor && <span className="animate-pulse">|</span>}
-          </span>
-        ) : (
-          line
-        )}
-        {i < lastLineIndex && <br />}
-      </React.Fragment>
-    ))
+    return (
+      <span>
+        {singleLineText}
+        {showCursor && <span className="animate-pulse">|</span>}
+      </span>
+    )
   }
 
   return (
     <main className="flex min-h-screen bg-white">
       <div className="container mx-auto flex items-center justify-center min-h-screen">
-        <div className="w-full max-w-4xl">
+        <div className="w-full max-w-5xl">
           <div className="flex items-end justify-center gap-8">
             <div className="w-64">
               <Image src="/image/prince_p.png" alt="Character portrait" width={256} height={256} priority />
             </div>
-            <div className="relative flex-1 max-w-xl">
+            <div className="relative flex-1">
               <div
-                className="p-6 rounded-lg border bg-white shadow-lg cursor-pointer"
+                className="relative cursor-pointer flex items-center justify-center"
                 onClick={!showChoices && !showNameInput ? handleClick : undefined}
               >
-                <div className="text-lg min-h-[4rem] flex flex-col justify-center">
-                  {formatTextWithCursor(displayedText, isTyping)}
+                <div className="w-full" style={{ minWidth: "600px" }}>
+                  <Image
+                    src="/image/text_bar.png"
+                    alt="Dialog background"
+                    width={1000}
+                    height={120}
+                    className="w-full h-auto"
+                    style={{ minWidth: "600px" }}
+                  />
+                </div>
+                <div className="absolute inset-0 flex items-center px-12">
+                  <div className="text-lg whitespace-nowrap">{formatTextWithCursor(displayedText, isTyping)}</div>
                 </div>
               </div>
 
               {/* 선택지 영역 */}
-              {showChoices && (
+              {showChoices && !rejectMessage && (
                 <div className="flex justify-center gap-4 mt-4">
-                  <button
-                    onClick={() => handleChoice("help")}
-                    className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                  >
-                    도와준다
-                  </button>
-                  <button
-                    onClick={() => handleChoice("noHelp")}
-                    className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
-                  >
-                    도와주지 않는다
-                  </button>
+                  <div className="relative">
+                    <Image
+                      src="/image/button_bar.png"
+                      alt="Help button background"
+                      width={200}
+                      height={60}
+                      className="w-40 h-auto"
+                    />
+                    <button
+                      onClick={() => handleChoice("help")}
+                      className="absolute inset-0 flex items-center justify-center text-black hover:opacity-80 transition"
+                    >
+                      도와준다
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <Image
+                      src="/image/button_bar.png"
+                      alt="Don't help button background"
+                      width={200}
+                      height={60}
+                      className="w-40 h-auto"
+                    />
+                    <button
+                      onClick={() => handleChoice("noHelp")}
+                      className="absolute inset-0 flex items-center justify-center text-black hover:opacity-80 transition"
+                    >
+                      거절한다
+                    </button>
+                  </div>
                 </div>
               )}
 
               {/* 이름 입력 영역 */}
               {showNameInput && (
-                <div className="w-full mt-4">
-                  <form onSubmit={handleSubmitName} className="flex gap-2">
+                <div className="relative" style={{ minWidth: "600px", width: "100%" }}>
+                  <form onSubmit={handleSubmitName} className="flex items-center mt-4 px-12">
                     <input
                       type="text"
                       placeholder="이름을 입력하세요"
@@ -217,12 +257,21 @@ export default function Page() {
                       onChange={(e) => setName(e.target.value)}
                       autoFocus
                     />
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                    >
-                      확인
-                    </button>
+                    <div className="relative ml-2">
+                      <Image
+                        src="/image/button_bar.png"
+                        alt="Confirm button background"
+                        width={120}
+                        height={40}
+                        className="w-24 h-auto"
+                      />
+                      <button
+                        type="submit"
+                        className="absolute inset-0 flex items-center justify-center text-black hover:opacity-80 transition"
+                      >
+                        확인
+                      </button>
+                    </div>
                   </form>
                 </div>
               )}
