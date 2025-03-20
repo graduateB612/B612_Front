@@ -1,77 +1,70 @@
 "use client"
 
-import type React from "react"
-
+import React from "react"
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 
-export default function ChatPage() {
+export default function Page() {
   const [dialogStep, setDialogStep] = useState(0)
-  const [showNameModal, setShowNameModal] = useState(false)
   const [name, setName] = useState("")
-  const [displayedText, setDisplayedText] = useState("")
-  const [isTyping, setIsTyping] = useState(false)
+  const [showNameInput, setShowNameInput] = useState(false)
   const [afterNameDialog, setAfterNameDialog] = useState<string[]>([])
-  const fullTextRef = useRef("")
-  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const typingSpeedRef = useRef(50) // 타이핑 속도 (ms)
 
   const dialogs = [
-    "안녕하세요! 만나서 반가워요.",
-    "저는 이 장미정원의 주인이에요. 여러분에게 제 이야기를 들려드리고 싶어요.",
-    "그런데 먼저, 당신의 이름을 알 수 있을까요?",
+    "아! 안녕하세요. 오늘 방문 해 주시기로 한 의뢰자 분이시죠?",
+    "죄송해요. 지금 사무실 안이 좀 소란스러워서요..",
+    "조금만 기다려주신다면 안으로 안내 해 드리겠습니다.",
+    "무슨 일이냐구요?",
+    "큰 일은 아니에요. 저희가 관리하는 물건들이 쏟아져서..",
   ]
+
+  const [showChoices, setShowChoices] = useState(false)
+  const [shouldRedirect, setShouldRedirect] = useState(false)
+
+  const [displayedText, setDisplayedText] = useState("")
+  const [isTyping, setIsTyping] = useState(false)
+  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const fullTextRef = useRef("")
 
   // 컴포넌트 마운트 시 초기화
   useEffect(() => {
-    startTypingEffect(dialogs[dialogStep])
-
-    // 컴포넌트 언마운트 시 타이머 정리
-    return () => {
-      if (typingIntervalRef.current) {
-        clearTimeout(typingIntervalRef.current)
-      }
+    if (dialogs.length > 0) {
+      fullTextRef.current = dialogs[0]
+      startTypingEffect(dialogs[0])
     }
   }, [])
 
-  // 대화 단계가 변경될 때마다 타이핑 효과 시작
   useEffect(() => {
-    if (dialogStep > 0) {
-      // 이름 입력 후 대화인 경우
-      if (afterNameDialog.length > 0 && dialogStep >= dialogs.length) {
-        const afterNameIndex = dialogStep - dialogs.length
-        if (afterNameIndex < afterNameDialog.length) {
-          startTypingEffect(afterNameDialog[afterNameIndex])
-        }
-      } else {
-        // 기본 대화
-        startTypingEffect(dialogs[dialogStep])
-      }
+    const currentText = dialogStep < dialogs.length ? dialogs[dialogStep] : afterNameDialog[dialogStep - dialogs.length]
+
+    if (currentText) {
+      fullTextRef.current = currentText
+      startTypingEffect(currentText)
     }
-  }, [dialogStep, afterNameDialog])
+  }, [dialogStep])
 
   // 타이핑 효과 시작 함수
   const startTypingEffect = (text: string) => {
     // 이전 타이머 정리
     if (typingIntervalRef.current) {
-      clearTimeout(typingIntervalRef.current)
+      clearInterval(typingIntervalRef.current)
     }
 
     // 이전 타이핑 효과 초기화
     setDisplayedText("")
-    fullTextRef.current = text
     setIsTyping(true)
 
     let currentIndex = 0
 
-    // 타이핑 효과를 위한 재귀 함수
+    // 타이핑 효과를 위한 함수
     const typeCharacter = () => {
       if (currentIndex < text.length) {
         setDisplayedText(text.substring(0, currentIndex + 1))
         currentIndex++
-        typingIntervalRef.current = setTimeout(typeCharacter, typingSpeedRef.current)
+        typingIntervalRef.current = setTimeout(typeCharacter, 50)
       } else {
         setIsTyping(false)
+        typingIntervalRef.current = null
       }
     }
 
@@ -85,6 +78,7 @@ export default function ChatPage() {
       // 타이핑 중이면 모든 텍스트를 즉시 표시
       if (typingIntervalRef.current) {
         clearTimeout(typingIntervalRef.current)
+        typingIntervalRef.current = null
       }
       setDisplayedText(fullTextRef.current)
       setIsTyping(false)
@@ -96,84 +90,146 @@ export default function ChatPage() {
         // 기본 대화 진행
         setDialogStep((prev) => prev + 1)
       } else if (dialogStep === dialogs.length - 1) {
-        // 이름 입력 모달 표시
-        setShowNameModal(true)
+        // 마지막 대화 후 선택지 표시
+        setShowChoices(true)
+      } else if (dialogStep === dialogs.length + 1) {
+        // "아, 혹시 의뢰자분 성함이 어떻게 되시나요?" 대화 후 이름 입력 모달 표시
+        setShowNameInput(true)
       } else if (dialogStep < totalDialogs - 1) {
         // 이름 입력 후 대화 진행
         setDialogStep((prev) => prev + 1)
+      } else if (dialogStep === totalDialogs - 1) {
+        // 모든 대화가 끝난 후 페이지 이동
+        setShouldRedirect(true)
       }
-      // 모든 대화가 끝난 경우 추가 로직이 필요하면 여기에 구현
+    }
+  }
+
+  const handleChoice = (choice: "help" | "noHelp") => {
+    setShowChoices(false)
+
+    if (choice === "help") {
+      // 도와준다를 선택한 경우
+      setAfterNameDialog([
+        "염치없지만 정말 감사합니다.\n최선을 다해서 의뢰를 해결 해 드릴게요.",
+        "아, 혹시 의뢰자분 성함이 어떻게 되시나요?",
+      ])
+      // 대화 시작
+      setDialogStep(dialogs.length)
+    } else {
+      // 도와주지 않는다를 선택한 경우
+      window.location.href = "/"
     }
   }
 
   const handleSubmitName = (e: React.FormEvent) => {
     e.preventDefault()
     if (name.trim()) {
-      // 이름 입력 후 대화 설정
-      setAfterNameDialog([
-        `${name}님 이시군요? 알려주셔서 감사해요.`,
-        `${name}님, 저는 어린 왕자라고 해요. 작은 행성 B-612에서 왔어요.`,
-        `제 행성에는 아름다운 장미꽃이 한 송이 있었어요. 그 장미꽃은 저에게 특별했죠.`,
-      ])
+      // 이름 입력 후 대화 설정 (기존 대화에 추가)
+      const newDialogs = [
+        `${name}님 반갑습니다.\n저는 해결단 '장미'의 단장 어린왕자라고 합니다.`,
+        "그럼 이제 안으로 안내하겠습니다.",
+        "'장미'에 어서오세요.",
+      ]
 
-      setShowNameModal(false)
-      // 이름 입력 후 첫 번째 대화로 진행
-      setDialogStep(dialogs.length)
+      setAfterNameDialog((prev) => [...prev, ...newDialogs])
+      setShowNameInput(false)
+      // 이름 입력 후 다음 대화로 진행
+      setDialogStep((prev) => prev + 1)
     }
   }
 
-  // 현재 표시할 대화 결정
-  const getCurrentDialog = () => {
-    if (dialogStep < dialogs.length) {
-      return dialogs[dialogStep]
-    } else {
-      const afterNameIndex = dialogStep - dialogs.length
-      if (afterNameIndex < afterNameDialog.length) {
-        return afterNameDialog[afterNameIndex]
-      }
-      return ""
+  // 모든 대화가 끝난 후 페이지 이동
+  useEffect(() => {
+    if (shouldRedirect) {
+      console.log("Redirecting to play page...")
+      window.location.href = "/play"
     }
+  }, [shouldRedirect])
+
+  // 줄바꿈 처리를 위한 함수 - 타이핑 효과와 함께 사용
+  const formatTextWithCursor = (text: string, showCursor: boolean) => {
+    if (!text) return null
+
+    const lines = text.split("\n")
+    const lastLineIndex = lines.length - 1
+
+    return lines.map((line, i) => (
+      <React.Fragment key={i}>
+        {i === lastLineIndex ? (
+          <span>
+            {line}
+            {showCursor && <span className="animate-pulse">|</span>}
+          </span>
+        ) : (
+          line
+        )}
+        {i < lastLineIndex && <br />}
+      </React.Fragment>
+    ))
   }
 
   return (
-    <main className="flex min-h-screen bg-white p-8">
-      <div className="container mx-auto flex items-center justify-center gap-8">
-        <div className="w-64">
-          <Image src="/image/prince_p.png" alt="Character portrait" width={256} height={256} priority />
-        </div>
-        <div className="flex-1 max-w-xl p-6 rounded-lg border bg-white shadow-lg cursor-pointer" onClick={handleClick}>
-          <p className="text-lg min-h-[1.5rem]">
-            {displayedText}
-            <span className={isTyping ? "animate-pulse" : "hidden"}>|</span>
-          </p>
-        </div>
-      </div>
-
-      {showNameModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-xl font-bold mb-2">당신의 이름은?</h2>
-            <p className="text-gray-600 mb-4">저와 함께할 당신의 이름을 알려주세요.</p>
-            <form onSubmit={handleSubmitName} className="space-y-4">
-              <input
-                type="text"
-                placeholder="이름을 입력하세요"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-              <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setShowNameModal(false)} className="px-4 py-2 border rounded">
-                  취소
-                </button>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
-                  확인
-                </button>
+    <main className="flex min-h-screen bg-white">
+      <div className="container mx-auto flex items-center justify-center min-h-screen">
+        <div className="w-full max-w-4xl">
+          <div className="flex items-end justify-center gap-8">
+            <div className="w-64">
+              <Image src="/image/prince_p.png" alt="Character portrait" width={256} height={256} priority />
+            </div>
+            <div className="relative flex-1 max-w-xl">
+              <div
+                className="p-6 rounded-lg border bg-white shadow-lg cursor-pointer"
+                onClick={!showChoices && !showNameInput ? handleClick : undefined}
+              >
+                <div className="text-lg min-h-[4rem] flex flex-col justify-center">
+                  {formatTextWithCursor(displayedText, isTyping)}
+                </div>
               </div>
-            </form>
+
+              {/* 선택지 영역 */}
+              {showChoices && (
+                <div className="flex justify-center gap-4 mt-4">
+                  <button
+                    onClick={() => handleChoice("help")}
+                    className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                  >
+                    도와준다
+                  </button>
+                  <button
+                    onClick={() => handleChoice("noHelp")}
+                    className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+                  >
+                    도와주지 않는다
+                  </button>
+                </div>
+              )}
+
+              {/* 이름 입력 영역 */}
+              {showNameInput && (
+                <div className="w-full mt-4">
+                  <form onSubmit={handleSubmitName} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="이름을 입력하세요"
+                      className="flex-1 px-4 py-2 border rounded-lg text-black"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                    >
+                      확인
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </main>
   )
 }
