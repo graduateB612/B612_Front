@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from "react"
 import { type ImageCollisionMap, getCollisionMap } from "./image-collision"
+import { getNPCManager } from "./npc-manager" // NPC 매니저 import
+import { getItemManager } from "./item-manager" // 아이템 매니저 import
 
 export default function Game() {
   // 가상 플레이어 위치 (실제 게임 세계에서의 위치)
@@ -31,14 +33,20 @@ export default function Game() {
   const animationTimerRef = useRef<number | null>(null)
   // 이미지 캐시
   const imageCache = useRef<Record<string, HTMLImageElement>>({})
-  // 디버그 모드 (충돌 맵 시각화)
-  const [debugMode, setDebugMode] = useState(true)
   // 캔버스 ref
   const canvasRef = useRef<HTMLCanvasElement>(null)
   // 오류 메시지
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  // 충돌 감지 방식
-  const [collisionMode, setCollisionMode] = useState<"strict" | "foot">("foot")
+  // NPC 매니저 ref
+  const npcManagerRef = useRef<any>(null)
+  // 아이템 매니저 ref
+  const itemManagerRef = useRef<any>(null)
+  // NPC 이미지 로딩 상태
+  const [npcImagesLoaded, setNpcImagesLoaded] = useState(false)
+  // 아이템 이미지 로딩 상태
+  const [itemImagesLoaded, setItemImagesLoaded] = useState(false)
+  // 상호작용 가능한 아이템 표시
+  const [interactableItem, setInteractableItem] = useState<string | null>(null)
 
   // 게임 설정 (사용자 제공 값으로 업데이트)
   const viewportWidth = 1366
@@ -87,6 +95,58 @@ export default function Game() {
     loadCollisionMap()
   }, [])
 
+  // NPC 관리자 초기화
+  useEffect(() => {
+    const initNPCs = async () => {
+      try {
+        console.log("NPC 관리자 초기화 시작")
+        // NPC 관리자 가져오기
+        const npcManager = getNPCManager()
+        npcManagerRef.current = npcManager
+
+        // NPC 이미지 로드
+        console.log("NPC 이미지 로드 시작")
+        await npcManager.preloadImages()
+        console.log("NPC 이미지 로드 완료")
+
+        // 이미지 로드 상태 업데이트
+        setNpcImagesLoaded(true)
+      } catch (error) {
+        console.error("NPC 초기화 실패:", error)
+        // 오류가 발생해도 게임은 계속 진행
+        setNpcImagesLoaded(true)
+      }
+    }
+
+    initNPCs()
+  }, [])
+
+  // 아이템 관리자 초기화
+  useEffect(() => {
+    const initItems = async () => {
+      try {
+        console.log("아이템 관리자 초기화 시작")
+        // 아이템 관리자 가져오기
+        const itemManager = getItemManager()
+        itemManagerRef.current = itemManager
+
+        // 아이템 이미지 로드
+        console.log("아이템 이미지 로드 시작")
+        await itemManager.preloadImages()
+        console.log("아이템 이미지 로드 완료")
+
+        // 이미지 로드 상태 업데이트
+        setItemImagesLoaded(true)
+      } catch (error) {
+        console.error("아이템 초기화 실패:", error)
+        // 오류가 발생해도 게임은 계속 진행
+        setItemImagesLoaded(true)
+      }
+    }
+
+    initItems()
+  }, [])
+
   // 이미지 프리로딩
   useEffect(() => {
     const directions = ["up", "down", "left", "right"]
@@ -127,14 +187,15 @@ export default function Game() {
     const handleKeyDown = (e: KeyboardEvent) => {
       setKeysPressed((prev) => ({ ...prev, [e.key]: true }))
 
-      // D 키를 눌러 디버그 모드 토글
-      if (e.key === "d" || e.key === "D") {
-        setDebugMode((prev) => !prev)
-      }
-
-      // C 키를 눌러 충돌 감지 방식 토글
-      if (e.key === "c" || e.key === "C") {
-        setCollisionMode((prev) => (prev === "strict" ? "foot" : "strict"))
+      // E키 입력 감지 (상호작용)
+      if (e.key === "e" || e.key === "E") {
+        // 상호작용 가능한 아이템이 있는지 확인
+        if (interactableItem && itemManagerRef.current) {
+          // 아이템과 상호작용
+          itemManagerRef.current.interactWithItem(interactableItem)
+          // 상호작용 후 상태 초기화
+          setInteractableItem(null)
+        }
       }
     }
 
@@ -149,7 +210,7 @@ export default function Game() {
       window.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("keyup", handleKeyUp)
     }
-  }, [])
+  }, [interactableItem])
 
   // 애니메이션 타이머 설정
   useEffect(() => {
@@ -175,39 +236,11 @@ export default function Game() {
     }
   }, [isMoving])
 
-  // 디버그 모드에서 이동 가능 영역 렌더링
-  useEffect(() => {
-    if (debugMode && canvasRef.current && collisionMapRef.current) {
-      const ctx = canvasRef.current.getContext("2d")
-      if (ctx) {
-        // 캔버스 초기화
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-
-        // 이동 가능 영역 그리기
-        ctx.save()
-        ctx.translate(backgroundPosition.x, backgroundPosition.y)
-
-        // 충돌 맵 시각화
-        collisionMapRef.current.drawDebug(ctx)
-
-        // 플레이어 발 영역 시각화 (월드 좌표 기준)
-        collisionMapRef.current.drawPlayerFootDebug(
-          ctx,
-          playerWorldPosition.x,
-          playerWorldPosition.y,
-          playerSize,
-          playerSize,
-        )
-
-        ctx.restore()
-      }
-    }
-  }, [debugMode, backgroundPosition, collisionMapLoaded, playerWorldPosition])
-
   // 게임 루프
   useEffect(() => {
     // 이미지와 충돌 맵이 로드되지 않았으면 게임 루프를 시작하지 않음
-    if (!imagesLoaded || !collisionMapLoaded || !collisionMapRef.current) return
+    if (!imagesLoaded || !collisionMapLoaded || !collisionMapRef.current || !npcImagesLoaded || !itemImagesLoaded)
+      return
 
     const gameLoop = () => {
       // 플레이어 이동 처리
@@ -217,41 +250,18 @@ export default function Game() {
       let newDirection = playerDirection
 
       // 방향키 입력에 따른 이동 및 방향 설정
-      // 충돌 감지 로직 추가 - 다리 부분만 확인
+      // 충돌 감지 로직 추가 - 엄격한 충돌 감지 사용
       if (keysPressed["ArrowUp"]) {
         const testY = newY - playerSpeed
 
-        // 충돌 감지 방식에 따라 다른 메서드 사용
-        let canMove = false
-        if (collisionMode === "strict") {
-          // 엄격한 충돌 감지 (모든 모서리가 이동 가능해야 함)
-          canMove =
-            collisionMapRef.current?.isWalkable(newX, testY) &&
-            collisionMapRef.current?.isWalkable(newX + playerSize, testY) &&
-            collisionMapRef.current?.isWalkable(newX, testY + playerSize) &&
-            collisionMapRef.current?.isWalkable(newX + playerSize, testY + playerSize)
-        } else {
-          // 발 영역 기반 충돌 감지
-          canMove = collisionMapRef.current?.isPlayerFootWalkable(newX, testY, playerSize, playerSize) || false
+        // 엄격한 충돌 감지 (모든 모서리가 이동 가능해야 함)
+        const canMove =
+          collisionMapRef.current?.isWalkable(newX, testY) &&
+          collisionMapRef.current?.isWalkable(newX + playerSize, testY) &&
+          collisionMapRef.current?.isWalkable(newX, testY + playerSize) &&
+          collisionMapRef.current?.isWalkable(newX + playerSize, testY + playerSize)
 
-          // 전체 이동이 불가능하면 절반 이동 시도
-          if (!canMove) {
-            const halfStepY = newY - playerSpeed / 2
-            // 절반 이동도 불가능하면 1/4 이동 시도
-            if (collisionMapRef.current?.isPlayerFootWalkable(newX, halfStepY, playerSize, playerSize)) {
-              newY = halfStepY
-            } else {
-              const quarterStepY = newY - playerSpeed / 4
-              if (collisionMapRef.current?.isPlayerFootWalkable(newX, quarterStepY, playerSize, playerSize)) {
-                newY = quarterStepY
-              }
-            }
-          } else {
-            newY = testY
-          }
-        }
-
-        if (canMove && collisionMode === "strict") {
+        if (canMove) {
           newY = testY
         }
 
@@ -260,37 +270,14 @@ export default function Game() {
       } else if (keysPressed["ArrowDown"]) {
         const testY = newY + playerSpeed
 
-        // 충돌 감지 방식에 따라 다른 메서드 사용
-        let canMove = false
-        if (collisionMode === "strict") {
-          // 엄격한 충돌 감지
-          canMove =
-            collisionMapRef.current?.isWalkable(newX, testY) &&
-            collisionMapRef.current?.isWalkable(newX + playerSize, testY) &&
-            collisionMapRef.current?.isWalkable(newX, testY + playerSize) &&
-            collisionMapRef.current?.isWalkable(newX + playerSize, testY + playerSize)
-        } else {
-          // 발 영역 기반 충돌 감지
-          canMove = collisionMapRef.current?.isPlayerFootWalkable(newX, testY, playerSize, playerSize) || false
+        // 엄격한 충돌 감지
+        const canMove =
+          collisionMapRef.current?.isWalkable(newX, testY) &&
+          collisionMapRef.current?.isWalkable(newX + playerSize, testY) &&
+          collisionMapRef.current?.isWalkable(newX, testY + playerSize) &&
+          collisionMapRef.current?.isWalkable(newX + playerSize, testY + playerSize)
 
-          // 전체 이동이 불가능하면 절반 이동 시도
-          if (!canMove) {
-            const halfStepY = newY + playerSpeed / 2
-            // 절반 이동도 불가능하면 1/4 이동 시도
-            if (collisionMapRef.current?.isPlayerFootWalkable(newX, halfStepY, playerSize, playerSize)) {
-              newY = halfStepY
-            } else {
-              const quarterStepY = newY + playerSpeed / 4
-              if (collisionMapRef.current?.isPlayerFootWalkable(newX, quarterStepY, playerSize, playerSize)) {
-                newY = quarterStepY
-              }
-            }
-          } else {
-            newY = testY
-          }
-        }
-
-        if (canMove && collisionMode === "strict") {
+        if (canMove) {
           newY = testY
         }
 
@@ -299,37 +286,14 @@ export default function Game() {
       } else if (keysPressed["ArrowLeft"]) {
         const testX = newX - playerSpeed
 
-        // 충돌 감지 방식에 따라 다른 메서드 사용
-        let canMove = false
-        if (collisionMode === "strict") {
-          // 엄격한 충돌 감지
-          canMove =
-            collisionMapRef.current?.isWalkable(testX, newY) &&
-            collisionMapRef.current?.isWalkable(testX + playerSize, newY) &&
-            collisionMapRef.current?.isWalkable(testX, newY + playerSize) &&
-            collisionMapRef.current?.isWalkable(testX + playerSize, newY + playerSize)
-        } else {
-          // 발 영역 기반 충돌 감지
-          canMove = collisionMapRef.current?.isPlayerFootWalkable(testX, newY, playerSize, playerSize) || false
+        // 엄격한 충돌 감지
+        const canMove =
+          collisionMapRef.current?.isWalkable(testX, newY) &&
+          collisionMapRef.current?.isWalkable(testX + playerSize, newY) &&
+          collisionMapRef.current?.isWalkable(testX, newY + playerSize) &&
+          collisionMapRef.current?.isWalkable(testX + playerSize, newY + playerSize)
 
-          // 전체 이동이 불가능하면 절반 이동 시도
-          if (!canMove) {
-            const halfStepX = newX - playerSpeed / 2
-            // 절반 이동도 불가능하면 1/4 이동 시도
-            if (collisionMapRef.current?.isPlayerFootWalkable(halfStepX, newY, playerSize, playerSize)) {
-              newX = halfStepX
-            } else {
-              const quarterStepX = newX - playerSpeed / 4
-              if (collisionMapRef.current?.isPlayerFootWalkable(halfStepX, newY, playerSize, playerSize)) {
-                newX = quarterStepX
-              }
-            }
-          } else {
-            newX = testX
-          }
-        }
-
-        if (canMove && collisionMode === "strict") {
+        if (canMove) {
           newX = testX
         }
 
@@ -338,37 +302,14 @@ export default function Game() {
       } else if (keysPressed["ArrowRight"]) {
         const testX = newX + playerSpeed
 
-        // 충돌 감지 방식에 따라 다른 메서드 사용
-        let canMove = false
-        if (collisionMode === "strict") {
-          // 엄격한 충돌 감지
-          canMove =
-            collisionMapRef.current?.isWalkable(testX, newY) &&
-            collisionMapRef.current?.isWalkable(testX + playerSize, newY) &&
-            collisionMapRef.current?.isWalkable(testX, newY + playerSize) &&
-            collisionMapRef.current?.isWalkable(testX + playerSize, newY + playerSize)
-        } else {
-          // 발 영역 기반 충돌 감지
-          canMove = collisionMapRef.current?.isPlayerFootWalkable(testX, newY, playerSize, playerSize) || false
+        // 엄격한 충돌 감지
+        const canMove =
+          collisionMapRef.current?.isWalkable(testX, newY) &&
+          collisionMapRef.current?.isWalkable(testX + playerSize, newY) &&
+          collisionMapRef.current?.isWalkable(testX, newY + playerSize) &&
+          collisionMapRef.current?.isWalkable(testX + playerSize, newY + playerSize)
 
-          // 전체 이동이 불가능하면 절반 이동 시도
-          if (!canMove) {
-            const halfStepX = newX + playerSpeed / 2
-            // 절반 이동도 불가능하면 1/4 이동 시도
-            if (collisionMapRef.current?.isPlayerFootWalkable(halfStepX, newY, playerSize, playerSize)) {
-              newX = halfStepX
-            } else {
-              const quarterStepX = newX + playerSpeed / 4
-              if (collisionMapRef.current?.isPlayerFootWalkable(halfStepX, newY, playerSize, playerSize)) {
-                newX = quarterStepX
-              }
-            }
-          } else {
-            newX = testX
-          }
-        }
-
-        if (canMove && collisionMode === "strict") {
+        if (canMove) {
           newX = testX
         }
 
@@ -382,19 +323,37 @@ export default function Game() {
         (keysPressed["ArrowLeft"] || keysPressed["ArrowRight"])
       ) {
         // 대각선 이동 시 충돌 확인
-        if (!collisionMapRef.current?.isPlayerFootWalkable(newX, newY, playerSize, playerSize)) {
+        const canMove =
+          collisionMapRef.current?.isWalkable(newX, newY) &&
+          collisionMapRef.current?.isWalkable(newX + playerSize, newY) &&
+          collisionMapRef.current?.isWalkable(newX, newY + playerSize) &&
+          collisionMapRef.current?.isWalkable(newX + playerSize, newY + playerSize)
+
+        if (!canMove) {
           // 수직 이동만 시도
-          if (collisionMapRef.current?.isPlayerFootWalkable(playerWorldPosition.x, newY, playerSize, playerSize)) {
+          const canMoveVertical =
+            collisionMapRef.current?.isWalkable(playerWorldPosition.x, newY) &&
+            collisionMapRef.current?.isWalkable(playerWorldPosition.x + playerSize, newY) &&
+            collisionMapRef.current?.isWalkable(playerWorldPosition.x, newY + playerSize) &&
+            collisionMapRef.current?.isWalkable(playerWorldPosition.x + playerSize, newY + playerSize)
+
+          if (canMoveVertical) {
             newX = playerWorldPosition.x
-          }
-          // 수평 이동만 시도
-          else if (collisionMapRef.current?.isPlayerFootWalkable(newX, playerWorldPosition.y, playerSize, playerSize)) {
-            newY = playerWorldPosition.y
-          }
-          // 둘 다 안되면 이동 취소
-          else {
-            newX = playerWorldPosition.x
-            newY = playerWorldPosition.y
+          } else {
+            // 수평 이동만 시도
+            const canMoveHorizontal =
+              collisionMapRef.current?.isWalkable(newX, playerWorldPosition.y) &&
+              collisionMapRef.current?.isWalkable(newX + playerSize, playerWorldPosition.y) &&
+              collisionMapRef.current?.isWalkable(newX, playerWorldPosition.y + playerSize) &&
+              collisionMapRef.current?.isWalkable(newX + playerSize, playerWorldPosition.y + playerSize)
+
+            if (canMoveHorizontal) {
+              newY = playerWorldPosition.y
+            } else {
+              // 둘 다 안되면 이동 취소
+              newX = playerWorldPosition.x
+              newY = playerWorldPosition.y
+            }
           }
         }
       }
@@ -445,24 +404,32 @@ export default function Game() {
       setBackgroundPosition({ x: bgX, y: bgY })
       setPlayerScreenPosition({ x: playerX, y: playerY })
 
-      // 디버그 모드에서 이동 가능 영역 업데이트
-      if (debugMode && canvasRef.current && collisionMapRef.current) {
+      // 상호작용 가능한 아이템 확인
+      if (itemManagerRef.current) {
+        const item = itemManagerRef.current.getInteractableItem(newX, newY)
+        if (item) {
+          setInteractableItem(item.id)
+        } else {
+          setInteractableItem(null)
+        }
+      }
+
+      // 캔버스 업데이트 (NPC 및 아이템 렌더링)
+      if (canvasRef.current) {
         const ctx = canvasRef.current.getContext("2d")
         if (ctx) {
           // 캔버스 초기화
           ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
 
-          // 이동 가능 영역 그리기
-          ctx.save()
-          ctx.translate(bgX, bgY)
+          // NPC 렌더링
+          if (npcManagerRef.current) {
+            npcManagerRef.current.renderNPCs(ctx, bgX, bgY)
+          }
 
-          // 충돌 맵 시각화
-          collisionMapRef.current.drawDebug(ctx)
-
-          // 플레이어 발 영역 시각화 (월드 좌표 기준)
-          collisionMapRef.current.drawPlayerFootDebug(ctx, newX, newY, playerSize, playerSize)
-
-          ctx.restore()
+          // 아이템 렌더링
+          if (itemManagerRef.current) {
+            itemManagerRef.current.renderItems(ctx, bgX, bgY, newX, newY)
+          }
         }
       }
 
@@ -487,13 +454,13 @@ export default function Game() {
     playerDirection,
     imagesLoaded,
     collisionMapLoaded,
-    debugMode,
-    collisionMode,
     backgroundWidth,
     backgroundHeight,
     viewportWidth,
     viewportHeight,
     playerSize,
+    npcImagesLoaded,
+    itemImagesLoaded,
   ])
 
   // 현재 플레이어 스프라이트 이미지 경로 계산
@@ -519,7 +486,8 @@ export default function Game() {
     )
   }
 
-  if (!imagesLoaded || !collisionMapLoaded) {
+  // 로딩 화면 부분 수정 - 아이템 이미지 로딩 상태 추가
+  if (!imagesLoaded || !collisionMapLoaded || !npcImagesLoaded || !itemImagesLoaded) {
     return (
       <div
         style={{
@@ -532,7 +500,18 @@ export default function Game() {
           backgroundColor: "#000",
         }}
       >
-        <p>이미지 및 충돌 맵 로딩 중... {!imagesLoaded ? "(캐릭터 이미지 로딩 중)" : "(이동 가능 영역 분석 중)"}</p>
+        <p>
+          이미지 및 충돌 맵 로딩 중...
+          {!imagesLoaded
+            ? "(캐릭터 이미지 로딩 중)"
+            : !collisionMapLoaded
+              ? "(이동 가능 영역 분석 중)"
+              : !npcImagesLoaded
+                ? "(NPC 이미지 로딩 중)"
+                : !itemImagesLoaded
+                  ? "(아이템 이미지 로딩 중)"
+                  : ""}
+        </p>
       </div>
     )
   }
@@ -571,20 +550,17 @@ export default function Game() {
           }}
         />
 
-        {/* 디버그용 이동 가능 영역 오버레이 */}
-        {debugMode && (
-          <canvas
-            ref={canvasRef}
-            width={backgroundWidth}
-            height={backgroundHeight}
-            style={{
-              position: "absolute",
-              transform: `translate(${backgroundPosition.x}px, ${backgroundPosition.y}px)`,
-              pointerEvents: "none",
-              zIndex: 5,
-            }}
-          />
-        )}
+        {/* 캔버스 오버레이 (NPC 및 아이템 렌더링용) */}
+        <canvas
+          ref={canvasRef}
+          width={viewportWidth}
+          height={viewportHeight}
+          style={{
+            position: "absolute",
+            pointerEvents: "none",
+            zIndex: 5,
+          }}
+        />
 
         {/* 플레이어 */}
         <div
@@ -602,20 +578,23 @@ export default function Game() {
           }}
         />
 
-        {/* 디버그: 플레이어 충돌 박스 */}
-        {debugMode && (
+        {/* 상호작용 안내 메시지 */}
+        {interactableItem && (
           <div
             style={{
               position: "absolute",
-              width: `${playerSize}px`,
-              height: `${playerSize}px`,
-              left: `${playerScreenPosition.x}px`,
-              top: `${playerScreenPosition.y}px`,
-              border: "2px solid red",
+              bottom: "20px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              backgroundColor: "rgba(0, 0, 0, 0.7)",
+              color: "white",
+              padding: "10px 20px",
+              borderRadius: "5px",
               zIndex: 20,
-              pointerEvents: "none",
             }}
-          />
+          >
+            E키를 눌러 상호작용
+          </div>
         )}
       </div>
 
@@ -630,10 +609,7 @@ export default function Game() {
           borderRadius: "5px",
         }}
       >
-        <p>
-          방향키를 사용하여 캐릭터를 움직이세요 | D키: 디버그 모드 {debugMode ? "켜짐" : "꺼짐"} | 충돌 감지:{" "}
-          {collisionMode === "strict" ? "엄격" : "발 영역 기준"}
-        </p>
+        <p>방향키를 사용하여 캐릭터를 움직이세요</p>
         <p>
           플레이어 위치: X: {Math.round(playerWorldPosition.x)}, Y: {Math.round(playerWorldPosition.y)}
         </p>
