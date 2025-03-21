@@ -51,7 +51,7 @@ export default function Game() {
   // 게임 설정 (사용자 제공 값으로 업데이트)
   const viewportWidth = 1366
   const viewportHeight = 768
-  const playerSpeed = 2
+  const playerSpeed = 3
   const playerSize = 50 // 플레이어 충돌 크기를 50으로 고정
 
   // 배경 이미지 크기 (사용자 제공 값으로 업데이트)
