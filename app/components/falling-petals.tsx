@@ -21,7 +21,7 @@ export function FallingPetals() {
   const animationRef = useRef<number | null>(null)
   const petalsRef = useRef<Petal[]>([])
   const petalElements = useRef<HTMLDivElement[]>([])
-  const petalCount = 20 // 표시할 꽃잎 수
+  const petalCount = 25 // 표시할 꽃잎 수
 
   // 컴포넌트 마운트 시 꽃잎 초기화 및 애니메이션 시작
   useEffect(() => {
