@@ -10,7 +10,7 @@ interface DialogueBoxProps {
   position?: "center" | "bottom" // 위치 옵션 추가
 }
 
-export default function DialogueBox({ text, onClose, userName, position = "center" }: DialogueBoxProps) {
+export default function DialogueBox({ text, onClose, userName }: DialogueBoxProps) {
   const [displayedText, setDisplayedText] = useState("")
   const [isTyping, setIsTyping] = useState(true)
   const [textParts, setTextParts] = useState<string[]>([])

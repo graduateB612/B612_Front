@@ -28,7 +28,8 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
     try {
       const errorBody = await response.text()
       console.error("API 오류 응답:", errorBody)
-    } catch (e) {
+    } catch {
+      // 매개변수 없이 catch 블록 사용
       console.error("API 오류 응답 본문을 읽을 수 없음")
     }
 
