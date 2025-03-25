@@ -3,13 +3,21 @@
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
+import { createUser, startGame } from "@/lib/api-config"
 
 export default function Page() {
+  // 기존 상태 유지
   const [dialogStep, setDialogStep] = useState(0)
   const [name, setName] = useState("")
   const [showNameInput, setShowNameInput] = useState(false)
   const [afterNameDialog, setAfterNameDialog] = useState<string[]>([])
   const [rejectMessage, setRejectMessage] = useState<string | null>(null)
+
+  // API 관련 상태 추가
+  const [isLoading, setIsLoading] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   const dialogs = [
     "아! 안녕하세요. 오늘 방문 해 주시기로 한 의뢰자 분이시죠?",
@@ -17,7 +25,7 @@ export default function Page() {
     "조금만 기다려주신다면 안으로 안내 해 드리겠습니다.",
     "무슨 일이냐구요?",
     "큰 일은 아니에요. 저희가 관리하는 물건들이 쏟아져서..",
-    "실례가 안된다면 저를 도와주시겠어요?"
+    "실례가 안된다면 저를 도와주시겠어요?",
   ]
 
   const [showChoices, setShowChoices] = useState(false)
@@ -136,35 +144,72 @@ export default function Page() {
     }
   }
 
-  const handleSubmitName = (e: React.FormEvent) => {
+  const handleSubmitName = async (e: React.FormEvent) => {
     e.preventDefault()
     if (name.trim()) {
-      // 이름 입력 후 대화 설정
-      const newDialogs = [
-        `${name}님 반갑습니다. 저는 해결단 '장미'의 단장 어린왕자라고 합니다.`,
-        "그럼 이제 안으로 안내하겠습니다.",
-        "'장미'에 어서오세요.",
-      ]
+      // API 호출 시작
+      setIsLoading(true)
+      setApiError(null)
 
-      // 이름 입력 전 대화와 이름 입력 후 대화를 합침
-      const nameAskingIndex = afterNameDialog.findIndex((d) => d === "아, 혹시 의뢰자분 성함이 어떻게 되시나요?")
-      const updatedDialogs = [...afterNameDialog.slice(0, nameAskingIndex + 1), ...newDialogs]
+      try {
+        // 중앙화된 API 함수 사용
+        const userData = await createUser(name.trim())
+        console.log("사용자 생성 성공:", userData)
 
-      setAfterNameDialog(updatedDialogs)
-      setShowNameInput(false)
+        // 사용자 ID 저장
+        setUserId(userData.id)
 
-      // 이름 입력 후 다음 대화로 진행 (이름 물어보는 대화 다음으로)
-      setDialogStep(dialogs.length + nameAskingIndex + 1)
+        // 기존 로직 유지 - 이름 입력 후 대화 설정
+        const newDialogs = [
+          `${name}님 반갑습니다. 저는 해결단 '장미'의 단장 어린왕자라고 합니다.`,
+          "그럼 이제 안으로 안내하겠습니다.",
+          "'장미'에 어서오세요.",
+        ]
+
+        // 이름 입력 전 대화와 이름 입력 후 대화를 합침
+        const nameAskingIndex = afterNameDialog.findIndex((d) => d === "아, 혹시 의뢰자분 성함이 어떻게 되시나요?")
+        const updatedDialogs = [...afterNameDialog.slice(0, nameAskingIndex + 1), ...newDialogs]
+
+        setAfterNameDialog(updatedDialogs)
+        setShowNameInput(false)
+
+        // 이름 입력 후 다음 대화로 진행 (이름 물어보는 대화 다음으로)
+        setDialogStep(dialogs.length + nameAskingIndex + 1)
+      } catch (error) {
+        console.error("API 오류:", error)
+        setApiError(error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.")
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
 
   // 모든 대화가 끝난 후 페이지 이동
   useEffect(() => {
-    if (shouldRedirect) {
-      console.log("Redirecting to play page...")
-      window.location.href = "/play"
+    const redirectToPlayPage = async () => {
+      if (shouldRedirect && userId && !isRedirecting) {
+        setIsRedirecting(true)
+        try {
+          console.log("게임 시작 API 호출 중...")
+          const gameState = await startGame(userId)
+          console.log("게임 시작 성공:", gameState)
+
+          // 로컬 스토리지에 게임 상태 저장 (선택사항)
+          localStorage.setItem("gameState", JSON.stringify(gameState))
+
+          // 페이지 이동
+          console.log("Redirecting to play page...")
+          window.location.href = "/play"
+        } catch (error) {
+          console.error("게임 시작 API 오류:", error)
+          // 에러가 발생해도 페이지 이동
+          window.location.href = "/play"
+        }
+      }
     }
-  }, [shouldRedirect])
+
+    redirectToPlayPage()
+  }, [shouldRedirect, userId, isRedirecting])
 
   // 줄바꿈 처리를 위한 함수 - 타이핑 효과와 함께 사용
   const formatTextWithCursor = (text: string, showCursor: boolean) => {
@@ -248,30 +293,35 @@ export default function Page() {
               {/* 이름 입력 영역 */}
               {showNameInput && (
                 <div className="relative" style={{ minWidth: "600px", width: "100%" }}>
-                  <form onSubmit={handleSubmitName} className="flex items-center mt-4 px-12">
-                    <input
-                      type="text"
-                      placeholder="이름을 입력하세요"
-                      className="flex-1 px-4 py-2 border rounded-lg text-black"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      autoFocus
-                    />
-                    <div className="relative ml-2">
-                      <Image
-                        src="/image/button_bar.png"
-                        alt="Confirm button background"
-                        width={120}
-                        height={40}
-                        className="w-24 h-auto"
+                  <form onSubmit={handleSubmitName} className="flex flex-col items-center mt-4 px-12">
+                    <div className="flex w-full">
+                      <input
+                        type="text"
+                        placeholder="이름을 입력하세요"
+                        className="flex-1 px-4 py-2 border rounded-lg text-black"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        disabled={isLoading}
+                        autoFocus
                       />
-                      <button
-                        type="submit"
-                        className="absolute inset-0 flex items-center justify-center text-black hover:opacity-80 transition"
-                      >
-                        확인
-                      </button>
+                      <div className="relative ml-2">
+                        <Image
+                          src="/image/button_bar.png"
+                          alt="Confirm button background"
+                          width={120}
+                          height={40}
+                          className="w-24 h-auto"
+                        />
+                        <button
+                          type="submit"
+                          disabled={isLoading}
+                          className="absolute inset-0 flex items-center justify-center text-black hover:opacity-80 transition"
+                        >
+                          {isLoading ? "처리중" : "확인"}
+                        </button>
+                      </div>
                     </div>
+                    {apiError && <div className="text-red-500 mt-2 text-sm">{apiError}</div>}
                   </form>
                 </div>
               )}

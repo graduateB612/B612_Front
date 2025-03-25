@@ -1,4 +1,6 @@
 // 상호작용 가능한 아이템 관리 클래스
+import { collectStar, StarType } from "@/lib/api-config"
+
 export interface InteractiveItem {
   id: string
   x: number
@@ -8,32 +10,72 @@ export interface InteractiveItem {
   imagePath: string
   isActive: boolean
   interactionDistance: number // 상호작용 가능한 거리
+  starType?: StarType // 별 타입 추가
 }
 
 export class ItemManager {
   private items: InteractiveItem[] = []
   private imageCache: Record<string, HTMLImageElement> = {}
   private interactionIndicator: HTMLImageElement | null = null
+  private isDebugMode = false // 디버그 모드 플래그
 
   constructor() {
     // 아이템 초기화
     this.initializeItems()
     // 상호작용 표시 이미지 로드
     this.loadInteractionIndicator()
+
+    // URL 파라미터에서 디버그 모드 확인 (예: ?debug=true)
+    this.isDebugMode =
+      typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "true"
   }
 
   private initializeItems(): void {
-    // 슬픈 별 아이템 추가
+    // 네거티브 별 아이템들 추가 (이미지에 표시된 위치에 맞게 배치)
     this.items = [
       {
-        id: "sad_star",
-        x: 330,
+        id: "negative_pride",
+        x: 2230, // 이미지의 1번 위치 (오른쪽 하단)
+        y: 2638,
+        width: 50,
+        height: 50,
+        imagePath: "/image/negative_pride.png",
+        isActive: true,
+        interactionDistance: 100,
+        starType: StarType.PRIDE, // 교만 별 타입 (영문 대문자로 수정)
+      },
+      {
+        id: "negative_envy",
+        x: 2235, // 이미지의 2번 위치 (오른쪽 중간)
+        y: 2120,
+        width: 50,
+        height: 50,
+        imagePath: "/image/negative_envy.png",
+        isActive: true,
+        interactionDistance: 100,
+        starType: StarType.ENVY, // 질투 별 타입 (영문 대문자로 수정)
+      },
+      {
+        id: "negative_lonely",
+        x: 110, // 이미지의 3번 위치 (왼쪽 중간)
+        y: 2120,
+        width: 50,
+        height: 50,
+        imagePath: "/image/negative_lonely.png",
+        isActive: true,
+        interactionDistance: 100,
+        starType: StarType.LONELY, // 외로움 별 타입 (영문 대문자로 수정)
+      },
+      {
+        id: "negative_sad",
+        x: 330, // 이미지의 4번 위치 (왼쪽 상단)
         y: 620,
         width: 50,
         height: 50,
-        imagePath: "/image/sad_star.png",
+        imagePath: "/image/negative_sad.png",
         isActive: true,
-        interactionDistance: 100, // 상호작용 가능한 거리 (픽셀)
+        interactionDistance: 100,
+        starType: StarType.SAD, // 슬픔 별 타입 (영문 대문자로 수정)
       },
     ]
   }
@@ -47,16 +89,23 @@ export class ItemManager {
     img.src = "/image/e_key.png" // E키 이미지가 있다면 사용, 없으면 텍스트로 대체
   }
 
+  // 안전한 로그 출력 함수 - 디버그 모드에서만 출력
+  private safeLog(message: string, ...args: any[]): void {
+    if (this.isDebugMode) {
+      console.log(message, ...args)
+    }
+  }
+
   // 아이템 이미지 프리로드
   public preloadImages(): Promise<void> {
-    console.log("아이템 이미지 프리로드 시작...")
+    this.safeLog("아이템 이미지 프리로드 시작...")
 
     const promises = this.items.map((item) => {
       return new Promise<void>((resolve, reject) => {
         const img = new Image()
 
         img.onload = () => {
-          console.log(`아이템 이미지 로드 성공: ${item.imagePath}`)
+          this.safeLog(`아이템 이미지 로드 성공: ${item.imagePath}`)
           this.imageCache[item.imagePath] = img
           resolve()
         }
@@ -69,13 +118,13 @@ export class ItemManager {
 
         // 이미지 경로에 타임스탬프 추가하여 캐싱 방지
         img.src = `${item.imagePath}?t=${Date.now()}`
-        console.log(`아이템 이미지 로드 시도: ${img.src}`)
+        this.safeLog(`아이템 이미지 로드 시도: ${img.src}`)
       })
     })
 
     return Promise.all(promises)
       .then(() => {
-        console.log("모든 아이템 이미지 로드 프로세스 완료")
+        this.safeLog("모든 아이템 이미지 로드 프로세스 완료")
       })
       .catch((error) => {
         console.error("아이템 이미지 로드 중 오류 발생:", error)
@@ -90,6 +139,8 @@ export class ItemManager {
     playerX: number,
     playerY: number,
   ): void {
+    // 로그 출력 완전히 제거
+
     // 활성화된 아이템만 렌더링
     this.items
       .filter((item) => item.isActive)
@@ -152,11 +203,81 @@ export class ItemManager {
   }
 
   // 아이템 상호작용 처리
-  public interactWithItem(itemId: string): void {
+  public async interactWithItem(itemId: string): Promise<void> {
     const item = this.items.find((item) => item.id === itemId)
-    if (item) {
-      item.isActive = false
-      console.log(`아이템 ${itemId}와 상호작용 완료`)
+    if (item && item.starType) {
+      try {
+        // 로컬 스토리지에서 userId 가져오기 (여러 방법으로 시도)
+        let userId = localStorage.getItem("userId")
+
+        // userId가 없으면 gameState에서 찾아보기
+        if (!userId) {
+          const gameStateStr = localStorage.getItem("gameState")
+          if (gameStateStr) {
+            try {
+              const gameState = JSON.parse(gameStateStr)
+              if (gameState && gameState.userId) {
+                userId = gameState.userId
+                // 찾은 userId를 localStorage에 저장
+                localStorage.setItem("userId", userId)
+                console.log("gameState에서 userId를 찾았습니다:", userId)
+              }
+            } catch (e) {
+              console.error("gameState 파싱 오류:", e)
+            }
+          }
+        }
+
+        // 여전히 userId가 없으면 오류 발생
+        if (!userId) {
+          console.error("사용자 ID를 찾을 수 없습니다.")
+
+          // 디버그 정보 출력
+          console.log("localStorage 내용:", {
+            userId: localStorage.getItem("userId"),
+            gameState: localStorage.getItem("gameState"),
+            userName: localStorage.getItem("userName"),
+          })
+
+          // 오류 메시지 ���시 (선택적)
+          if (typeof window !== "undefined") {
+            alert("사용자 ID를 찾을 수 없습니다. 게임을 다시 시작해주세요.")
+          }
+          return
+        }
+
+        // 별 수집 API 호출
+        console.log(`${item.id} 별 수집 API 호출 중...`, item.starType)
+        const response = await collectStar(userId, item.starType)
+        console.log("별 수집 성공:", response)
+
+        // 응답 데이터 상세 로깅
+        if (response.dialogues && response.dialogues.length > 0) {
+          console.log("API 응답 대화 데이터:", response.dialogues)
+          const latestDialogue = response.dialogues[response.dialogues.length - 1]
+          console.log("최신 대화:", latestDialogue)
+        }
+
+        // 게임 상태 업데이트
+        localStorage.setItem("gameState", JSON.stringify(response))
+
+        // 아이템 비활성화
+        item.isActive = false
+        this.safeLog(`아이템 ${itemId}와 상호작용 완료`)
+
+        // 대화창 표시 (게임 컴포넌트에서 처리)
+        // 이벤트를 발생시키거나 콜백을 호출하여 게임 컴포넌트에 알림
+        const collectEvent = new CustomEvent("starCollected", {
+          detail: { starType: item.starType, gameState: response },
+        })
+        window.dispatchEvent(collectEvent)
+      } catch (error) {
+        console.error(`별 수집 API 오류:`, error)
+        // 오류 메시지 표시 (선택적)
+        if (typeof window !== "undefined") {
+          alert(`별 수집 중 오류가 발생했습니다: ${error}`)
+        }
+      }
     }
   }
 }

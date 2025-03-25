@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from "react"
 import { type ImageCollisionMap, getCollisionMap } from "./image-collision"
 import { getNPCManager } from "./npc-manager" // NPC 매니저 import
 import { getItemManager } from "./item-manager" // 아이템 매니저 import
+import DialogueBox from "@/app/components/dialogue-box" // 대화창 컴포넌트 import
+import { startGame } from "@/lib/api-config" // api-config에서 startGame 함수 import
 
 export default function Game() {
   // 가상 플레이어 위치 (실제 게임 세계에서의 위치)
@@ -14,7 +16,7 @@ export default function Game() {
     y: 0,
   })
   // 배경 위치
-  const [backgroundPosition, setBackgroundPosition] = useState({ x: 0, y: 0 })
+  const [backgroundPosition, setBackgroundPosition] = useState({ x: 2030, y: 2560 })
   // 키 상태 추적
   const [keysPressed, setKeysPressed] = useState<Record<string, boolean>>({})
   // 플레이어 방향
@@ -48,6 +50,13 @@ export default function Game() {
   // 상호작용 가능한 아이템 표시
   const [interactableItem, setInteractableItem] = useState<string | null>(null)
 
+  // 대화창 관련 상태 추가
+  const [showDialogue, setShowDialogue] = useState(false)
+  const [dialogueText, setDialogueText] = useState("")
+  const [userName, setUserName] = useState("")
+  // 대화창 위치 상태 추가
+  const [dialoguePosition, setDialoguePosition] = useState<"center" | "bottom">("center")
+
   // 게임 설정 (사용자 제공 값으로 업데이트)
   const viewportWidth = 1366
   const viewportHeight = 768
@@ -65,6 +74,179 @@ export default function Game() {
   const centerX = viewportWidth / 2 - playerSize / 2
   const centerY = viewportHeight / 2 - playerSize / 2
 
+  // 게임 상태 및 대화 데이터 로드
+  useEffect(() => {
+    // 로컬 스토리지에서 게임 상태 로드
+    const gameStateStr = localStorage.getItem("gameState")
+    const userIdStr = localStorage.getItem("userId")
+
+    // 사용자 이름 가져오기 (로컬 스토리지에서)
+    const userNameStr = localStorage.getItem("userName")
+    if (userNameStr) {
+      setUserName(userNameStr)
+    }
+
+    if (gameStateStr) {
+      try {
+        const gameState = JSON.parse(gameStateStr)
+        console.log("게임 상태 로드:", gameState)
+
+        // userId가 없으면 gameState에서 가져와서 저장
+        if (!userIdStr && gameState.userId) {
+          localStorage.setItem("userId", gameState.userId)
+          console.log("gameState에서 userId 저장:", gameState.userId)
+        }
+
+        // 대화 데이터 설정
+        if (gameState.dialogues && gameState.dialogues.length > 0) {
+          // quest_tutorial 대화 찾기
+          const tutorialDialogue = gameState.dialogues.find((d: any) => d.quest_tutorial)
+
+          if (tutorialDialogue) {
+            setDialogueText(tutorialDialogue.quest_tutorial || tutorialDialogue.dialogueText)
+            setDialoguePosition("center") // 튜토리얼은 중앙에 표시
+          } else {
+            // 어린왕자의 대화 찾기
+            const princeDialogue = gameState.dialogues.find((d: any) => d.npcName === "어린왕자")
+
+            if (princeDialogue) {
+              setDialogueText(
+                princeDialogue.dialogueText ||
+                  "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+              )
+              setDialoguePosition("center") // 기본 대화는 중앙에 표시
+            } else {
+              // 기본 튜토리얼 텍스트 설정
+              setDialogueText(
+                "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+              )
+              setDialoguePosition("center")
+            }
+          }
+        } else {
+          // 대화 데이터가 없는 경우 기본 텍스트 설정
+          setDialogueText(
+            "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+          )
+          setDialoguePosition("center")
+        }
+
+        // 대화창 표시
+        setShowDialogue(true)
+      } catch (error) {
+        console.error("게임 상태 파싱 오류:", error)
+
+        // 오류 발생 시 기본 텍스트 설정
+        setDialogueText(
+          "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+        )
+        setDialoguePosition("center")
+        setShowDialogue(true)
+      }
+    } else if (userIdStr) {
+      // 게임 상태가 없지만 userId가 있는 경우 API 호출
+      const fetchGameState = async () => {
+        try {
+          const userId = userIdStr
+          console.log("게임 시작 API 호출 중...", userId)
+          const gameState = await startGame(userId)
+          console.log("게임 시작 성공:", gameState)
+
+          // 로컬 스토리지에 게임 상태 저장
+          localStorage.setItem("gameState", JSON.stringify(gameState))
+
+          // 대화 데이터 설정
+          if (gameState.dialogues && gameState.dialogues.length > 0) {
+            // quest_tutorial 대화 찾기
+            const tutorialDialogue = gameState.dialogues.find((d) => d.quest_tutorial)
+
+            if (tutorialDialogue) {
+              setDialogueText(tutorialDialogue.quest_tutorial || tutorialDialogue.dialogueText)
+              setDialoguePosition("center") // 튜토리얼은 중앙에 표시
+            } else {
+              // 어린왕자의 대화 찾기
+              const princeDialogue = gameState.dialogues.find((d) => d.npcName === "어린왕자")
+
+              if (princeDialogue) {
+                setDialogueText(
+                  princeDialogue.dialogueText ||
+                    "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+                )
+                setDialoguePosition("center")
+              } else {
+                // 기본 튜토리얼 텍스트 설정
+                setDialogueText(
+                  "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+                )
+                setDialoguePosition("center")
+              }
+            }
+          } else {
+            // 대화 데이터가 없는 경우 기본 텍스트 설정
+            setDialogueText(
+              "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+            )
+            setDialoguePosition("center")
+          }
+
+          // 대화창 표시
+          setShowDialogue(true)
+        } catch (error) {
+          console.error("게임 시작 API 오류:", error)
+
+          // 오류 발생 시 기본 텍스트 설정
+          setDialogueText(
+            "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+          )
+          setDialoguePosition("center")
+          setShowDialogue(true)
+        }
+      }
+
+      fetchGameState()
+    } else {
+      // userId도 없는 경우 기본 텍스트 설정
+      setDialogueText(
+        "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+      )
+      setDialoguePosition("center")
+      setShowDialogue(true)
+    }
+  }, [])
+
+  // 별 수집 이벤트 리스너
+  useEffect(() => {
+    const handleStarCollected = (event: CustomEvent) => {
+      const { starType, gameState } = event.detail
+      console.log(`별 수집 이벤트 발생: ${starType}`, gameState)
+
+      // 대화 데이터 설정
+      if (gameState.dialogues && gameState.dialogues.length > 0) {
+        console.log("수집 후 대화 데이터:", gameState.dialogues)
+
+        // 가장 최근 대화를 사용 (API 응답의 마지막 대화)
+        const latestDialogue = gameState.dialogues[gameState.dialogues.length - 1]
+
+        if (latestDialogue && latestDialogue.dialogueText) {
+          console.log("표시할 대화:", latestDialogue.dialogueText)
+          setDialogueText(latestDialogue.dialogueText)
+          setDialoguePosition("bottom") // 별 수집 후 대화는 하단에 표시
+          setShowDialogue(true)
+        } else {
+          console.log("대화 텍스트가 없습니다.")
+        }
+      }
+    }
+
+    // 이벤트 리스너 등록
+    window.addEventListener("starCollected", handleStarCollected as EventListener)
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener("starCollected", handleStarCollected as EventListener)
+    }
+  }, [])
+
   // 충돌 맵 로드
   useEffect(() => {
     const loadCollisionMap = async () => {
@@ -74,7 +256,7 @@ export default function Game() {
         const testImg = new Image()
         testImg.onload = () => console.log("충돌 맵 이미지가 존재합니다!")
         testImg.onerror = () => console.error("충돌 맵 이미지를 찾을 수 없습니다!")
-        testImg.src = "/image/collision.PNG"
+        testImg.src = "/image/collision.png"
 
         const collisionMap = await getCollisionMap()
 
@@ -175,6 +357,10 @@ export default function Game() {
         img.src = imagePath
       })
     })
+
+    // prince_text.png 이미지 프리로드
+    const princeTextImg = new Image()
+    princeTextImg.src = "/image/prince_text.png"
   }, [])
 
   // 초기 위치 설정
@@ -185,6 +371,9 @@ export default function Game() {
   // 키보드 이벤트 리스너 설정
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 대화창이 표시 중일 때는 키 입력 무시
+      if (showDialogue) return
+
       setKeysPressed((prev) => ({ ...prev, [e.key]: true }))
 
       // E키 입력 감지 (상호작용)
@@ -210,7 +399,7 @@ export default function Game() {
       window.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("keyup", handleKeyUp)
     }
-  }, [interactableItem])
+  }, [interactableItem, showDialogue])
 
   // 애니메이션 타이머 설정
   useEffect(() => {
@@ -242,7 +431,40 @@ export default function Game() {
     if (!imagesLoaded || !collisionMapLoaded || !collisionMapRef.current || !npcImagesLoaded || !itemImagesLoaded)
       return
 
+    // 대화창이 표시 중일 때는 게임 루프 일시 중지
+    if (showDialogue) return
+
+    // 디버그 모드 확인
+    const isDebugMode =
+      typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "true"
+
+    // 안전한 로그 출력 함수
+    const safeLog = (message: string, ...args: any[]) => {
+      if (isDebugMode) {
+        console.log(message, ...args)
+      }
+    }
+
+    // 마지막 FPS 계산 시간
+    let lastFpsTime = performance.now()
+    let frames = 0
+    let fps = 0
+
     const gameLoop = () => {
+      // FPS 계산 (디버그 모드에서만)
+      if (isDebugMode) {
+        frames++
+        const now = performance.now()
+        const elapsed = now - lastFpsTime
+
+        if (elapsed >= 1000) {
+          fps = Math.round((frames * 1000) / elapsed)
+          lastFpsTime = now
+          frames = 0
+          safeLog(`FPS: ${fps}`)
+        }
+      }
+
       // 플레이어 이동 처리
       let newX = playerWorldPosition.x
       let newY = playerWorldPosition.y
@@ -461,6 +683,7 @@ export default function Game() {
     playerSize,
     npcImagesLoaded,
     itemImagesLoaded,
+    showDialogue,
   ])
 
   // 현재 플레이어 스프라이트 이미지 경로 계산
@@ -481,7 +704,7 @@ export default function Game() {
         }}
       >
         <p>오류 발생: {errorMessage}</p>
-        <p>파일 경로를 확인하세요: /image/collision.PNG</p>
+        <p>파일 경로를 확인하세요: /image/collision.png</p>
       </div>
     )
   }
@@ -594,6 +817,26 @@ export default function Game() {
             }}
           >
             E키를 눌러 상호작용
+          </div>
+        )}
+
+        {/* 대화창 - 게임 화면 내부에 위치하도록 수정 */}
+        {showDialogue && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              width: "100%",
+              zIndex: 30,
+            }}
+          >
+            <DialogueBox
+              text={dialogueText}
+              onClose={() => setShowDialogue(false)}
+              userName={userName || "모험가"}
+              position={dialoguePosition}
+            />
           </div>
         )}
       </div>

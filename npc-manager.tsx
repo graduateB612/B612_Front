@@ -11,10 +11,15 @@ export interface NPC {
 export class NPCManager {
   private npcs: NPC[] = []
   private imageCache: Record<string, HTMLImageElement> = {}
+  private isDebugMode = false // 디버그 모드 플래그
 
   constructor() {
     // NPC 초기화
     this.initializeNPCs()
+
+    // URL 파라미터에서 디버그 모드 확인 (예: ?debug=true)
+    this.isDebugMode =
+      typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "true"
   }
 
   private initializeNPCs(): void {
@@ -50,16 +55,23 @@ export class NPCManager {
     ]
   }
 
+  // 안전한 로그 출력 함수 - 디버그 모드에서만 출력
+  private safeLog(message: string, ...args: any[]): void {
+    if (this.isDebugMode) {
+      console.log(message, ...args)
+    }
+  }
+
   // NPC 이미지 프리로드
   public preloadImages(): Promise<void> {
-    console.log("NPC 이미지 프리로드 시작...")
+    this.safeLog("NPC 이미지 프리로드 시작...")
 
     const promises = this.npcs.map((npc) => {
       return new Promise<void>((resolve, reject) => {
         const img = new Image()
 
         img.onload = () => {
-          console.log(`NPC 이미지 로드 성공: ${npc.imagePath}`)
+          this.safeLog(`NPC 이미지 로드 성공: ${npc.imagePath}`)
           this.imageCache[npc.imagePath] = img
           resolve()
         }
@@ -72,13 +84,13 @@ export class NPCManager {
 
         // 이미지 경로에 타임스탬프 추가하여 캐싱 방지
         img.src = `${npc.imagePath}?t=${Date.now()}`
-        console.log(`NPC 이미지 로드 시도: ${img.src}`)
+        this.safeLog(`NPC 이미지 로드 시도: ${img.src}`)
       })
     })
 
     return Promise.all(promises)
       .then(() => {
-        console.log("모든 NPC 이미지 로드 프로세스 완료")
+        this.safeLog("모든 NPC 이미지 로드 프로세스 완료")
       })
       .catch((error) => {
         console.error("NPC 이미지 로드 중 오류 발생:", error)
@@ -87,20 +99,15 @@ export class NPCManager {
 
   // NPC 렌더링
   public renderNPCs(ctx: CanvasRenderingContext2D, offsetX: number, offsetY: number): void {
-    // 렌더링 시작 로그
-    console.log("NPC 렌더링 시작...")
+    // 로그 출력 완전히 제거
 
     this.npcs.forEach((npc) => {
       const img = this.imageCache[npc.imagePath]
 
       if (img) {
-        console.log(`NPC 렌더링: ${npc.id} at (${npc.x + offsetX}, ${npc.y + offsetY})`)
-
         // 이미지가 로드된 경우 렌더링
         ctx.drawImage(img, npc.x + offsetX, npc.y + offsetY, npc.width, npc.height)
       } else {
-        console.warn(`NPC 이미지 없음: ${npc.id} (${npc.imagePath})`)
-
         // 이미지가 없는 경우 플레이스홀더 사각형 그리기
         ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
         ctx.fillRect(npc.x + offsetX, npc.y + offsetY, npc.width, npc.height)
@@ -111,9 +118,6 @@ export class NPCManager {
         ctx.fillText(npc.id, npc.x + offsetX + 10, npc.y + offsetY + 30)
       }
     })
-
-    // 렌더링 완료 로그
-    console.log("NPC 렌더링 완료")
   }
 }
 
