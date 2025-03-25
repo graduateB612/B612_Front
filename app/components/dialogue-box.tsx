@@ -94,7 +94,7 @@ export default function DialogueBox({ text, onClose, userName, position = "cente
 
           {/* 텍스트 영역 */}
           <div className="w-2/3 pr-24">
-            <p className="text-white text-3xl">
+            <p className="text-white text-2xl font-bold">
               {formatText(displayedText)}
               {isTyping && <span className="animate-pulse">|</span>}
             </p>

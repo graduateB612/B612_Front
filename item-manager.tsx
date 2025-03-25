@@ -46,7 +46,7 @@ export class ItemManager {
       },
       {
         id: "negative_envy",
-        x: 2235, // 이미지의 2번 위치 (오른쪽 중간)
+        x: 2235, // 이미지의 2번 위치 (��른쪽 중간)
         y: 2120,
         width: 50,
         height: 50,
