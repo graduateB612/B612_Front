@@ -84,18 +84,19 @@ export default function Game() {
     const userNameStr = localStorage.getItem("userName")
     if (userNameStr) {
       setUserName(userNameStr)
+      console.log("localStorage에서 userName 로드:", userNameStr)
     }
+
+    console.log("현재 localStorage 상태:", {
+      userId: userIdStr,
+      userName: userNameStr,
+      gameState: gameStateStr ? "있음" : "없음",
+    })
 
     if (gameStateStr) {
       try {
         const gameState = JSON.parse(gameStateStr)
         console.log("게임 상태 로드:", gameState)
-
-        // userId가 없으면 gameState에서 가져와서 저장
-        if (!userIdStr && gameState.userId) {
-          localStorage.setItem("userId", gameState.userId)
-          console.log("gameState에서 userId 저장:", gameState.userId)
-        }
 
         // 대화 데이터 설정
         if (gameState.dialogues && gameState.dialogues.length > 0) {
@@ -112,13 +113,13 @@ export default function Game() {
             if (princeDialogue) {
               setDialogueText(
                 princeDialogue.dialogueText ||
-                  "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+                  `${userName}님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.`,
               )
               setDialoguePosition("center") // 기본 대화는 중앙에 표시
             } else {
               // 기본 튜토리얼 텍스트 설정
               setDialogueText(
-                "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+                `${userName}님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.`,
               )
               setDialoguePosition("center")
             }
@@ -126,7 +127,7 @@ export default function Game() {
         } else {
           // 대화 데이터가 없는 경우 기본 텍스트 설정
           setDialogueText(
-            "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+            `${userName}님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.`,
           )
           setDialoguePosition("center")
         }
@@ -138,7 +139,7 @@ export default function Game() {
 
         // 오류 발생 시 기본 텍스트 설정
         setDialogueText(
-          "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+          `${userName}님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.`,
         )
         setDialoguePosition("center")
         setShowDialogue(true)
@@ -148,7 +149,7 @@ export default function Game() {
       const fetchGameState = async () => {
         try {
           const userId = userIdStr
-          console.log("게임 시작 API 호출 중...", userId)
+          console.log("게임 시작 API 호출 중... userId:", userId)
           const gameState = await startGame(userId)
           console.log("게임 시작 성공:", gameState)
 
@@ -170,13 +171,13 @@ export default function Game() {
               if (princeDialogue) {
                 setDialogueText(
                   princeDialogue.dialogueText ||
-                    "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+                    `${userName}님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.`,
                 )
                 setDialoguePosition("center")
               } else {
                 // 기본 튜토리얼 텍스트 설정
                 setDialogueText(
-                  "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+                  `${userName}님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.`,
                 )
                 setDialoguePosition("center")
               }
@@ -184,7 +185,7 @@ export default function Game() {
           } else {
             // 대화 데이터가 없는 경우 기본 텍스트 설정
             setDialogueText(
-              "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+              `${userName}님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.`,
             )
             setDialoguePosition("center")
           }
@@ -196,7 +197,7 @@ export default function Game() {
 
           // 오류 발생 시 기본 텍스트 설정
           setDialogueText(
-            "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+            `${userName}님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.`,
           )
           setDialoguePosition("center")
           setShowDialogue(true)
@@ -207,7 +208,7 @@ export default function Game() {
     } else {
       // userId도 없는 경우 기본 텍스트 설정
       setDialogueText(
-        "OOO님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.",
+        `${userName}님, 저희가 각각 관리하는 감정의 별이 흩어져있는 상태입니다.$n단원들에게 어떤 별을 전달 해 줘야 하는지 제가 알려드리겠습니다.`,
       )
       setDialoguePosition("center")
       setShowDialogue(true)

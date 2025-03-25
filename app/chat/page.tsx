@@ -152,12 +152,23 @@ export default function Page() {
       setApiError(null)
 
       try {
+        // 기존 userId와 gameState 삭제
+        localStorage.removeItem("userId")
+        localStorage.removeItem("gameState")
+        console.log("기존 userId와 gameState 삭제")
+
         // 중앙화된 API 함수 사용
         const userData = await createUser(name.trim())
         console.log("사용자 생성 성공:", userData)
 
         // 사용자 ID 저장
         setUserId(userData.id)
+        localStorage.setItem("userId", userData.id)
+        console.log("새 userId를 localStorage에 저장:", userData.id)
+
+        // 이름을 localStorage에 저장
+        localStorage.setItem("userName", name.trim())
+        console.log("새 이름을 localStorage에 저장:", name.trim())
 
         // 기존 로직 유지 - 이름 입력 후 대화 설정
         const newDialogs = [
@@ -317,7 +328,7 @@ export default function Page() {
                           disabled={isLoading}
                           className="absolute inset-0 flex items-center justify-center text-black hover:opacity-80 transition"
                         >
-                          {isLoading ? "처리중" : "확인"}
+                          {isLoading ? "처리중..." : "확인"}
                         </button>
                       </div>
                     </div>

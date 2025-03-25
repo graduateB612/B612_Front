@@ -202,52 +202,30 @@ export class ItemManager {
     return null
   }
 
-  // 아이템 상호작용 처리
+  // 아이템 상호작용 처리 함수 수정
   public async interactWithItem(itemId: string): Promise<void> {
     const item = this.items.find((item) => item.id === itemId)
     if (item && item.starType) {
       try {
-        // 로컬 스토리지에서 userId 가져오기 (여러 방법으로 시도)
-        let userId = localStorage.getItem("userId")
+        // 로컬 스토리지에서 userId 가져오기
+        const userId = localStorage.getItem("userId")
 
-        // userId가 없으면 gameState에서 찾아보기
-        if (!userId) {
-          const gameStateStr = localStorage.getItem("gameState")
-          if (gameStateStr) {
-            try {
-              const gameState = JSON.parse(gameStateStr)
-              if (gameState && gameState.userId) {
-                userId = gameState.userId
-                // 찾은 userId를 localStorage에 저장
-                localStorage.setItem("userId", userId)
-                console.log("gameState에서 userId를 찾았습니다:", userId)
-              }
-            } catch (e) {
-              console.error("gameState 파싱 오류:", e)
-            }
-          }
-        }
-
-        // 여전히 userId가 없으면 오류 발생
+        // userId가 없으면 오류 발생
         if (!userId) {
           console.error("사용자 ID를 찾을 수 없습니다.")
-
-          // 디버그 정보 출력
           console.log("localStorage 내용:", {
             userId: localStorage.getItem("userId"),
             gameState: localStorage.getItem("gameState"),
             userName: localStorage.getItem("userName"),
           })
 
-          // 오류 메시지 ���시 (선택적)
           if (typeof window !== "undefined") {
             alert("사용자 ID를 찾을 수 없습니다. 게임을 다시 시작해주세요.")
           }
           return
         }
 
-        // 별 수집 API 호출
-        console.log(`${item.id} 별 수집 API 호출 중...`, item.starType)
+        console.log(`${item.id} 별 수집 API 호출 중... userId: ${userId}, starType: ${item.starType}`)
         const response = await collectStar(userId, item.starType)
         console.log("별 수집 성공:", response)
 
@@ -266,14 +244,12 @@ export class ItemManager {
         this.safeLog(`아이템 ${itemId}와 상호작용 완료`)
 
         // 대화창 표시 (게임 컴포넌트에서 처리)
-        // 이벤트를 발생시키거나 콜백을 호출하여 게임 컴포넌트에 알림
         const collectEvent = new CustomEvent("starCollected", {
           detail: { starType: item.starType, gameState: response },
         })
         window.dispatchEvent(collectEvent)
       } catch (error) {
         console.error(`별 수집 API 오류:`, error)
-        // 오류 메시지 표시 (선택적)
         if (typeof window !== "undefined") {
           alert(`별 수집 중 오류가 발생했습니다: ${error}`)
         }
