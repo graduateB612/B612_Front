@@ -153,3 +153,44 @@ export async function collectStar(userId: string, starType: StarType) {
   })
 }
 
+// 별 전달 API 호출 함수 추가
+export async function deliverStar(userId: string, starType: StarType) {
+  console.log(`별 전달 API 호출: userId=${userId}, starType=${starType}`)
+
+  // 요청 형식 - 서버 측 요구사항에 맞게 조정
+  return apiRequest<GameStateResponse>(`game/progress/${userId}/deliver`, {
+    method: "POST",
+    body: JSON.stringify({ starType }),
+  })
+}
+
+// NPC 정보 인터페이스
+export interface NPCInfo {
+  id: string
+  name: string
+  dialogueBackground: string
+  acceptsStarType: StarType
+}
+
+// NPC 정보 정의
+export const NPCInfoMap: Record<string, NPCInfo> = {
+  rose: {
+    id: "rose",
+    name: "장미",
+    dialogueBackground: "/image/rose_text.png",
+    acceptsStarType: StarType.ENVY,
+  },
+  bob: {
+    id: "bob",
+    name: "밥",
+    dialogueBackground: "/image/bob_text.png",
+    acceptsStarType: StarType.LONELY,
+  },
+  fox: {
+    id: "fox",
+    name: "여우",
+    dialogueBackground: "/image/fox_text.png",
+    acceptsStarType: StarType.SAD,
+  },
+}
+

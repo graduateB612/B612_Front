@@ -8,9 +8,15 @@ interface DialogueBoxProps {
   onClose: () => void
   userName: string
   position?: "center" | "bottom" // 위치 옵션 추가
+  backgroundImage?: string // 배경 이미지 경로 추가
 }
 
-export default function DialogueBox({ text, onClose, userName }: DialogueBoxProps) {
+export default function DialogueBox({
+  text,
+  onClose,
+  userName,
+  backgroundImage = "/image/prince_text.png", // 기본값은 어린왕자 대화창
+}: DialogueBoxProps) {
   const [displayedText, setDisplayedText] = useState("")
   const [isTyping, setIsTyping] = useState(true)
   const [textParts, setTextParts] = useState<string[]>([])
@@ -63,6 +69,8 @@ export default function DialogueBox({ text, onClose, userName }: DialogueBoxProp
       } else {
         // 모든 부분이 끝났으면 대화창 닫기
         onClose()
+        // 대화 종료 이벤트 발생
+        window.dispatchEvent(new CustomEvent("dialogueClosed"))
       }
     }
   }
@@ -82,7 +90,7 @@ export default function DialogueBox({ text, onClose, userName }: DialogueBoxProp
     <div className="w-full" onClick={handleClick}>
       <div className="relative w-full">
         <Image
-          src="/image/prince_text.png"
+          src={backgroundImage || "/placeholder.svg"}
           alt="Dialogue background"
           width={1200}
           height={200}

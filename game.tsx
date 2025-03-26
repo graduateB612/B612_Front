@@ -5,7 +5,7 @@ import { type ImageCollisionMap, getCollisionMap } from "./image-collision"
 import { getNPCManager } from "./npc-manager" // NPC 매니저 import
 import { getItemManager } from "./item-manager" // 아이템 매니저 import
 import DialogueBox from "@/app/components/dialogue-box" // 대화창 컴포넌트 import
-import { startGame } from "@/lib/api-config" // api-config에서 startGame 함수 import
+import { startGame } from "@/lib/api-config" // api-config에서 startGame 함수와 NPCInfoMap import
 
 export default function Game() {
   // 가상 플레이어 위치 (실제 게임 세계에서의 위치)
@@ -49,6 +49,8 @@ export default function Game() {
   const [itemImagesLoaded, setItemImagesLoaded] = useState(false)
   // 상호작용 가능한 아이템 표시
   const [interactableItem, setInteractableItem] = useState<string | null>(null)
+  // 상호작용 가능한 NPC 표시
+  const [interactableNPC, setInteractableNPC] = useState<string | null>(null)
 
   // 대화창 관련 상태 추가
   const [showDialogue, setShowDialogue] = useState(false)
@@ -56,6 +58,8 @@ export default function Game() {
   const [userName, setUserName] = useState("")
   // 대화창 위치 상태 추가
   const [dialoguePosition, setDialoguePosition] = useState<"center" | "bottom">("center")
+  // 대화창 배경 이미지 상태 추가
+  const [dialogueBackground, setDialogueBackground] = useState("/image/prince_text.png")
 
   // 게임 설정 (사용자 제공 값으로 업데이트)
   const viewportWidth = 1366
@@ -156,6 +160,9 @@ export default function Game() {
           // 로컬 스토리지에 게임 상태 저장
           localStorage.setItem("gameState", JSON.stringify(gameState))
 
+          // 게임 상태 업데이트 이벤트 발생
+          window.dispatchEvent(new CustomEvent("gameStateUpdated"))
+
           // 대화 데이터 설정
           if (gameState.dialogues && gameState.dialogues.length > 0) {
             // quest_tutorial 대화 찾기
@@ -232,6 +239,20 @@ export default function Game() {
           console.log("표시할 대화:", latestDialogue.dialogueText)
           setDialogueText(latestDialogue.dialogueText)
           setDialoguePosition("bottom") // 별 수집 후 대화는 하단에 표시
+
+          // 대화 NPC에 따라 배경 이미지 설정
+          if (latestDialogue.npcName === "어린왕자") {
+            setDialogueBackground("/image/prince_text.png")
+          } else if (latestDialogue.npcName === "장미") {
+            setDialogueBackground("/image/rose_text.png")
+          } else if (latestDialogue.npcName === "밥") {
+            setDialogueBackground("/image/bob_text.png")
+          } else if (latestDialogue.npcName === "여우") {
+            setDialogueBackground("/image/fox_text.png")
+          } else {
+            setDialogueBackground("/image/prince_text.png") // 기본값
+          }
+
           setShowDialogue(true)
         } else {
           console.log("대화 텍스트가 없습니다.")
@@ -239,14 +260,199 @@ export default function Game() {
       }
     }
 
+    // 별 전달 이벤트 리스너 추가
+    // handleStarDelivered 함수를 다음과 같이 수정합니다.
+    // 기존 handleStarDelivered 함수를 아래 코드로 완전히 교체합니다.
+
+    const handleStarDelivered = (event: CustomEvent) => {
+      const { npcId, starType, gameState, npcInfo } = event.detail
+      console.log(`별 전달 이벤트 발생: ${npcId}, ${starType}`, gameState)
+
+      // 대화 데이터 설정
+      if (gameState.dialogues && gameState.dialogues.length > 0) {
+        console.log("전달 후 대화 데이터:", gameState.dialogues)
+
+        // 모든 대화를 dialogueId 기준으로 정렬
+        const sortedDialogues = [...gameState.dialogues].sort((a, b) => a.dialogueId - b.dialogueId)
+        console.log("정렬된 대화 데이터:", sortedDialogues)
+
+        // 현재 이벤트와 관련된 대화만 필터링 (최근 대화 2개만 사용)
+        // 이 부분은 API 응답에 따라 조정이 필요할 수 있음
+        const relevantDialogues = sortedDialogues.slice(-2)
+        console.log("관련 대화 데이터:", relevantDialogues)
+
+        // 대화 큐 설정
+        const dialogueQueue = [...relevantDialogues]
+
+        // 첫 번째 대화 표시
+        if (dialogueQueue.length > 0) {
+          const firstDialogue = dialogueQueue.shift()
+          console.log("첫 번째 대화 표시:", firstDialogue)
+
+          // 대화 배경 설정
+          setDialogueBackground(getNpcBackground(firstDialogue.npcName, npcInfo))
+
+          // 대화 텍스트 설정
+          setDialogueText(firstDialogue.dialogueText)
+          setDialoguePosition("bottom")
+          setShowDialogue(true)
+
+          // 남은 대화가 있으면 이벤트 리스너 설정
+          if (dialogueQueue.length > 0) {
+            // 대화 큐를 클로저에 저장
+            const remainingDialogues = [...dialogueQueue]
+
+            const handleDialogueClosed = () => {
+              // 다음 대화 가져오기
+              const nextDialogue = remainingDialogues.shift()
+              console.log("다음 대화 표시:", nextDialogue)
+
+              if (nextDialogue) {
+                // 대화 배경 설정
+                setDialogueBackground(getNpcBackground(nextDialogue.npcName, npcInfo))
+
+                // 대화 텍스트 설정
+                setDialogueText(nextDialogue.dialogueText)
+                setDialoguePosition("bottom")
+                setShowDialogue(true)
+
+                // 남은 대화가 있으면 이벤트 리스너 유지, 없으면 제거
+                if (remainingDialogues.length === 0) {
+                  window.removeEventListener("dialogueClosed", handleDialogueClosed)
+                }
+              }
+            }
+
+            window.addEventListener("dialogueClosed", handleDialogueClosed)
+          }
+        }
+      }
+    }
+
+    // 순차적으로 대화를 표시하는 헬퍼 함수 추가
+    // 순차적으로 대화를 표시하는 헬퍼 함수 수정
+    // function showDialogueSequentially(firstDialogue, secondDialogue, npcInfo) {
+    //   console.log("첫 번째 대화 표시:", firstDialogue)
+
+    //   // 첫 번째 대화 표시
+    //   setDialogueText(firstDialogue.dialogueText)
+    //   setDialoguePosition("bottom")
+
+    //   // 대화 배경 설정 (어린왕자 또는 NPC)
+    //   if (firstDialogue.npcName === "어린왕자") {
+    //     setDialogueBackground("/image/prince_text.png")
+    //   } else if (firstDialogue.npcName === "밥") {
+    //     setDialogueBackground("/image/bob_text.png")
+    //   } else if (firstDialogue.npcName === "장미") {
+    //     setDialogueBackground("/image/rose_text.png")
+    //   } else if (firstDialogue.npcName === "여우") {
+    //     setDialogueBackground("/image/fox_text.png")
+    //   } else if (npcInfo && npcInfo.dialogueBackground) {
+    //     setDialogueBackground(npcInfo.dialogueBackground)
+    //   } else {
+    //     setDialogueBackground("/image/prince_text.png")
+    //   }
+
+    //   setShowDialogue(true)
+
+    //   // 첫 번째 대화가 닫히면 두 번째 대화 표시
+    //   const handleFirstDialogueClosed = () => {
+    //     console.log("두 번째 대화 표시:", secondDialogue)
+
+    //     // 두 번째 대화 배경 설정
+    //     if (secondDialogue.npcName === "어린왕자") {
+    //       setDialogueBackground("/image/prince_text.png")
+    //     } else if (secondDialogue.npcName === "밥") {
+    //       setDialogueBackground("/image/bob_text.png")
+    //     } else if (secondDialogue.npcName === "장미") {
+    //       setDialogueBackground("/image/rose_text.png")
+    //     } else if (secondDialogue.npcName === "여우") {
+    //       setDialogueBackground("/image/fox_text.png")
+    //     } else if (npcInfo && npcInfo.dialogueBackground) {
+    //       setDialogueBackground(npcInfo.dialogueBackground)
+    //     } else {
+    //       setDialogueBackground("/image/prince_text.png")
+    //     }
+
+    //     setDialogueText(secondDialogue.dialogueText)
+    //     setDialoguePosition("bottom")
+    //     setShowDialogue(true)
+
+    //     // 이벤트 리스너 제거
+    //     window.removeEventListener("dialogueClosed", handleFirstDialogueClosed)
+    //   }
+
+    //   window.addEventListener("dialogueClosed", handleFirstDialogueClosed)
+    // }
+
+    // 별이 없는 경우 이벤트 리스너 추가
+    const handleNoStarToDeliver = (event: CustomEvent) => {
+      const { npcId, message, npcInfo } = event.detail
+      console.log(`별 없음 이벤트 발생: ${npcId}`, message)
+
+      setDialogueText(message)
+      setDialoguePosition("bottom")
+
+      // NPC에 맞는 대화창 배경 설정
+      if (npcInfo && npcInfo.dialogueBackground) {
+        setDialogueBackground(npcInfo.dialogueBackground)
+      } else {
+        // 기본값은 어린왕자 대화창
+        setDialogueBackground("/image/prince_text.png")
+      }
+
+      setShowDialogue(true)
+    }
+
+    // 이미 전달한 경우 이벤트 리스너 추가
+    const handleStarAlreadyDelivered = (event: CustomEvent) => {
+      const { npcId, message, npcInfo } = event.detail
+      console.log(`이미 전달 이벤트 발생: ${npcId}`, message)
+
+      setDialogueText(message)
+      setDialoguePosition("bottom")
+
+      // NPC에 맞는 대화창 배경 설정
+      if (npcInfo && npcInfo.dialogueBackground) {
+        setDialogueBackground(npcInfo.dialogueBackground)
+      } else {
+        // 기본값은 어린왕자 대화창
+        setDialogueBackground("/image/prince_text.png")
+      }
+
+      setShowDialogue(true)
+    }
+
     // 이벤트 리스너 등록
     window.addEventListener("starCollected", handleStarCollected as EventListener)
+    window.addEventListener("starDelivered", handleStarDelivered as EventListener)
+    window.addEventListener("noStarToDeliver", handleNoStarToDeliver as EventListener)
+    window.addEventListener("starAlreadyDelivered", handleStarAlreadyDelivered as EventListener)
 
     // 컴포넌트 언마운트 시 이벤트 리스너 제거
     return () => {
       window.removeEventListener("starCollected", handleStarCollected as EventListener)
+      window.removeEventListener("starDelivered", handleStarDelivered as EventListener)
+      window.removeEventListener("noStarToDeliver", handleNoStarToDeliver as EventListener)
+      window.removeEventListener("starAlreadyDelivered", handleStarAlreadyDelivered as EventListener)
     }
   }, [])
+
+  // NPC 이름에 따른 배경 이미지 반환 함수
+  function getNpcBackground(npcName: string, npcInfo: any) {
+    if (npcName === "어린왕자") {
+      return "/image/prince_text.png"
+    } else if (npcName === "밥") {
+      return "/image/bob_text.png"
+    } else if (npcName === "장미") {
+      return "/image/rose_text.png"
+    } else if (npcName === "여우") {
+      return "/image/fox_text.png"
+    } else if (npcInfo && npcInfo.dialogueBackground) {
+      return npcInfo.dialogueBackground
+    }
+    return "/image/prince_text.png" // 기본값
+  }
 
   // 충돌 맵 로드
   useEffect(() => {
@@ -359,9 +565,18 @@ export default function Game() {
       })
     })
 
-    // prince_text.png 이미지 프리로드
-    const princeTextImg = new Image()
-    princeTextImg.src = "/image/prince_text.png"
+    // 대화창 배경 이미지 프리로드
+    const dialogueBackgrounds = [
+      "/image/prince_text.png",
+      "/image/rose_text.png",
+      "/image/bob_text.png",
+      "/image/fox_text.png",
+    ]
+
+    dialogueBackgrounds.forEach((path) => {
+      const img = new Image()
+      img.src = path
+    })
   }, [])
 
   // 초기 위치 설정
@@ -386,6 +601,13 @@ export default function Game() {
           // 상호작용 후 상태 초기화
           setInteractableItem(null)
         }
+        // 상호작용 가능한 NPC가 있는지 확인
+        else if (interactableNPC && npcManagerRef.current) {
+          // NPC와 상호작용
+          npcManagerRef.current.interactWithNPC(interactableNPC)
+          // 상호작용 후 상태 초기화
+          setInteractableNPC(null)
+        }
       }
     }
 
@@ -400,7 +622,7 @@ export default function Game() {
       window.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("keyup", handleKeyUp)
     }
-  }, [interactableItem, showDialogue])
+  }, [interactableItem, interactableNPC, showDialogue])
 
   // 애니메이션 타이머 설정
   useEffect(() => {
@@ -637,6 +859,16 @@ export default function Game() {
         }
       }
 
+      // 상호작용 가능한 NPC 확인
+      if (npcManagerRef.current) {
+        const npc = npcManagerRef.current.getInteractableNPC(newX, newY)
+        if (npc) {
+          setInteractableNPC(npc.id)
+        } else {
+          setInteractableNPC(null)
+        }
+      }
+
       // 캔버스 업데이트 (NPC 및 아이템 렌더링)
       if (canvasRef.current) {
         const ctx = canvasRef.current.getContext("2d")
@@ -646,7 +878,7 @@ export default function Game() {
 
           // NPC 렌더링
           if (npcManagerRef.current) {
-            npcManagerRef.current.renderNPCs(ctx, bgX, bgY)
+            npcManagerRef.current.renderNPCs(ctx, bgX, bgY, newX, newY)
           }
 
           // 아이템 렌더링
@@ -803,7 +1035,7 @@ export default function Game() {
         />
 
         {/* 상호작용 안내 메시지 */}
-        {interactableItem && (
+        {(interactableItem || interactableNPC) && (
           <div
             style={{
               position: "absolute",
@@ -834,9 +1066,14 @@ export default function Game() {
           >
             <DialogueBox
               text={dialogueText}
-              onClose={() => setShowDialogue(false)}
+              onClose={() => {
+                setShowDialogue(false)
+                // dialogueClosed 이벤트 발생
+                window.dispatchEvent(new CustomEvent("dialogueClosed"))
+              }}
               userName={userName || "모험가"}
               position={dialoguePosition}
+              backgroundImage={dialogueBackground}
             />
           </div>
         )}
