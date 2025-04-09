@@ -146,7 +146,6 @@ export function FallingPetals() {
       petal.verticalSpeed = 0.3 + Math.random() * 0.7
       petal.horizontalSpeed = 0.2 + Math.random() * 0.5
       petal.horizontalDirection = Math.random() > 0.5 ? 1 : -1
-      // 꽃잎 이미지 인덱스 재설정 (3개 이미지만 사용)
       petal.petalIndex = petalImages[Math.floor(Math.random() * petalImages.length)]
     }
 
