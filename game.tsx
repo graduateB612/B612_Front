@@ -5,7 +5,8 @@ import { type ImageCollisionMap, getCollisionMap } from "./image-collision"
 import { getNPCManager } from "./npc-manager" // NPC 매니저 import
 import { getItemManager } from "./item-manager" // 아이템 매니저 import
 import DialogueBox from "@/app/components/dialogue-box" // 대화창 컴포넌트 import
-import { startGame, GameStage, StarType } from "@/lib/api-config" // api-config에서 startGame 함수와 NPCInfoMap import
+import ConcernModal from "@/app/components/modal" // 모달 컴포넌트 import
+import { startGame, GameStage, StarType, updateGameProgress } from "@/lib/api-config" // api-config에서 startGame 함수와 NPCInfoMap import
 
 export default function Game() {
   // 가상 플레이어 위치 (실제 게임 세계에서의 위치)
@@ -78,6 +79,12 @@ export default function Game() {
   // 여우 대화 텍스트 추적
   const [foxDialogueText, setFoxDialogueText] = useState<string | null>(null)
 
+  // 모달 표시 여부
+  const [showConcernModal, setShowConcernModal] = useState(false)
+
+  // 마지막 대화 표시 여부
+  const [showFinalDialogue, setShowFinalDialogue] = useState(false)
+
   // 게임 설정 (사용자 제공 값으로 업데이트)
   const viewportWidth = 1366
   const viewportHeight = 768
@@ -123,6 +130,7 @@ export default function Game() {
         setDialoguePosition("bottom") // 하단에 표시하도록 변경
         setDialogueBackground("/image/prince_text.png")
         setShowDialogue(true)
+        setShowFinalDialogue(true) // 마지막 대화임을 표시
       }
     }
 
@@ -202,6 +210,47 @@ export default function Game() {
       setDialoguePosition("bottom") // 하단에 표시하도록 변경
       setDialogueBackground("/image/prince_text.png")
       setShowDialogue(true)
+      setShowFinalDialogue(true) // 마지막 대화임을 표시
+    }
+  }
+
+  // 마지막 대화 후 모달 표시
+  const handleFinalDialogueClosed = () => {
+    console.log("마지막 대화 닫힘, 모달 표시")
+    setShowConcernModal(true)
+  }
+
+  // 모달 제출 처리
+  const handleConcernSubmit = async (email: string, concern: string) => {
+    console.log("모달 제출:", email, concern)
+
+    try {
+      // 로컬 스토리지에서 userId 가져오기
+      const userId = localStorage.getItem("userId")
+      if (!userId) {
+        console.error("사용자 ID를 찾을 수 없습니다.")
+        return
+      }
+
+      // 게임 진행 상태 업데이트 API 호출
+      const response = await updateGameProgress(userId, {
+        stage: GameStage.REQUEST_INPUT,
+        concern: concern,
+      })
+
+      console.log("고민 제출 성공:", response)
+
+      // 게임 상태 업데이트
+      localStorage.setItem("gameState", JSON.stringify(response))
+
+      // 모달 닫기
+      setShowConcernModal(false)
+
+      // 다른 페이지로 이동 (예: 선택 페이지로)
+      window.location.href = "/select"
+    } catch (error) {
+      console.error("고민 제출 실패:", error)
+      alert("고민 제출 중 오류가 발생했습니다. 다시 시도해주세요.")
     }
   }
 
@@ -376,9 +425,16 @@ export default function Game() {
   // 대화창이 닫힐 때 다음 대화 표시
   useEffect(() => {
     if (!showDialogue) {
-      processDialogueQueue()
+      if (showFinalDialogue) {
+        // 마지막 대화가 닫혔을 때 모달 표시
+        handleFinalDialogueClosed()
+        setShowFinalDialogue(false)
+      } else {
+        // 일반 대화 큐 처리
+        processDialogueQueue()
+      }
     }
-  }, [showDialogue, dialogueQueue])
+  }, [showDialogue, dialogueQueue, showFinalDialogue])
 
   // 별 수집 이벤트 리스너
   useEffect(() => {
@@ -591,6 +647,7 @@ export default function Game() {
       setDialoguePosition("bottom") // 하단에 표시하도록 변경
       setDialogueBackground("/image/prince_text.png")
       setShowDialogue(true)
+      setShowFinalDialogue(true) // 마지막 대화임을 표시
 
       // 대화 큐 초기화 (모든 별이 전달되면 이전 대화 큐는 무시)
       setDialogueQueue([])
@@ -737,6 +794,11 @@ export default function Game() {
       const img = new Image()
       img.src = path
     })
+
+    // 모달 배경 이미지 프리로드
+    const modalImg = new Image()
+    modalImg.src =
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/text_area-KSGnCarJU7ilD503MvDlydr44XyMrG.png"
   }, [])
 
   // 초기 위치 설정
@@ -1192,6 +1254,11 @@ export default function Game() {
               backgroundImage={dialogueBackground}
             />
           </div>
+        )}
+
+        {/* 모달 창 */}
+        {showConcernModal && (
+          <ConcernModal onSubmit={handleConcernSubmit} onClose={() => setShowConcernModal(false)} userName={userName} />
         )}
       </div>
 
