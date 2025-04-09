@@ -20,6 +20,9 @@ export class NPCManager {
   private collectedStars: Set<StarType> = new Set() // 수집한 별 목록
   private deliveredStars: Set<StarType> = new Set() // 전달한 별 목록
   private currentGameState: GameStateResponse | null = null // 현재 게임 상태
+  private allStarsDeliveredFlag = false // 모든 별이 전달되었는지 여부
+  private foxDialogueInProgress = false // 여우 대화 진행 중 여부
+  private foxDialogueQueue: { text: string; background: string }[] = [] // 여우 대화 큐
 
   constructor() {
     // NPC 초기화
@@ -32,6 +35,53 @@ export class NPCManager {
     // URL 파라미터에서 디버그 모드 확인 (예: ?debug=true)
     this.isDebugMode =
       typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "true"
+
+    // 대화 완료 이벤트 리스너 등록
+    if (typeof window !== "undefined") {
+      window.addEventListener("dialogueClosed", this.handleDialogueClosed.bind(this))
+      window.addEventListener("foxDialogueFinished", this.handleFoxDialogueFinished.bind(this))
+    }
+  }
+
+  // 여우 대화 완전히 종료 이벤트 핸들러 (모든 대화가 끝난 후)
+  private handleFoxDialogueFinished(): void {
+    this.safeLog("여우 대화 완전히 종료 이벤트 감지")
+
+    // 여우 대화 진행 중 상태 해제
+    this.foxDialogueInProgress = false
+
+    // 여우 대화가 완료되었음을 표시하는 이벤트 발생
+    window.dispatchEvent(new CustomEvent("foxDialogueCompleted"))
+
+    // 모든 별이 전달되었는지 확인하고 이벤트 발생
+    if (
+      this.deliveredStars.has(StarType.PRIDE) &&
+      this.deliveredStars.has(StarType.ENVY) &&
+      this.deliveredStars.has(StarType.LONELY) &&
+      this.deliveredStars.has(StarType.SAD) &&
+      !this.allStarsDeliveredFlag
+    ) {
+      this.safeLog("여우 대화 완료 후 모든 별 전달 완료 이벤트 발생")
+      // 지연 없이 즉시 이벤트 발생
+      this.triggerAllStarsDeliveredEvent()
+    }
+  }
+
+  // 대화 완료 이벤트 핸들러 (개별 대화 종료 시)
+  private handleDialogueClosed(): void {
+    // 여우 대화 진행 중이 아니면 무시
+    if (!this.foxDialogueInProgress) {
+      return
+    }
+
+    this.safeLog("여우 대화 중 대화창 닫힘 이벤트 감지")
+
+    // 여우 대화 큐가 비어있으면 모든 대화가 끝난 것
+    if (this.foxDialogueQueue.length === 0) {
+      this.safeLog("여우 대화 큐가 비어있음, 대화 완료 처리")
+      // 여우 대화 완전히 종료 이벤트 발생 - 즉시 발생
+      window.dispatchEvent(new CustomEvent("foxDialogueFinished"))
+    }
   }
 
   private loadGameState(): void {
@@ -94,6 +144,96 @@ export class NPCManager {
 
     this.safeLog("수집한 별:", Array.from(this.collectedStars))
     this.safeLog("전달한 별:", Array.from(this.deliveredStars))
+
+    // 모든 별이 전달되었는지 확인 (여우 대화 중이 아닐 때만)
+    if (
+      this.deliveredStars.has(StarType.PRIDE) &&
+      this.deliveredStars.has(StarType.ENVY) &&
+      this.deliveredStars.has(StarType.LONELY) &&
+      this.deliveredStars.has(StarType.SAD) &&
+      !this.foxDialogueInProgress
+    ) {
+      // 모든 별이 전달되었으면 이벤트 발생
+      this.safeLog("모든 별이 전달되었습니다!")
+
+      // 이미 REQUEST_INPUT 단계 이상이면 이벤트를 발생시키지 않음
+      if (currentStage !== GameStage.REQUEST_INPUT && !this.isLaterStage(currentStage, GameStage.REQUEST_INPUT)) {
+        // 여우 대화가 진행 중이 아닐 때만 이벤트 발생
+        if (!this.foxDialogueInProgress) {
+          this.triggerAllStarsDeliveredEvent()
+        }
+      } else {
+        // REQUEST_INPUT 단계 이상이면 모든 별이 전달된 상태로 설정
+        this.allStarsDeliveredFlag = true
+      }
+    }
+  }
+
+  // 모든 별이 전달된 경우 이벤트 발생
+  private async triggerAllStarsDeliveredEvent(): Promise<void> {
+    try {
+      // 이미 이벤트가 발생했으면 중복 발생 방지
+      if (this.allStarsDeliveredFlag) {
+        return
+      }
+
+      // 여우 대화가 진행 중이면 이벤트 발생 중지
+      if (this.foxDialogueInProgress) {
+        console.log("여우 대화가 진행 중이므로 모든 별 전달 이벤트를 발생시키지 않습니다.")
+        return
+      }
+
+      // 로컬 스토리지에서 userId 가져오기
+      const userId = localStorage.getItem("userId")
+      if (!userId) {
+        console.error("사용자 ID를 찾을 수 없습니다.")
+        return
+      }
+
+      // API 호출 대신 로컬 상태만 업데이트
+      console.log("모든 별 전달 완료 - 로컬 상태 업데이트")
+
+      // 현재 게임 상태 가져오기
+      const currentGameStateStr = localStorage.getItem("gameState")
+      let currentGameState = null
+
+      if (currentGameStateStr) {
+        try {
+          currentGameState = JSON.parse(currentGameStateStr)
+        } catch (error) {
+          console.error("게임 상태 파싱 오류:", error)
+        }
+      }
+
+      // 로컬 게임 상태 업데이트
+      const updatedGameState = {
+        userId,
+        currentStage: GameStage.REQUEST_INPUT,
+        dialogues: currentGameState?.dialogues || [],
+      }
+
+      // 로컬 스토리지에 게임 상태 저장
+      localStorage.setItem("gameState", JSON.stringify(updatedGameState))
+      this.currentGameState = updatedGameState
+
+      // 모든 별이 전달된 상태로 설정
+      this.allStarsDeliveredFlag = true
+
+      // 게임 상태 업데이트 이벤트 발생
+      window.dispatchEvent(new CustomEvent("gameStateUpdated"))
+
+      // 모든 별 전달 완료 이벤트 발생
+      const allStarsDeliveredEvent = new CustomEvent("allStarsDelivered", {
+        detail: {
+          gameState: updatedGameState,
+          message:
+            "이제 얼추 정리가 된 것 같군요. 다시 한 번 '장미'의 단장으로서 감사드립니다.\n그렇다면 이제 OOO님의 의뢰를 받아볼까요?",
+        },
+      })
+      window.dispatchEvent(allStarsDeliveredEvent)
+    } catch (error) {
+      console.error("모든 별 전달 이벤트 처리 중 오류:", error)
+    }
   }
 
   // 특정 단계가 기준 단계보다 이후인지 확인
@@ -143,17 +283,17 @@ export class NPCManager {
         width: npcSize,
         height: npcSize,
         imagePath: "/image/npc_rose.png",
-        interactionDistance: 350,
+        interactionDistance: 250,
         acceptsStarType: StarType.ENVY,
       },
       {
         id: "bob",
-        x: 320, // 하단 빨간색 영역 (이미지 좌측 하단 부분)
-        y: 2500,
+        x: 350, // 하단 빨간색 영역 (이미지 좌측 하단 부분)
+        y: 2450,
         width: npcSize,
         height: npcSize,
         imagePath: "/image/npc_bob.png",
-        interactionDistance: 220,
+        interactionDistance: 250,
         acceptsStarType: StarType.LONELY,
       },
     ]
@@ -218,6 +358,12 @@ export class NPCManager {
     playerX: number,
     playerY: number,
   ): void {
+    // 모든 별이 전달되었는지 확인 - 대화 완료 후 사라지도록 수정
+    if (this.allStarsDeliveredFlag) {
+      return
+    }
+
+    // 모든 NPC 렌더링 (별 전달 여부와 관계없이)
     this.npcs.forEach((npc) => {
       const img = this.imageCache[npc.imagePath]
 
@@ -277,6 +423,11 @@ export class NPCManager {
 
   // 플레이어가 상호작용 가능한 NPC가 있는지 확인
   public getInteractableNPC(playerX: number, playerY: number): NPC | null {
+    // 모든 별이 전달되었으면 상호작용 가능한 NPC가 없음
+    if (this.allStarsDeliveredFlag) {
+      return null
+    }
+
     for (const npc of this.npcs) {
       if (
         this.isPlayerNearNPC(playerX, playerY, npc) &&
@@ -288,6 +439,100 @@ export class NPCManager {
       }
     }
     return null
+  }
+
+  // 여우 NPC 대화 처리를 위한 특별 함수
+  public handleFoxDialogue(dialogues: any[]): { text: string; background: string }[] {
+    console.log("여우 NPC 대화 처리 함수 호출됨")
+
+    // 대화 데이터가 없으면 기본 대화 반환
+    if (!dialogues || dialogues.length === 0) {
+      console.log("대화 데이터가 없어 기본 대화를 사용합니다.")
+      return [
+        {
+          text: "어린왕자: 바로 '여우'입니다.",
+          background: "/image/prince_text.png",
+        },
+        {
+          text: "여우: 와! 내 별이다! 정말정말 고마워! 오늘 오기로 한 의뢰인이 당신이구나? 어떤 의뢰인진 모르겠지만 이 별은 당신을 위해 사용할게.",
+          background: "/image/fox_text.png",
+        },
+      ]
+    }
+
+    // 대화 데이터에서 여우와 어린왕자 대화 찾기
+    const foxDialogues = dialogues.filter((d) => d.npcName === "여우" || d.npcName === "fox" || d.npcName === "Fox")
+
+    const princeDialogues = dialogues.filter(
+      (d) => d.npcName === "어린왕자" || d.npcName === "prince" || d.npcName === "Prince",
+    )
+
+    console.log("여우 대화:", foxDialogues)
+    console.log("어린왕자 대화:", princeDialogues)
+
+    // 대화 큐 생성
+    const dialogueQueue: { text: string; background: string }[] = []
+
+    // 어린왕자 대화 먼저 추가 (바로 '여우'입니다.)
+    if (princeDialogues.length > 0) {
+      const princeDialogue = princeDialogues[0]
+      if (princeDialogue.dialogueText && princeDialogue.dialogueText.trim() !== "") {
+        dialogueQueue.push({
+          text: princeDialogue.dialogueText,
+          background: "/image/prince_text.png",
+        })
+      } else {
+        // 어린왕자 대화가 없거나 비어있으면 기본 대화 추가
+        dialogueQueue.push({
+          text: "바로 '여우'입니다.",
+          background: "/image/prince_text.png",
+        })
+      }
+    } else {
+      // 어린왕자 대화가 없으면 기본 대화 추가
+      dialogueQueue.push({
+        text: "바로 '여우'입니다.",
+        background: "/image/prince_text.png",
+      })
+    }
+
+    // 여우 대화 추가
+    if (foxDialogues.length > 0) {
+      foxDialogues.forEach((dialogue) => {
+        if (dialogue.dialogueText && dialogue.dialogueText.trim() !== "") {
+          dialogueQueue.push({
+            text: dialogue.dialogueText,
+            background: "/image/fox_text.png",
+          })
+        }
+      })
+    } else {
+      // 여우 대화가 없으면 기본 대화 추가
+      dialogueQueue.push({
+        text: "와! 내 별이다! 정말정말 고마워! 오늘 오기로 한 의뢰인이 당신이구나? 어떤 의뢰인진 모르겠지만 이 별은 당신을 위해 사용할게.",
+        background: "/image/fox_text.png",
+      })
+    }
+
+    // 대화 큐가 비어있으면 기본 대화 추가
+    if (dialogueQueue.length === 0) {
+      console.log("대화 큐가 비어있어 기본 대화를 추가합니다.")
+      dialogueQueue.push({
+        text: "어린왕자: 바로 '여우'입니다.",
+        background: "/image/prince_text.png",
+      })
+      dialogueQueue.push({
+        text: "여우: 와! 내 별이다! 정말정말 고마워! 오늘 오기로 한 의뢰인이 당신이구나? 어떤 의뢰인진 모르겠지만 이 별은 당신을 위해 사용할게.",
+        background: "/image/fox_text.png",
+      })
+    }
+
+    console.log("생성된 여우 대화 큐:", dialogueQueue)
+
+    // 여우 대화 큐 저장
+    this.foxDialogueQueue = [...dialogueQueue]
+
+    return dialogueQueue
   }
 
   // NPC와 상호작용 처리 함수
@@ -317,6 +562,13 @@ export class NPCManager {
       // 이미 수집한 별이 있고, 아직 전달하지 않은 경우에만 처리
       if (this.collectedStars.has(npc.acceptsStarType) && !this.deliveredStars.has(npc.acceptsStarType)) {
         console.log(`${npc.id} NPC에게 ${npc.acceptsStarType} 별 전달 API 호출 중... userId: ${userId}`)
+
+        // 여우 NPC인 경우 대화 진행 중 상태로 설정
+        if (npc.id === "fox" && npc.acceptsStarType === StarType.SAD) {
+          this.foxDialogueInProgress = true
+          this.safeLog("여우 대화 진행 중 상태로 설정")
+        }
+
         const response = await deliverStar(userId, npc.acceptsStarType)
         console.log("별 전달 성공:", response)
 
@@ -425,4 +677,3 @@ export function getNPCManager(): NPCManager {
   }
   return npcManagerInstance
 }
-
