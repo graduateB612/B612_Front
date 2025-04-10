@@ -111,7 +111,6 @@ export default function ResultPage() {
           fadeIn ? "opacity-100" : "opacity-0"
         }`}
       >
-        <h1 className="text-3xl font-bold text-white mb-8">게임 클리어</h1>
 
         <div className="relative mb-8 max-w-md mx-auto">
           <Image
