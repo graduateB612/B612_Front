@@ -85,7 +85,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
         console.error("API 오류 응답:", errorText)
         errorMessage += ` - ${errorText}`
       } catch (error) {
-        console.error("API 오류 응답 본문을 읽을 수 없음")
+        console.error("API 오류 응답 본문을 읽을 수 없음", error)
       }
 
       throw new Error(errorMessage)
@@ -217,7 +217,7 @@ export async function completeGame(userId: string, data: EmailRequest): Promise<
           dialogueId: 1,
           npcId: 1,
           npcName: "어린왕자",
-          dialogueText: "의뢰가 접수 되었습니다!\nOOO님의 작성 해 주신 주소로 의뢰주소 확인서를 보냈습니다.",
+          dialogueText: "의뢰가 접수 되었습니다!$nOOO님의 작성 해 주신 주소로 의뢰주소 확인서를 보냈습니다.",
         },
       ],
     }
