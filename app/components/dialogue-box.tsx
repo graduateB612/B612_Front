@@ -79,6 +79,7 @@ export default function DialogueBox({
     typeCharacter()
   }
 
+  // 대화창 닫기 함수 수정
   const handleClick = () => {
     // 타이핑 중이면 타이핑을 완료하고, 아니면 다음 대화로 진행
     if (isTyping) {
@@ -102,8 +103,15 @@ export default function DialogueBox({
       } else {
         // 모든 부분이 끝났으면 대화창 닫기
         onClose()
-        // 대화 종료 이벤트 발생
+
+        // 대화 종료 이벤트 발생 - 즉시 발생하도록 수정
         window.dispatchEvent(new CustomEvent("dialogueClosed"))
+
+        // 여우 대화인지 확인하고 여우 대화 완료 이벤트 발생
+        if (backgroundImage === "/image/fox_text.png") {
+          console.log("여우 대화 완료 이벤트 발생")
+          window.dispatchEvent(new CustomEvent("foxDialogueFinished"))
+        }
       }
     }
   }
@@ -147,4 +155,3 @@ export default function DialogueBox({
     </div>
   )
 }
-
