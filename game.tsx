@@ -6,7 +6,7 @@ import { getNPCManager } from "./npc-manager" // NPC 매니저 import
 import { getItemManager } from "./item-manager" // 아이템 매니저 import
 import DialogueBox from "@/app/components/dialogue-box" // 대화창 컴포넌트 import
 import ConcernModal from "@/app/components/modal" // 모달 컴포넌트 import
-import { startGame, GameStage, StarType, updateGameProgress } from "@/lib/api-config" // api-config에서 startGame 함수와 NPCInfoMap import
+import { startGame, GameStage, StarType } from "@/lib/api-config" // api-config에서 startGame 함수와 NPCInfoMap import
 
 export default function Game() {
   // 가상 플레이어 위치 (실제 게임 세계에서의 위치)
@@ -225,28 +225,14 @@ export default function Game() {
     console.log("모달 제출:", email, concern)
 
     try {
-      // 로컬 스토리지에서 userId 가져오기
-      const userId = localStorage.getItem("userId")
-      if (!userId) {
-        console.error("사용자 ID를 찾을 수 없습니다.")
-        return
-      }
-
-      // 게임 진행 상태 업데이트 API 호출
-      const response = await updateGameProgress(userId, {
-        stage: GameStage.REQUEST_INPUT,
-        concern: concern,
-      })
-
-      console.log("고민 제출 성공:", response)
-
-      // 게임 상태 업데이트
-      localStorage.setItem("gameState", JSON.stringify(response))
+      // 로컬 스토리지에 이메일과 고민 저장 (select 페이지에서 사용하기 위해)
+      localStorage.setItem("userEmail", email)
+      localStorage.setItem("userConcern", concern)
 
       // 모달 닫기
       setShowConcernModal(false)
 
-      // 다른 페이지로 이동 (예: 선택 페이지로)
+      // select 페이지로 이동
       window.location.href = "/select"
     } catch (error) {
       console.error("고민 제출 실패:", error)

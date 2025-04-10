@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import Image from "next/image"
 
@@ -9,7 +11,7 @@ interface ConcernModalProps {
   userName: string
 }
 
-export default function ConcernModal({ onSubmit, onClose, userName }: ConcernModalProps) {
+export default function ConcernModal({ onSubmit }: ConcernModalProps) {
   const [email, setEmail] = useState("")
   const [concern, setConcern] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -30,21 +32,13 @@ export default function ConcernModal({ onSubmit, onClose, userName }: ConcernMod
       <div className="relative w-full max-w-md">
         {/* 배경 이미지 */}
         <div className="relative">
-          <Image
-            src="/image/text_area.png"
-            alt="Modal background"
-            width={500}
-            height={600}
-            className="w-full h-auto"
-          />
-          
+          <Image src="/image/text_area.png" alt="Modal background" width={500} height={600} className="w-full h-auto" />
+
           {/* 폼 콘텐츠 */}
           <div className="absolute inset-0 flex flex-col items-center justify-center p-10">
             <form onSubmit={handleSubmit} className="w-full space-y-6">
               <div className="space-y-2">
-                <label className="block text-white text-lg font-bold">
-                  당신의 주소는?
-                </label>
+                <label className="block text-white text-lg font-bold">당신의 주소는?</label>
                 <input
                   type="email"
                   value={email}
@@ -54,11 +48,9 @@ export default function ConcernModal({ onSubmit, onClose, userName }: ConcernMod
                   disabled={isSubmitting}
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <label className="block text-white text-lg font-bold">
-                  의뢰을 작성 해 주세요!
-                </label>
+                <label className="block text-white text-lg font-bold">의뢰을 작성 해 주세요!</label>
                 <textarea
                   value={concern}
                   onChange={(e) => setConcern(e.target.value)}
@@ -67,7 +59,7 @@ export default function ConcernModal({ onSubmit, onClose, userName }: ConcernMod
                   disabled={isSubmitting}
                 />
               </div>
-              
+
               <div className="flex justify-center pt-4">
                 <button
                   type="submit"

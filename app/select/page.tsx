@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { updateGameProgress, GameStage } from "@/lib/api-config"
+import { completeGame } from "@/lib/api-config"
 
 // NPC 정보 타입 정의
 interface NPC {
@@ -20,6 +20,7 @@ export default function SelectPage() {
   const [selectedNPC, setSelectedNPC] = useState<string | null>(null)
   const [userName, setUserName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // NPC 데이터
   const npcs: NPC[] = [
@@ -49,7 +50,7 @@ export default function SelectPage() {
     },
     {
       id: "bob",
-      name: "밥",
+      name: "바오밥",
       image: "/image/select_bob.png",
       description: "나무인 바오밥",
       width: 200,
@@ -79,32 +80,91 @@ export default function SelectPage() {
 
     setSelectedNPC(npcId)
     setIsSubmitting(true)
+    setError(null)
 
     try {
-      // 로컬 스토리지에서 userId 가져오기
+      // 로컬 스토리지에서 userId, 이메일, 고민 가져오기
       const userId = localStorage.getItem("userId")
+      const email = localStorage.getItem("userEmail")
+      const concern = localStorage.getItem("userConcern")
+
       if (!userId) {
         console.error("사용자 ID를 찾을 수 없습니다.")
+        setError("사용자 ID를 찾을 수 없습니다.")
+        setIsSubmitting(false)
         return
       }
 
-      // 게임 진행 상태 업데이트 API 호출
-      const response = await updateGameProgress(userId, {
-        stage: GameStage.NPC_SELECTION,
-        selectedNpc: npcId,
+      if (!email) {
+        console.error("이메일 정보를 찾을 수 없습니다.")
+        setError("이메일 정보를 찾을 수 없습니다.")
+        setIsSubmitting(false)
+        return
+      }
+
+      // NPC 이름 매핑
+      const npcNameMap: Record<string, string> = {
+        prince: "어린왕자",
+        rose: "장미",
+        fox: "여우",
+        bob: "바오밥",
+      }
+
+      console.log("게임 완료 API 호출 준비:", {
+        userId,
+        email,
+        concern: concern || "",
+        selectedNpc: npcNameMap[npcId] || npcId,
       })
 
-      console.log("NPC 선택 성공:", response)
+      // 게임 완료 API 호출
+      const response = await completeGame(userId, {
+        email,
+        concern: concern || "",
+        selectedNpc: npcNameMap[npcId] || npcId,
+      })
+
+      console.log("게임 완료 API 호출 성공:", response)
 
       // 게임 상태 업데이트
       localStorage.setItem("gameState", JSON.stringify(response))
 
-      // 다음 페이지로 이동 (예: 결과 페이지로)
+      // 결과 페이지로 이동
       window.location.href = "/result"
     } catch (error) {
-      console.error("NPC 선택 실패:", error)
-      alert("NPC 선택 중 오류가 발생했습니다. 다시 시도해주세요.")
+      console.error("게임 완료 API 호출 실패:", error)
+
+      // 오류 메시지 표시
+      let errorMessage = "요청 처리 중 오류가 발생했습니다. 다시 시도해주세요."
+      if (error && typeof error === "object" && "error" in error) {
+        errorMessage += ` (${error.error})`
+      }
+
+      setError(errorMessage)
       setIsSubmitting(false)
+
+      // 오류가 발생해도 결과 페이지로 이동 (사용자 경험 개선)
+      setTimeout(() => {
+        // 기본 게임 상태 생성
+        const fallbackGameState = {
+          userId: localStorage.getItem("userId") || "",
+          currentStage: "GAME_COMPLETE",
+          dialogues: [
+            {
+              dialogueId: 1,
+              npcId: 1,
+              npcName: "어린왕자",
+              dialogueText: "의뢰가 접수 되었습니다!\nOOO님의 작성 해 주신 주소로 의뢰주소 확인서를 보냈습니다.",
+            },
+          ],
+        }
+
+        // 게임 상태 저장
+        localStorage.setItem("gameState", JSON.stringify(fallbackGameState))
+
+        // 결과 페이지로 이동
+        window.location.href = "/result"
+      }, 3000)
     }
   }
 
@@ -161,13 +221,26 @@ export default function SelectPage() {
         </div>
 
         <div className="mt-16 text-center">
-          <p className="text-lg">
-            {selectedNPC
-              ? `${npcs.find((npc) => npc.id === selectedNPC)?.name}와(과) 함께 이야기를 나눕니다...`
-              : "캐릭터를 클릭하여 선택해주세요"}
-          </p>
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+          {isSubmitting ? (
+            <p className="text-lg">처리 중입니다...</p>
+          ) : (
+            <p className="text-lg">
+              {selectedNPC
+                ? `${npcs.find((npc) => npc.id === selectedNPC)?.name}와(과) 함께 이야기를 나눕니다...`
+                : "캐릭터를 클릭하여 선택해주세요"}
+            </p>
+          )}
         </div>
       </div>
+
+      <style jsx global>{`
+        .pixelated {
+          image-rendering: pixelated;
+          image-rendering: -moz-crisp-edges;
+          image-rendering: crisp-edges;
+        }
+      `}</style>
     </main>
   )
 }

@@ -18,7 +18,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
     ...options,
     headers: {
       ...defaultHeaders,
-      ...options.headers,
+      ...(options.headers || {}),
     },
     mode: "cors",
     credentials: "omit",
@@ -33,6 +33,13 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
   try {
     // 실제 요청 전송
     const response = await fetch(url, config)
+
+    // 404 오류 처리 - 상세 로깅
+    if (response.status === 404) {
+      console.error(`404 오류: 엔드포인트 ${endpoint}를 찾을 수 없습니다.`)
+      console.error(`전체 URL: ${url}`)
+      throw new Error(`404 Not Found: ${endpoint}`)
+    }
 
     // 405 Method Not Allowed 오류 처리 - GET 메서드로 재시도
     if (response.status === 405 && config.method === "POST") {
@@ -77,7 +84,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
         const errorText = await response.text()
         console.error("API 오류 응답:", errorText)
         errorMessage += ` - ${errorText}`
-      } catch (e) {
+      } catch (error) {
         console.error("API 오류 응답 본문을 읽을 수 없음")
       }
 
@@ -181,6 +188,42 @@ export interface GameProgressRequest {
   completed?: boolean
 }
 
+// 이메일 요청 인터페이스 추가
+export interface EmailRequest {
+  email: string
+  concern: string
+  selectedNpc: string
+}
+
+// 게임 완료 함수 수정
+export async function completeGame(userId: string, data: EmailRequest): Promise<GameStateResponse> {
+  console.log("게임 완료 API 호출:", userId, data)
+
+  try {
+    // 정확한 엔드포인트 사용
+    return await apiRequest<GameStateResponse>(`game/${userId}/complete`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+  } catch (error) {
+    console.error("게임 완료 API 오류:", error)
+
+    // 오류 발생 시 기본 게임 상태 반환
+    return {
+      userId,
+      currentStage: GameStage.GAME_COMPLETE,
+      dialogues: [
+        {
+          dialogueId: 1,
+          npcId: 1,
+          npcName: "어린왕자",
+          dialogueText: "의뢰가 접수 되었습니다!\nOOO님의 작성 해 주신 주소로 의뢰주소 확인서를 보냈습니다.",
+        },
+      ],
+    }
+  }
+}
+
 // 게임 시작 함수
 export async function startGame(userId: string) {
   try {
@@ -244,18 +287,6 @@ export async function collectStar(userId: string, starType: StarType) {
   } catch (error) {
     console.error("별 수집 API 오류:", error)
 
-    // 로컬 스토리지에서 현재 게임 상태 가져오기
-    let currentStage = GameStage.GAME_START
-    try {
-      const gameStateStr = localStorage.getItem("gameState")
-      if (gameStateStr) {
-        const gameState = JSON.parse(gameStateStr)
-        currentStage = gameState.currentStage || GameStage.GAME_START
-      }
-    } catch (e) {
-      console.error("로컬 스토리지 게임 상태 파싱 오류:", e)
-    }
-
     // 다음 단계 계산
     const nextStage = getNextStageAfterCollect(starType)
 
@@ -291,18 +322,6 @@ export async function deliverStar(userId: string, starType: StarType) {
     })
   } catch (error) {
     console.error("별 전달 API 오류:", error)
-
-    // 로컬 스토리지에서 현재 게임 상태 가져오기
-    let currentStage = GameStage.GAME_START
-    try {
-      const gameStateStr = localStorage.getItem("gameState")
-      if (gameStateStr) {
-        const gameState = JSON.parse(gameStateStr)
-        currentStage = gameState.currentStage || GameStage.GAME_START
-      }
-    } catch (e) {
-      console.error("로컬 스토리지 게임 상태 파싱 오류:", e)
-    }
 
     // 다음 단계 계산
     const nextStage = getNextStageAfterDeliver(starType)

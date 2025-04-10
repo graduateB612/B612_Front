@@ -15,7 +15,6 @@ export default function DialogueBox({
   text,
   onClose,
   userName,
-  position = "center",
   backgroundImage = "/image/prince_text.png", // 기본값은 어린왕자 대화창
 }: DialogueBoxProps) {
   const [displayedText, setDisplayedText] = useState("")
