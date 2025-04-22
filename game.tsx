@@ -7,6 +7,8 @@ import { getItemManager } from "./item-manager" // 아이템 매니저 import
 import DialogueBox from "@/app/components/dialogue-box" // 대화창 컴포넌트 import
 import ConcernModal from "@/app/components/modal" // 모달 컴포넌트 import
 import { startGame, GameStage, StarType } from "@/lib/api-config" // api-config에서 startGame 함수와 NPCInfoMap import
+// 상단에 StarGuide 컴포넌트 import 추가
+import StarGuide from "@/app/components/star-guide"
 
 export default function Game() {
   // 가상 플레이어 위치 (실제 게임 세계에서의 위치)
@@ -17,7 +19,7 @@ export default function Game() {
     y: 0,
   })
   // 배경 위치
-  const [backgroundPosition, setBackgroundPosition] = useState({ x: 2520, y: 2520 })
+  const [backgroundPosition, setBackgroundPosition] = useState({ x: 2000, y: 2000 })
   // 키 상태 추적
   const [keysPressed, setKeysPressed] = useState<Record<string, boolean>>({})
   // 플레이어 방향
@@ -88,7 +90,7 @@ export default function Game() {
   // 게임 설정 (사용자 제공 값으로 업데이트)
   const viewportWidth = 1366
   const viewportHeight = 768
-  const playerSpeed = 3
+  const playerSpeed = 5 // 이동 속도 증가 (3에서 5로)
   const playerSize = 50 // 플레이어 충돌 크기를 50으로 고정
 
   // 배경 이미지 크기 (사용자 제공 값으로 업데이트)
@@ -101,6 +103,9 @@ export default function Game() {
   // 중앙 위치 계산
   const centerX = viewportWidth / 2 - playerSize / 2
   const centerY = viewportHeight / 2 - playerSize / 2
+
+  // 상태 추가 (useState 부분에 추가)
+  const [showStarGuide, setShowStarGuide] = useState(false)
 
   // 여우 대화 완료 이벤트 리스너
   useEffect(() => {
@@ -656,6 +661,56 @@ export default function Game() {
       window.removeEventListener("allStarsDelivered", handleAllStarsDelivered as EventListener)
     }
   }, [dialogueQueue, foxDialogueText])
+
+  // 오브젝트 상호작용 이벤트 리스너 추가 (useEffect 내부에 추가)
+  useEffect(() => {
+    const handleObjectInteraction = (event: CustomEvent) => {
+      const { itemType, itemId } = event.detail
+      console.log(`오브젝트 상호작용: ${itemType}, ${itemId}`)
+
+      // 오브젝트 타입에 따른 처리
+      switch (itemType) {
+        case "book":
+          console.log("별 도감 오브젝트와 상호작용")
+          // 나중에 별 도감 UI 표시 기능 구현
+          break
+        case "write":
+        case "pen":
+          console.log("의뢰 작성 오브젝트와 상호작용")
+          // 나중에 의뢰 작성 UI 표시 기능 구현
+          break
+        default:
+          console.log("알 수 없는 오브젝트 타입")
+      }
+    }
+
+    // 이벤트 리스너 등록
+    window.addEventListener("objectInteraction", handleObjectInteraction as EventListener)
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener("objectInteraction", handleObjectInteraction as EventListener)
+    }
+  }, [])
+
+  // 이벤트 리스너 추가 (useEffect 내부에 추가)
+  useEffect(() => {
+    const handleOpenStarGuide = () => {
+      setShowStarGuide(true)
+    }
+
+    const handleCloseStarGuide = () => {
+      setShowStarGuide(false)
+    }
+
+    window.addEventListener("openStarGuide", handleOpenStarGuide)
+    window.addEventListener("closeStarGuide", handleCloseStarGuide)
+
+    return () => {
+      window.removeEventListener("openStarGuide", handleOpenStarGuide)
+      window.removeEventListener("closeStarGuide", handleCloseStarGuide)
+    }
+  }, [])
 
   // 충돌 맵 로드
   useEffect(() => {
@@ -1267,6 +1322,7 @@ export default function Game() {
           </p>
         </div>
       )}
+      {showStarGuide && <StarGuide onClose={() => setShowStarGuide(false)} />}
     </div>
   )
 }
