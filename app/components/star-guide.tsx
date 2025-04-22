@@ -18,7 +18,7 @@ interface StarGuideEntry {
   starName: string
   starSource: string
   description: string
-  imageUrl?: string // API에서 제공하지 않는 경우を 위한 옵션 필드
+  imageUrl?: string // API에서 제공하지 않는 경우를 위한 옵션 필드
 }
 
 interface StarGuideResponse {
@@ -33,28 +33,14 @@ interface StarGuideProps {
 }
 
 export default function StarGuide({ onClose }: StarGuideProps) {
-  const [currentPage, setCurrentPage] = useState(0)
+  // API 페이지 번호 (0부터 시작)
+  const [apiPage, setApiPage] = useState(0)
   const [guideData, setGuideData] = useState<StarGuideResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showDialogue, setShowDialogue] = useState(true) // 처음부터 대화창 표시
   const [currentDialogueIndex, setCurrentDialogueIndex] = useState(0)
   const [dialoguesCompleted, setDialoguesCompleted] = useState(false) // 대화가 모두 완료되었는지 여부
-
-  // 별 이미지 매핑 - 별 이름에 따라 이미지 경로 결정
-  const getStarImageByName = (starName: string): string => {
-    const nameToImageMap: Record<string, string> = {
-      "교만의 별": "/image/negative_pride.png",
-      "질투의 별": "/image/negative_envy.png",
-      "외로움의 별": "/image/negative_lonely.png",
-      "슬픔의 별": "/image/negative_sad.png",
-      "욕망의 별": "/image/negative_desire.png", // 추가 이미지
-      "의심의 별": "/image/negative_doubt.png", // 추가 이미지
-      "불안의 별": "/image/negative_anxiety.png", // 추가 이미지
-    }
-
-    return nameToImageMap[starName] || "/image/default_star.png"
-  }
 
   // 별 도감 데이터 가져오기
   const fetchStarGuideData = async (page = 0, includeDialogues = true) => {
@@ -70,10 +56,10 @@ export default function StarGuide({ onClose }: StarGuideProps) {
         return
       }
 
-      // 정확한 API 엔드포인트 사용
+      // API 호출 시 페이지 번호는 그대로 사용 (API는 0부터 시작)
       const apiUrl = `${API_CONFIG.baseUrl}/interactions/${userId}/star-guide?page=${page}&includeDialogues=${includeDialogues}`
 
-      console.log("별 도감 데이터 요청 시작:", apiUrl)
+      console.log("별 도감 데이터 요청 시작:", apiUrl, "API 페이지:", page)
 
       // API 호출
       const response = await fetch(apiUrl)
@@ -85,15 +71,8 @@ export default function StarGuide({ onClose }: StarGuideProps) {
       const data: StarGuideResponse = await response.json()
       console.log("별 도감 데이터 로드 성공:", data)
 
-      // 이미지 URL 추가
-      if (data.starEntries) {
-        data.starEntries = data.starEntries.map((entry) => ({
-          ...entry,
-          imageUrl: getStarImageByName(entry.starName),
-        }))
-      }
-
       setGuideData(data)
+      setApiPage(data.currentPage) // API 응답의 currentPage 저장
 
       // 첫 페이지이고 대화가 있으면 대화 표시
       if (page === 0 && includeDialogues && data.dialogues && data.dialogues.length > 0) {
@@ -147,35 +126,32 @@ export default function StarGuide({ onClose }: StarGuideProps) {
             starName: "교만의 별",
             starSource: "감정: 교만함에서 빚어진 별",
             description: "잘 달래 준다면 자신감이 넘치는 에너지로도 자란지도 몰라!",
-            imageUrl: "/image/negative_pride.png",
           },
           {
             entryId: 2,
-            starName: "질투의 별",
-            starSource: "감정: 질투에서 빚어진 별",
-            description: "질투가 아름다운 순간이 존재한다면 믿을까? 사랑의 감정을 고귀하게 탄생시켜주는 별이야.",
-            imageUrl: "/image/negative_envy.png",
+            starName: "본노의 별",
+            starSource: "감정: 본노에서 빚어진 별",
+            description: "화가 나고 억울할 때 크게 생성. 가끔은 우리를 성장시키는 별이 되기도 해.",
           },
           {
             entryId: 3,
             starName: "슬픔의 별",
             starSource: "감정: 슬픔에서 빚어진 별",
-            description: "슬픔은 건 감정이 마르지 않았다 죽은 증거라고 생각해. 그 덕에 기쁨이 더 클테니까!",
-            imageUrl: "/image/negative_sad.png",
+            description: "슬프다는 건 감정이 마르지 않았다 증거라고 생각해. 그 덕에 기쁨이 더 클테니까!",
           },
           {
             entryId: 4,
-            starName: "외로움의 별",
-            starSource: "감정: 외로움에서 빚어진 별",
-            description: "외로움은 내 주변을 바라보게 해. 그런 뒤 누군가가 있다면... 그 순간을 훨씬 더 기쁘게 해주지!",
-            imageUrl: "/image/negative_lonely.png",
+            starName: "불안의 별",
+            starSource: "감정: 불안함에서 빚어진 별",
+            description: "적당한 불안감과 긴장은 좀 더 꼼꼼한 사람을 만들어져 한 번 성공을 하면 없어지기도 해.",
           },
         ],
         totalPages: 7,
-        currentPage: 0,
+        currentPage: page,
       }
 
       setGuideData(dummyData)
+      setApiPage(page) // 더미 데이터의 경우 요청한 페이지를 API 페이지로 설정
     } finally {
       setLoading(false)
     }
@@ -184,8 +160,8 @@ export default function StarGuide({ onClose }: StarGuideProps) {
   // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
     console.log("StarGuide 컴포넌트 마운트됨, 데이터 로드 시작")
-    fetchStarGuideData(currentPage)
-  }, [currentPage])
+    fetchStarGuideData(0)
+  }, [])
 
   // 대화 진행
   const handleDialogueNext = () => {
@@ -197,21 +173,22 @@ export default function StarGuide({ onClose }: StarGuideProps) {
       setShowDialogue(false)
       setCurrentDialogueIndex(0)
       setDialoguesCompleted(true) // 모든 대화가 완료됨
-      setCurrentPage(1) // 대화가 완료되면 자동으로 page_1.png로 이동
+      // 대화가 완료되면 API 페이지 0의 데이터를 표시하고 이미지는 page_1.png 사용
+      fetchStarGuideData(0, false)
     }
   }
 
   // 페이지 이동
   const goToPage = (page: number) => {
     if (dialoguesCompleted) {
-      if (page >= 1 && page <= (guideData?.totalPages || 1)) {
-        setCurrentPage(page)
+      if (page >= 0 && page < (guideData?.totalPages || 1)) {
+        setApiPage(page)
         // 페이지 변경 시 해당 페이지의 데이터 로드
         fetchStarGuideData(page, false)
       }
     } else {
-      // 대화 중에는 page_0만 표시
-      setCurrentPage(0)
+      // 대화 중에는 첫 페이지만 표시
+      fetchStarGuideData(0, true)
     }
   }
 
@@ -232,54 +209,100 @@ export default function StarGuide({ onClose }: StarGuideProps) {
     const entries = guideData.starEntries
 
     return (
-      <div className="absolute inset-0 flex">
-        {/* 왼쪽 페이지 */}
-        <div className="w-1/2 p-8 pt-16">
-          {entries.length > 0 && (
-            <div className="mb-12 ml-24 mt-16">
-              <div className="mb-2">
-                <p className="text-amber-800 font-bold">{entries[0].starSource}</p>
-                <p className="text-amber-900 text-sm mt-1">{entries[0].description}</p>
-              </div>
-              <p className="text-center text-amber-800 font-bold mt-2">{entries[0].starName}</p>
-            </div>
-          )}
+      <div className="absolute inset-0">
+        {/* 페이지 제목 (첫 번째 페이지인 경우) */}
+        {apiPage === 0 && (
+          <div className="absolute text-amber-800 font-bold text-lg" style={{ top: "80px", left: "100px" }}>
+            부정적 감정의 별
+          </div>
+        )}
 
-          {entries.length > 2 && (
-            <div className="ml-24 mt-16">
-              <div className="mb-2">
-                <p className="text-amber-800 font-bold">{entries[2].starSource}</p>
-                <p className="text-amber-900 text-sm mt-1">{entries[2].description}</p>
+        {/* 왼쪽 페이지 - 첫 번째 별 */}
+        {entries.length > 0 && (
+          <div className="absolute" style={{ top: "120px", left: "100px", width: "400px" }}>
+            <div className="flex">
+              <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
+              <div className="ml-4 ">
+                <p className=" font-bold text-m">{entries[0].starSource}</p>
+                <p className=" text-sm mt-1 pr-4 leading-tight">{entries[0].description}</p>
               </div>
-              <p className="text-center text-amber-800 font-bold mt-2">{entries[2].starName}</p>
             </div>
-          )}
-        </div>
+            <p className=" font-bold text-m mt-2" style={{ marginLeft: "8px", marginTop:"-2px" }}>
+              {entries[0].starName}
+            </p>
+          </div>
+        )}
 
-        {/* 오른쪽 페이지 */}
-        <div className="w-1/2 p-8 pt-16">
-          {entries.length > 1 && (
-            <div className="mb-12 ml-24 mt-16">
-              <div className="mb-2">
-                <p className="text-amber-800 font-bold">{entries[1].starSource}</p>
-                <p className="text-amber-900 text-sm mt-1">{entries[1].description}</p>
+        {/* 왼쪽 페이지 - 세 번째 별 */}
+        {entries.length > 2 && (
+          <div className="absolute" style={{ top: "340px", left: "100px", width: "400px" }}>
+            <div className="flex">
+              <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
+              <div className="ml-2">
+                <p className="text-amber-800 font-bold text-sm">{entries[2].starSource}</p>
+                <p className="text-amber-900 text-xs mt-1 pr-4 leading-tight">{entries[2].description}</p>
               </div>
-              <p className="text-center text-amber-800 font-bold mt-2">{entries[1].starName}</p>
             </div>
-          )}
+          </div>
+        )}
 
-          {entries.length > 3 && (
-            <div className="ml-24 mt-16">
-              <div className="mb-2">
-                <p className="text-amber-800 font-bold">{entries[3].starSource}</p>
-                <p className="text-amber-900 text-sm mt-1">{entries[3].description}</p>
+        {/* 오른쪽 페이지 - 두 번째 별 */}
+        {entries.length > 1 && (
+          <div className="absolute" style={{ top: "150px", left: "520px", width: "400px" }}>
+            <div className="flex">
+              <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
+              <div className="ml-2">
+                <p className="text-amber-800 font-bold text-sm">{entries[1].starSource}</p>
+                <p className="text-amber-900 text-xs mt-1 pr-4 leading-tight">{entries[1].description}</p>
               </div>
-              <p className="text-center text-amber-800 font-bold mt-2">{entries[3].starName}</p>
             </div>
-          )}
-        </div>
+            <p className="text-amber-800 font-bold text-sm mt-2" style={{ marginLeft: "80px" }}>
+              {entries[1].starName}
+            </p>
+          </div>
+        )}
+
+        {/* 오른쪽 페이지 - 네 번째 별 */}
+        {entries.length > 3 && (
+          <div className="absolute" style={{ top: "340px", left: "520px", width: "400px" }}>
+            <div className="flex">
+              <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
+              <div className="ml-2">
+                <p className="text-amber-800 font-bold text-sm">{entries[3].starSource}</p>
+                <p className="text-amber-900 text-xs mt-1 pr-4 leading-tight">{entries[3].description}</p>
+              </div>
+            </div>
+            <p className="text-amber-800 font-bold text-sm mt-2" style={{ marginLeft: "80px" }}>
+              {entries[3].starName}
+            </p>
+          </div>
+        )}
+
+        {/* 왼쪽 페이지 - 별 이름 (하단) */}
+        {entries.length > 2 && (
+          <div className="absolute" style={{ bottom: "80px", left: "180px" }}>
+            <p className="text-amber-800 font-bold">{entries[2].starName}</p>
+          </div>
+        )}
+
+        {/* 오른쪽 페이지 - 별 이름 (하단) */}
+        {entries.length > 3 && (
+          <div className="absolute" style={{ bottom: "80px", right: "180px" }}>
+            <p className="text-amber-800 font-bold">{entries[3].starName}</p>
+          </div>
+        )}
       </div>
     )
+  }
+
+  // 이미지 파일 번호 계산 (API 페이지 + 1)
+  const getImagePageNumber = () => {
+    // 대화 중일 때는 page_0.png 표시
+    if (!dialoguesCompleted) {
+      return 0
+    }
+    // 대화 완료 후에는 API 페이지 + 1 (API 페이지 0 -> page_1.png)
+    return apiPage + 1
   }
 
   return (
@@ -292,7 +315,7 @@ export default function StarGuide({ onClose }: StarGuideProps) {
         {/* 도감 이미지 */}
         <div className="relative">
           <Image
-            src={`/image/page_${currentPage}.png`}
+            src={`/image/page_${getImagePageNumber()}.png`}
             alt="별 도감"
             width={1200}
             height={800}
@@ -305,27 +328,27 @@ export default function StarGuide({ onClose }: StarGuideProps) {
           {/* 페이지 네비게이션 - 대화가 완료된 후에만 표시 */}
           {dialoguesCompleted && (
             <>
-              {/* 페이지 번호 표시 */}
+              {/* 페이지 번호 표시 - API 페이지 번호 그대로 표시 */}
               <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-amber-800 font-bold">
-                {currentPage} / {guideData?.totalPages || 1}
+                {apiPage + 1} / {guideData?.totalPages || 1}
               </div>
 
               {/* 좌측 하단 버튼 영역 (이전 페이지) */}
               <div
                 className={`absolute bottom-8 left-16 w-16 h-16 ${
-                  currentPage <= 1 ? "opacity-50" : "cursor-pointer hover:bg-amber-800 hover:bg-opacity-20 rounded-full"
+                  apiPage <= 0 ? "opacity-50" : "cursor-pointer hover:bg-amber-800 hover:bg-opacity-20 rounded-full"
                 }`}
-                onClick={() => currentPage > 1 && goToPage(currentPage - 1)}
+                onClick={() => apiPage > 0 && goToPage(apiPage - 1)}
               ></div>
 
               {/* 우측 하단 버튼 영역 (다음 페이지) */}
               <div
                 className={`absolute bottom-8 right-16 w-16 h-16 ${
-                  currentPage >= (guideData?.totalPages || 1)
+                  apiPage >= (guideData?.totalPages || 1) - 1
                     ? "opacity-50"
                     : "cursor-pointer hover:bg-amber-800 hover:bg-opacity-20 rounded-full"
                 }`}
-                onClick={() => currentPage < (guideData?.totalPages || 1) && goToPage(currentPage + 1)}
+                onClick={() => apiPage < (guideData?.totalPages || 1) - 1 && goToPage(apiPage + 1)}
               ></div>
             </>
           )}
