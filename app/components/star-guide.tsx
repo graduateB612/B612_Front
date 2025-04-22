@@ -212,7 +212,7 @@ export default function StarGuide({ onClose }: StarGuideProps) {
       <div className="absolute inset-0">
         {/* 페이지 제목 (첫 번째 페이지인 경우) */}
         {apiPage === 0 && (
-          <div className="absolute text-amber-800 font-bold text-lg" style={{ top: "80px", left: "100px" }}>
+          <div className="absolute font-bold text-lg" style={{ top: "80px", left: "100px", color: "#8B4513" }}>
             부정적 감정의 별
           </div>
         )}
@@ -222,12 +222,12 @@ export default function StarGuide({ onClose }: StarGuideProps) {
           <div className="absolute" style={{ top: "120px", left: "100px", width: "400px" }}>
             <div className="flex">
               <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
-              <div className="ml-4 ">
-                <p className=" font-bold text-m">{entries[0].starSource}</p>
-                <p className=" text-sm mt-1 pr-4 leading-tight">{entries[0].description}</p>
+              <div className="ml-4">
+                <p className="font-bold text-m">{entries[0].starSource}</p>
+                <p className="text-sm mt-1 pr-4 leading-tight">{entries[0].description}</p>
               </div>
             </div>
-            <p className=" font-bold text-m mt-2" style={{ marginLeft: "8px", marginTop:"-2px" }}>
+            <p className="font-bold text-m mt-2" style={{ marginLeft: "8px", marginTop: "-2px" }}>
               {entries[0].starName}
             </p>
           </div>
@@ -235,28 +235,31 @@ export default function StarGuide({ onClose }: StarGuideProps) {
 
         {/* 왼쪽 페이지 - 세 번째 별 */}
         {entries.length > 2 && (
-          <div className="absolute" style={{ top: "340px", left: "100px", width: "400px" }}>
+          <div className="absolute" style={{ top: "320px", left: "100px", width: "400px" }}>
             <div className="flex">
               <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
-              <div className="ml-2">
-                <p className="text-amber-800 font-bold text-sm">{entries[2].starSource}</p>
-                <p className="text-amber-900 text-xs mt-1 pr-4 leading-tight">{entries[2].description}</p>
+              <div className="ml-4">
+                <p className="font-bold text-m">{entries[2].starSource}</p>
+                <p className="text-sm mt-1 pr-4 leading-tight">{entries[2].description}</p>
               </div>
             </div>
+            <p className="font-bold text-m mt-2" style={{ marginLeft: "8px", marginTop: "-2px" }}>
+              {entries[2].starName}
+            </p>
           </div>
         )}
 
         {/* 오른쪽 페이지 - 두 번째 별 */}
         {entries.length > 1 && (
-          <div className="absolute" style={{ top: "150px", left: "520px", width: "400px" }}>
+          <div className="absolute" style={{ top: "120px", left: "520px", width: "400px" }}>
             <div className="flex">
               <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
-              <div className="ml-2">
-                <p className="text-amber-800 font-bold text-sm">{entries[1].starSource}</p>
-                <p className="text-amber-900 text-xs mt-1 pr-4 leading-tight">{entries[1].description}</p>
+              <div className="ml-4">
+                <p className="font-bold text-m">{entries[1].starSource}</p>
+                <p className="text-sm mt-1 pr-4 leading-tight">{entries[1].description}</p>
               </div>
             </div>
-            <p className="text-amber-800 font-bold text-sm mt-2" style={{ marginLeft: "80px" }}>
+            <p className="font-bold text-m mt-2" style={{ marginLeft: "8px", marginTop: "-2px" }}>
               {entries[1].starName}
             </p>
           </div>
@@ -264,31 +267,31 @@ export default function StarGuide({ onClose }: StarGuideProps) {
 
         {/* 오른쪽 페이지 - 네 번째 별 */}
         {entries.length > 3 && (
-          <div className="absolute" style={{ top: "340px", left: "520px", width: "400px" }}>
+          <div className="absolute" style={{ top: "320px", left: "520px", width: "400px" }}>
             <div className="flex">
               <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
-              <div className="ml-2">
-                <p className="text-amber-800 font-bold text-sm">{entries[3].starSource}</p>
-                <p className="text-amber-900 text-xs mt-1 pr-4 leading-tight">{entries[3].description}</p>
+              <div className="ml-4">
+                <p className="font-bold text-m">{entries[3].starSource}</p>
+                <p className="text-sm mt-1 pr-4 leading-tight">{entries[3].description}</p>
               </div>
             </div>
-            <p className="text-amber-800 font-bold text-sm mt-2" style={{ marginLeft: "80px" }}>
+            <p className="font-bold text-m mt-2" style={{ marginLeft: "8px", marginTop: "-2px" }}>
               {entries[3].starName}
             </p>
           </div>
         )}
 
-        {/* 왼쪽 페이지 - 별 이름 (하단) */}
-        {entries.length > 2 && (
-          <div className="absolute" style={{ bottom: "80px", left: "180px" }}>
-            <p className="text-amber-800 font-bold">{entries[2].starName}</p>
+        {/* 왼쪽 페이지 - 하단 별 이름 */}
+        {entries.length > 0 && (
+          <div className="absolute font-bold text-m" style={{ bottom: "120px", left: "180px", color: "#8B4513" }}>
+            {entries[0].starName}
           </div>
         )}
 
-        {/* 오른쪽 페이지 - 별 이름 (하단) */}
-        {entries.length > 3 && (
-          <div className="absolute" style={{ bottom: "80px", right: "180px" }}>
-            <p className="text-amber-800 font-bold">{entries[3].starName}</p>
+        {/* 오른쪽 페이지 - 하단 별 이름 */}
+        {entries.length > 1 && (
+          <div className="absolute font-bold text-m" style={{ bottom: "120px", right: "180px", color: "#8B4513" }}>
+            {entries[1].starName}
           </div>
         )}
       </div>
@@ -329,15 +332,19 @@ export default function StarGuide({ onClose }: StarGuideProps) {
           {dialoguesCompleted && (
             <>
               {/* 페이지 번호 표시 - API 페이지 번호 그대로 표시 */}
-              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-amber-800 font-bold">
+              <div
+                className="absolute bottom-8 left-1/2 transform -translate-x-1/2 font-bold"
+                style={{ color: "#8B4513" }}
+              >
                 {apiPage + 1} / {guideData?.totalPages || 1}
               </div>
 
               {/* 좌측 하단 버튼 영역 (이전 페이지) */}
               <div
                 className={`absolute bottom-8 left-16 w-16 h-16 ${
-                  apiPage <= 0 ? "opacity-50" : "cursor-pointer hover:bg-amber-800 hover:bg-opacity-20 rounded-full"
+                  apiPage <= 0 ? "opacity-50" : "cursor-pointer hover:bg-opacity-20 rounded-full"
                 }`}
+                style={{ backgroundColor: apiPage > 0 ? "rgba(139, 69, 19, 0.1)" : "transparent" }}
                 onClick={() => apiPage > 0 && goToPage(apiPage - 1)}
               ></div>
 
@@ -346,8 +353,12 @@ export default function StarGuide({ onClose }: StarGuideProps) {
                 className={`absolute bottom-8 right-16 w-16 h-16 ${
                   apiPage >= (guideData?.totalPages || 1) - 1
                     ? "opacity-50"
-                    : "cursor-pointer hover:bg-amber-800 hover:bg-opacity-20 rounded-full"
+                    : "cursor-pointer hover:bg-opacity-20 rounded-full"
                 }`}
+                style={{
+                  backgroundColor:
+                    apiPage < (guideData?.totalPages || 1) - 1 ? "rgba(139, 69, 19, 0.1)" : "transparent",
+                }}
                 onClick={() => apiPage < (guideData?.totalPages || 1) - 1 && goToPage(apiPage + 1)}
               ></div>
             </>
