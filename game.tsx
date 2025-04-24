@@ -7,6 +7,8 @@ import { getItemManager } from "./item-manager" // 아이템 매니저 import
 import DialogueBox from "@/app/components/dialogue-box" // 대화창 컴포넌트 import
 import ConcernModal from "@/app/components/modal" // 모달 컴포넌트 import
 import { startGame, GameStage, StarType } from "@/lib/api-config" // api-config에서 startGame 함수와 NPCInfoMap import
+// 상단에 StarGuide 컴포넌트 import 추가
+import StarGuide from "@/app/components/star-guide"
 
 export default function Game() {
   // 가상 플레이어 위치 (실제 게임 세계에서의 위치)
@@ -17,7 +19,7 @@ export default function Game() {
     y: 0,
   })
   // 배경 위치
-  const [backgroundPosition, setBackgroundPosition] = useState({ x: 2520, y: 2520 })
+  const [backgroundPosition, setBackgroundPosition] = useState({ x: 2000, y: 2000 })
   // 키 상태 추적
   const [keysPressed, setKeysPressed] = useState<Record<string, boolean>>({})
   // 플레이어 방향
@@ -88,7 +90,7 @@ export default function Game() {
   // 게임 설정 (사용자 제공 값으로 업데이트)
   const viewportWidth = 1366
   const viewportHeight = 768
-  const playerSpeed = 3
+  const playerSpeed = 5 // 이동 속도 증가 (3에서 5로)
   const playerSize = 50 // 플레이어 충돌 크기를 50으로 고정
 
   // 배경 이미지 크기 (사용자 제공 값으로 업데이트)
@@ -102,7 +104,10 @@ export default function Game() {
   const centerX = viewportWidth / 2 - playerSize / 2
   const centerY = viewportHeight / 2 - playerSize / 2
 
-  // 여우 대화 완료 이벤트 리스너
+  // 상태 추가 (useState 부분에 추가)
+  const [showStarGuide, setShowStarGuide] = useState(false)
+
+  // 여우 대화 완료 이벤트 리스너 수정
   useEffect(() => {
     const handleFoxDialogueCompleted = () => {
       console.log("여우 대화 완료 이벤트 수신")
@@ -117,20 +122,28 @@ export default function Game() {
         setAllStarsDelivered(true)
         setProcessingLastStar(false)
 
-        // 플레이어 위치를 화면 중앙으로 설정
-        setPlayerWorldPosition({ x: 2030, y: 2560 })
+        // 플레이어 위치 초기화 코드 제거
+        // setPlayerWorldPosition({ x: 2030, y: 2560 })
 
         // 플레이어 방향을 정면(아래쪽)으로 설정
         setPlayerDirection("down")
 
-        // 마지막 메시지 표시
+        // 대화 큐 설정 - 두 부분으로 나누어 표시
+        setDialogueQueue([
+          {
+            text: "의뢰서 작성을 부탁드릴게요 OOO님.\n종이와 펜은 저희 건물 안에 준비되어 있어요.",
+            background: "/image/prince_text.png",
+          },
+        ])
+
+        // 첫 번째 대화 표시
         setDialogueText(
           "이제 얼추 정리가 된 것 같군요. 다시 한 번 '장미'의 단장으로서 감사드립니다.\n그렇다면 이제 OOO님의 의뢰를 받아볼까요?",
         )
         setDialoguePosition("bottom") // 하단에 표시하도록 변경
         setDialogueBackground("/image/prince_text.png")
         setShowDialogue(true)
-        setShowFinalDialogue(true) // 마지막 대화임을 표시
+        setShowFinalDialogue(false) // 마지막 대화가 아님을 표시
       }
     }
 
@@ -168,7 +181,7 @@ export default function Game() {
     }
   }
 
-  // 대화 큐 처리 함수
+  // 대화 큐 처리 함수 수정
   const processDialogueQueue = () => {
     console.log("대화 큐 처리 중:", dialogueQueue.length, "개 남음")
 
@@ -189,6 +202,11 @@ export default function Game() {
 
       // 큐에서 현재 대화 제거
       setDialogueQueue((prev) => prev.slice(1))
+
+      // 마지막 대화인지 확인
+      if (dialogueQueue.length === 1 && allStarsDelivered) {
+        setShowFinalDialogue(true)
+      }
     } else if (processingLastStar && foxDialogueCompleted) {
       // 마지막 별 전달 후 대화가 모두 끝났을 때
       console.log("마지막 별 처리 완료, 최종 메시지 표시")
@@ -197,27 +215,38 @@ export default function Game() {
       setProcessingLastStar(false)
       setAllStarsDelivered(true)
 
-      // 플레이어 위치를 화면 중앙으로 설정
-      setPlayerWorldPosition({ x: 2030, y: 2560 })
+      // 플레이어 위치 초기화 코드 제거
+      // setPlayerWorldPosition({ x: 2030, y: 2560 })
 
       // 플레이어 방향을 정면(아래쪽)으로 설정
       setPlayerDirection("down")
 
-      // 마지막 메시지 표시
+      // 대화 큐 설정 - 두 부분으로 나누어 표시
+      setDialogueQueue([
+        {
+          text: "의뢰서 작성을 부탁드릴게요 OOO님.\n종이와 펜은 저희 건물 안에 준비되어 있어요.",
+          background: "/image/prince_text.png",
+        },
+      ])
+
+      // 첫 번째 대화 표시
       setDialogueText(
         "이제 얼추 정리가 된 것 같군요. 다시 한 번 '장미'의 단장으로서 감사드립니다.\n그렇다면 이제 OOO님의 의뢰를 받아볼까요?",
       )
       setDialoguePosition("bottom") // 하단에 표시하도록 변경
       setDialogueBackground("/image/prince_text.png")
       setShowDialogue(true)
-      setShowFinalDialogue(true) // 마지막 대화임을 표시
+      setShowFinalDialogue(false) // 마지막 대화가 아님을 표시
     }
   }
 
   // 마지막 대화 후 모달 표시
   const handleFinalDialogueClosed = () => {
-    console.log("마지막 대화 닫힘, 모달 표시")
-    setShowConcernModal(true)
+    console.log("마지막 대화 닫힘, 이제 종이와 펜 오브젝트와 상호작용하세요")
+    // 모달을 바로 표시하지 않고, 종이와 펜 오브젝트와 상호작용하도록 안내
+    setShowFinalDialogue(false)
+    // 모달 표시 코드 제거
+    // setShowConcernModal(true)
   }
 
   // 모달 제출 처리
@@ -611,7 +640,7 @@ export default function Game() {
       setDialogueQueue([])
     }
 
-    // 모든 별이 전달된 경우 이벤트 리스너 추가
+    // 모든 별이 전달된 경우 이벤트 리스너 수정
     const handleAllStarsDelivered = (event: CustomEvent) => {
       const { gameState, message } = event.detail
       console.log("모든 별 전달 완료 이벤트 발생:", gameState)
@@ -622,22 +651,30 @@ export default function Game() {
       // 모든 별이 전달되었음을 표시
       setAllStarsDelivered(true)
 
-      // 플레이어 위치를 화면 중앙으로 설정
-      setPlayerWorldPosition({ x: 2030, y: 2560 })
+      // 플레이어 위치 초기화 코드 제거
+      // setPlayerWorldPosition({ x: 2030, y: 2560 })
 
       // 플레이어 방향을 정면(아래쪽)으로 설정
       setPlayerDirection("down")
 
-      // 대화 표시
-      setDialogueText(message)
+      // 대화 큐 설정 - 두 부분으로 나누어 표시
+      setDialogueQueue([
+        {
+          text: "의뢰서 작성을 부탁드릴게요 OOO님.\n종이와 펜은 저희 건물 안에 준비되어 있어요.",
+          background: "/image/prince_text.png",
+        },
+      ])
+
+      // 첫 번째 대화 표시
+      setDialogueText(
+        "이제 얼추 정리가 된 것 같군요. 다시 한 번 '장미'의 단장으로서 감사드립니다.\n그렇다면 이제 OOO님의 의뢰를 받아볼까요?",
+      )
       setDialoguePosition("bottom") // 하단에 표시하도록 변경
       setDialogueBackground("/image/prince_text.png")
       setShowDialogue(true)
-      setShowFinalDialogue(true) // 마지막 대화임을 표시
+      setShowFinalDialogue(false) // 마지막 대화가 아님을 표시
 
-      // 대화 큐 초기화 (모든 별이 전달되면 이전 대화 큐는 무시)
-      setDialogueQueue([])
-      console.log("모든 별 전달 완료로 대화 큐 초기화")
+      console.log("모든 별 전달 완료로 대화 큐 초기화 및 새 대화 설정")
     }
 
     // 이벤트 리스너 등록
@@ -656,6 +693,59 @@ export default function Game() {
       window.removeEventListener("allStarsDelivered", handleAllStarsDelivered as EventListener)
     }
   }, [dialogueQueue, foxDialogueText])
+
+  // 오브젝트 상호작용 이벤트 리스너 추가 (useEffect 내부에 추가)
+  useEffect(() => {
+    const handleObjectInteraction = (event: CustomEvent) => {
+      const { itemType, itemId } = event.detail
+      console.log(`오브젝트 상호작용: ${itemType}, ${itemId}`)
+
+      // 오브젝트 타입에 따른 처리
+      switch (itemType) {
+        case "book":
+          console.log("별 도감 오브젝트와 상호작용")
+          // 나중에 별 도감 UI 표시 기능 구현
+          break
+        case "write":
+        case "pen":
+          console.log("의뢰 작성 오브젝트와 상호작용")
+          // 모든 별이 전달된 상태에서만 모달 표시
+          if (allStarsDelivered) {
+            setShowConcernModal(true)
+          }
+          break
+        default:
+          console.log("알 수 없는 오브젝트 타입")
+      }
+    }
+
+    // 이벤트 리스너 등록
+    window.addEventListener("objectInteraction", handleObjectInteraction as EventListener)
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener("objectInteraction", handleObjectInteraction as EventListener)
+    }
+  }, [allStarsDelivered]) // allStarsDelivered 의존성 추가
+
+  // 이벤트 리스너 추가 (useEffect 내부에 추가)
+  useEffect(() => {
+    const handleOpenStarGuide = () => {
+      setShowStarGuide(true)
+    }
+
+    const handleCloseStarGuide = () => {
+      setShowStarGuide(false)
+    }
+
+    window.addEventListener("openStarGuide", handleOpenStarGuide)
+    window.addEventListener("closeStarGuide", handleCloseStarGuide)
+
+    return () => {
+      window.removeEventListener("openStarGuide", handleOpenStarGuide)
+      window.removeEventListener("closeStarGuide", handleCloseStarGuide)
+    }
+  }, [])
 
   // 충돌 맵 로드
   useEffect(() => {
@@ -764,6 +854,13 @@ export default function Game() {
             setImagesLoaded(true)
           }
         }
+        img.onerror = () => {
+          console.error(`Failed to load image: ${imagePath}`)
+          loadedCount++
+          if (loadedCount === imagesToLoad) {
+            setImagesLoaded(true)
+          }
+        }
         img.src = imagePath
       })
     })
@@ -798,9 +895,6 @@ export default function Game() {
       // 대화창이 표시 중일 때는 키 입력 무시
       if (showDialogue) return
 
-      // 모든 별이 전달되었을 때는 이동 불가
-      if (allStarsDelivered) return
-
       setKeysPressed((prev) => ({ ...prev, [e.key]: true }))
 
       // E키 입력 감지 (상호작용)
@@ -833,7 +927,7 @@ export default function Game() {
       window.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("keyup", handleKeyUp)
     }
-  }, [interactableItem, interactableNPC, showDialogue, allStarsDelivered])
+  }, [interactableItem, interactableNPC, showDialogue])
 
   // 애니메이션 타이머 설정
   useEffect(() => {
@@ -867,9 +961,6 @@ export default function Game() {
 
     // 대화창이 표시 중일 때는 게임 루프 일시 중지
     if (showDialogue) return
-
-    // 모든 별이 전달되었을 때는 게임 루프 일시 중지
-    if (allStarsDelivered) return
 
     // 디버그 모드 확인
     const isDebugMode =
@@ -1073,7 +1164,6 @@ export default function Game() {
     npcImagesLoaded,
     itemImagesLoaded,
     showDialogue,
-    allStarsDelivered,
   ])
 
   // 현재 플레이어 스프라이트 이미지 경로 계산
@@ -1129,6 +1219,7 @@ export default function Game() {
     )
   }
 
+  // 게임 렌더링 부분 수정 - 모든 별이 전달되어도 배경과 아이템 표시
   return (
     <div
       style={{
@@ -1148,37 +1239,33 @@ export default function Game() {
           width: `${viewportWidth}px`,
           height: `${viewportHeight}px`,
           boxShadow: "0 0 20px rgba(0, 0, 255, 0.5)",
-          backgroundColor: allStarsDelivered ? "#000" : "transparent", // 모든 별이 전달되면 배경을 검은색으로 변경
+          backgroundColor: "transparent", // 항상 투명 배경 사용
         }}
       >
-        {/* 배경 - 모든 별이 전달되면 표시하지 않음 */}
-        {!allStarsDelivered && (
-          <div
-            style={{
-              position: "absolute",
-              width: `${backgroundWidth}px`,
-              height: `${backgroundHeight}px`,
-              backgroundImage: `url('/image/background.png')`,
-              backgroundRepeat: "no-repeat",
-              backgroundSize: `${backgroundWidth}px ${backgroundHeight}px`,
-              transform: `translate(${backgroundPosition.x}px, ${backgroundPosition.y}px)`,
-            }}
-          />
-        )}
+        {/* 배경 - 항상 표시 */}
+        <div
+          style={{
+            position: "absolute",
+            width: `${backgroundWidth}px`,
+            height: `${backgroundHeight}px`,
+            backgroundImage: `url('/image/background.png')`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: `${backgroundWidth}px ${backgroundHeight}px`,
+            transform: `translate(${backgroundPosition.x}px, ${backgroundPosition.y}px)`,
+          }}
+        />
 
-        {/* 캔버스 오버레이 (NPC 및 아이템 렌더링용) - 모든 별이 전달되면 표시하지 않음 */}
-        {!allStarsDelivered && (
-          <canvas
-            ref={canvasRef}
-            width={viewportWidth}
-            height={viewportHeight}
-            style={{
-              position: "absolute",
-              pointerEvents: "none",
-              zIndex: 5,
-            }}
-          />
-        )}
+        {/* 캔버스 오버레이 (NPC 및 아이템 렌더링용) - 항상 표시 */}
+        <canvas
+          ref={canvasRef}
+          width={viewportWidth}
+          height={viewportHeight}
+          style={{
+            position: "absolute",
+            pointerEvents: "none",
+            zIndex: 5,
+          }}
+        />
 
         {/* 플레이어 */}
         <div
@@ -1186,10 +1273,8 @@ export default function Game() {
             position: "absolute",
             width: `${playerSize * 4}px`, // 시각적 크기는 충돌 크기보다 크게
             height: `${playerSize * 4}px`,
-            left: allStarsDelivered
-              ? `${centerX - playerSize * 1.5}px`
-              : `${playerScreenPosition.x - playerSize * 1.5}px`, // 모든 별이 전달되면 중앙에 고정
-            top: allStarsDelivered ? `${centerY - playerSize * 3}px` : `${playerScreenPosition.y - playerSize * 3}px`, // 모든 별이 전달되면 중앙에 고정
+            left: `${playerScreenPosition.x - playerSize * 1.5}px`, // 항상 실제 위치 사용
+            top: `${playerScreenPosition.y - playerSize * 3}px`, // 항상 실제 위치 사용
             backgroundImage: `url('${playerSprite}')`,
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
@@ -1198,8 +1283,8 @@ export default function Game() {
           }}
         />
 
-        {/* 상호작용 안내 메시지 - 모든 별이 전달되면 표시하지 않음 */}
-        {!allStarsDelivered && (interactableItem || interactableNPC) && (
+        {/* 상호작용 안내 메시지 - 항상 표시 가능 */}
+        {(interactableItem || interactableNPC) && (
           <div
             style={{
               position: "absolute",
@@ -1248,25 +1333,24 @@ export default function Game() {
         )}
       </div>
 
-      {/* 디버그 정보 - 모든 별이 전달되면 표시하지 않음 */}
-      {!allStarsDelivered && (
-        <div
-          style={{
-            marginTop: "20px",
-            color: "white",
-            fontFamily: '"Courier New", monospace',
-            textAlign: "center",
-            backgroundColor: "rgba(0, 0, 0, 0.7)",
-            padding: "10px 20px",
-            borderRadius: "5px",
-          }}
-        >
-          <p>방향키를 사용하여 캐릭터를 움직이세요</p>
-          <p>
-            플레이어 위치: X: {Math.round(playerWorldPosition.x)}, Y: {Math.round(playerWorldPosition.y)}
-          </p>
-        </div>
-      )}
+      {/* 디버그 정보 - 항상 표시 가능 */}
+      <div
+        style={{
+          marginTop: "20px",
+          color: "white",
+          fontFamily: '"Courier New", monospace',
+          textAlign: "center",
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+          padding: "10px 20px",
+          borderRadius: "5px",
+        }}
+      >
+        <p>방향키를 사용하여 캐릭터를 움직이세요</p>
+        <p>
+          플레이어 위치: X: {Math.round(playerWorldPosition.x)}, Y: {Math.round(playerWorldPosition.y)}
+        </p>
+      </div>
+      {showStarGuide && <StarGuide onClose={() => setShowStarGuide(false)} />}
     </div>
   )
 }

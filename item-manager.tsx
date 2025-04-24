@@ -12,12 +12,15 @@ export interface InteractiveItem {
   interactionDistance: number // 상호작용 가능한 거리
   starType?: StarType // 별 타입 추가
   requiredStage?: GameStage // 아이템이 활성화되기 위한 게임 단계
+  itemType?: string // 아이템 타입 추가 (book, write 등)
+  hasInteracted?: boolean // 사용자가 이미 상호작용했는지 여부
 }
 
 export class ItemManager {
   private items: InteractiveItem[] = []
   private imageCache: Record<string, HTMLImageElement> = {}
   private interactionIndicator: HTMLImageElement | null = null
+  private exclamationMark: HTMLImageElement | null = null // 느낌표 이미지 추가
   private isDebugMode = false // 디버그 모드 플래그
   private currentGameState: GameStateResponse | null = null
 
@@ -26,6 +29,8 @@ export class ItemManager {
     this.initializeItems()
     // 상호작용 표시 이미지 로드
     this.loadInteractionIndicator()
+    // 느낌표 이미지 로드
+    this.loadExclamationMark()
     // 현재 게임 상태 로드
     this.loadGameState()
 
@@ -56,6 +61,98 @@ export class ItemManager {
     })
   }
 
+  private initializeItems(): void {
+    // 네거티브 별 아이템들 추가 (이미지에 표시된 위치에 맞게 배치)
+    this.items = [
+      {
+        id: "negative_pride",
+        x: 2230, // 이미지의 1번 위치 (오른쪽 하단)
+        y: 2638,
+        width: 50,
+        height: 50,
+        imagePath: "/image/negative_pride.png",
+        isActive: true, // 초기값은 true, 나중에 게임 상태에 따라 업데이트됨
+        interactionDistance: 100,
+        starType: StarType.PRIDE, // 교만 별 타입 (영문 대문자로 수정)
+        hasInteracted: false, // 초기값은 false
+      },
+      {
+        id: "negative_envy",
+        x: 2235, // 이미지의 2번 위치 (오른쪽 중간)
+        y: 2120,
+        width: 50,
+        height: 50,
+        imagePath: "/image/negative_envy.png",
+        isActive: false, // 초기에는 비활성화
+        interactionDistance: 100,
+        starType: StarType.ENVY, // 질투 별 타입 (영문 대문자로 수정)
+        hasInteracted: false, // 초기값은 false
+      },
+      {
+        id: "negative_lonely",
+        x: 110, // 이미지의 3번 위치 (왼쪽 중간)
+        y: 2120,
+        width: 50,
+        height: 50,
+        imagePath: "/image/negative_lonely.png",
+        isActive: false, // 초기에는 비활성화
+        interactionDistance: 100,
+        starType: StarType.LONELY, // 외로움 별 타입 (영문 대문자로 수정)
+        hasInteracted: false, // 초기값은 false
+      },
+      {
+        id: "negative_sad",
+        x: 330, // 이미지의 4번 위치 (왼쪽 상단)
+        y: 620,
+        width: 50,
+        height: 50,
+        imagePath: "/image/negative_sad.png",
+        isActive: false, // 초기에는 비활성화
+        interactionDistance: 100,
+        starType: StarType.SAD, // 슬픔 별 타입 (영문 대문자로 수정)
+        hasInteracted: false, // 초기값은 false
+      },
+      // 새로운 오브젝트 추가 - 별 도감 (이미지에 표시된 위치에 맞게 배치)
+      {
+        id: "star_book",
+        x: 900, // 이미지에서 보이는 위치 (왼쪽 상단 책장 근처)
+        y: 950,
+        width: 60,
+        height: 40,
+        imagePath: "/image/book.png",
+        isActive: true, // 항상 활성화
+        interactionDistance: 100,
+        itemType: "book", // 별 도감 타입
+        hasInteracted: false, // 초기값은 false
+      },
+      // 의뢰 작성 오브젝트 - 펜과 종이 (이미지에서 보이는 위치에 맞게 배치)
+      {
+        id: "request_write",
+        x: 1100, // 이미지에서 보이는 위치 (오른쪽 하단 책상 근처)
+        y: 2650,
+        width: 60,
+        height: 40,
+        imagePath: "/image/write.png",
+        isActive: true, // 항상 보이도록 true로 변경
+        interactionDistance: 100,
+        itemType: "write", // 의뢰 작성 타입
+        hasInteracted: false, // 초기값은 false
+      },
+      {
+        id: "request_pen",
+        x: 1200, // 종이 옆에 펜 배치
+        y: 2650,
+        width: 40,
+        height: 60,
+        imagePath: "/image/pen.png",
+        isActive: true, // 항상 보이도록 true로 변경
+        interactionDistance: 100,
+        itemType: "pen", // 의뢰 작성 펜 타입
+        hasInteracted: false, // 초기값은 false
+      },
+    ]
+  }
+
   private updateItemsVisibility(): void {
     if (!this.currentGameState) return
 
@@ -67,14 +164,43 @@ export class ItemManager {
       this.items.map((item) => ({ id: item.id, isActive: item.isActive })),
     )
 
+    // 모든 별이 전달된 상태인지 확인
+    const allStarsDelivered =
+      currentStage === GameStage.REQUEST_INPUT ||
+      currentStage === GameStage.NPC_SELECTION ||
+      currentStage === GameStage.GAME_COMPLETE ||
+      this.isLaterStage(currentStage, GameStage.DELIVER_SAD)
+
     // 게임 단계에 따라 아이템 활성화 상태 업데이트
     this.items.forEach((item) => {
       // 디버그 모드에서는 모든 아이템 활성화 (단, 이미 수집한 별은 제외)
       if (this.isDebugMode) {
-        item.isActive = !this.isStarCollected(item.starType)
+        if (item.starType) {
+          item.isActive = !this.isStarCollected(item.starType)
+        } else if (item.itemType === "write" || item.itemType === "pen") {
+          // 디버그 모드에서도 종이와 펜은 모든 별이 전달된 상태에서만 활성화
+          item.isActive = allStarsDelivered
+        } else {
+          // 다른 오브젝트(book 등)는 항상 활성화
+          item.isActive = true
+        }
         return
       }
 
+      // 별이 아닌 오브젝트(book, write 등) 처리
+      if (!item.starType) {
+        // 종이와 펜 오브젝트는 모든 별이 전달된 상태에서만 상호작용 가능
+        if (item.itemType === "write" || item.itemType === "pen") {
+          // isActive는 항상 true로 유지하고, 상호작용 가능 여부만 allStarsDelivered로 제어
+          // 모든 별이 전달되면 상호작용 상태 초기화 (느낌표 표시를 위해)
+          if (allStarsDelivered) {
+            item.hasInteracted = false
+          }
+        }
+        return
+      }
+
+      // 별 아이템 처리 (기존 코드 유지)
       // 먼저 이미 수집한 별인지 확인하고, 수집했다면 비활성화
       if (this.isStarCollected(item.starType)) {
         item.isActive = false
@@ -168,56 +294,6 @@ export class ItemManager {
     }
   }
 
-  private initializeItems(): void {
-    // 네거티브 별 아이템들 추가 (이미지에 표시된 위치에 맞게 배치)
-    this.items = [
-      {
-        id: "negative_pride",
-        x: 2230, // 이미지의 1번 위치 (오른쪽 하단)
-        y: 2638,
-        width: 50,
-        height: 50,
-        imagePath: "/image/negative_pride.png",
-        isActive: true, // 초기값은 true, 나중에 게임 상태에 따라 업데이트됨
-        interactionDistance: 100,
-        starType: StarType.PRIDE, // 교만 별 타입 (영문 대문자로 수정)
-      },
-      {
-        id: "negative_envy",
-        x: 2235, // 이미지의 2번 위치 (오른쪽 중간)
-        y: 2120,
-        width: 50,
-        height: 50,
-        imagePath: "/image/negative_envy.png",
-        isActive: false, // 초기에는 비활성화
-        interactionDistance: 100,
-        starType: StarType.ENVY, // 질투 별 타입 (영문 대문자로 수정)
-      },
-      {
-        id: "negative_lonely",
-        x: 110, // 이미지의 3번 위치 (왼쪽 중간)
-        y: 2120,
-        width: 50,
-        height: 50,
-        imagePath: "/image/negative_lonely.png",
-        isActive: false, // 초기에는 비활성화
-        interactionDistance: 100,
-        starType: StarType.LONELY, // 외로움 별 타입 (영문 대문자로 수정)
-      },
-      {
-        id: "negative_sad",
-        x: 330, // 이미지의 4번 위치 (왼쪽 상단)
-        y: 620,
-        width: 50,
-        height: 50,
-        imagePath: "/image/negative_sad.png",
-        isActive: false, // 초기에는 비활성화
-        interactionDistance: 100,
-        starType: StarType.SAD, // 슬픔 별 타입 (영문 대문자로 수정)
-      },
-    ]
-  }
-
   private loadInteractionIndicator(): void {
     // E키 상호작용 표시 이미지 로드 (선택 사항)
     const img = new Image()
@@ -225,6 +301,15 @@ export class ItemManager {
       this.interactionIndicator = img
     }
     img.src = "/image/e_key.png" // E키 이미지가 있다면 사용, 없으면 텍스트로 대체
+  }
+
+  private loadExclamationMark(): void {
+    // 느낌표 이미지 로드
+    const img = new Image()
+    img.onload = () => {
+      this.exclamationMark = img
+    }
+    img.src = "/image/exclamation_mark.png"
   }
 
   // 안전한 로그 출력 함수 - 디버그 모드에서만 출력
@@ -237,6 +322,11 @@ export class ItemManager {
   // 아이템 이미지 프리로드
   public preloadImages(): Promise<void> {
     this.safeLog("아이템 이미지 프리로드 시작...")
+
+    // 느낌표 이미지 프리로드
+    const exclamationImg = new Image()
+    exclamationImg.src = "/image/exclamation_mark.png"
+    this.imageCache["/image/exclamation_mark.png"] = exclamationImg
 
     const promises = this.items.map((item) => {
       return new Promise<void>((resolve, reject) => {
@@ -294,6 +384,42 @@ export class ItemManager {
             // 상호작용 가능 표시 (E키)
             this.renderInteractionIndicator(ctx, item.x + offsetX, item.y + offsetY - 30)
           }
+          // 상호작용하지 않은 오브젝트에 느낌표 표시 (별 타입이 아닌 경우만)
+          else if (
+            !item.hasInteracted &&
+            item.itemType &&
+            (item.itemType === "write" || item.itemType === "pen") &&
+            this.exclamationMark
+          ) {
+            // 모든 별이 전달된 상태인지 확인
+            const allStarsDelivered =
+              this.currentGameState &&
+              (this.currentGameState.currentStage === GameStage.REQUEST_INPUT ||
+                this.currentGameState.currentStage === GameStage.NPC_SELECTION ||
+                this.currentGameState.currentStage === GameStage.GAME_COMPLETE ||
+                this.isLaterStage(this.currentGameState.currentStage, GameStage.DELIVER_SAD))
+
+            // 모든 별이 전달된 상태에서만 느낌표 표시
+            if (allStarsDelivered) {
+              // 느낌표 렌더링 (아이템 위에 표시)
+              ctx.drawImage(
+                this.exclamationMark,
+                item.x + offsetX + item.width / 2 - 10, // 아이템 중앙 위에 위치
+                item.y + offsetY - 25, // 아이템 위에 위치
+                20, // 느낌표 크기
+                20,
+              )
+            }
+          } else if (!item.hasInteracted && item.itemType && this.exclamationMark) {
+            // 느낌표 렌더링 (아이템 위에 표시)
+            ctx.drawImage(
+              this.exclamationMark,
+              item.x + offsetX + item.width / 2 - 10, // 아이템 중앙 위에 위치
+              item.y + offsetY - 25, // 아이템 위에 위치
+              20, // 느낌표 크기
+              20,
+            )
+          }
         } else {
           // 이미지가 없는 경우 플레이스홀더 사각형 그리기
           ctx.fillStyle = "rgba(255, 255, 0, 0.5)"
@@ -333,7 +459,24 @@ export class ItemManager {
   // 플레이어가 상호작용 가능한 아이템이 있는지 확인
   public getInteractableItem(playerX: number, playerY: number): InteractiveItem | null {
     for (const item of this.items) {
+      // 아이템이 활성화되어 있고 플레이어가 근처에 있는 경우
       if (item.isActive && this.isPlayerNearItem(playerX, playerY, item)) {
+        // 종이와 펜 오브젝트는 모든 별이 전달된 상태에서만 상호작용 가능
+        if (item.itemType === "write" || item.itemType === "pen") {
+          const allStarsDelivered =
+            this.currentGameState &&
+            (this.currentGameState.currentStage === GameStage.REQUEST_INPUT ||
+              this.currentGameState.currentStage === GameStage.NPC_SELECTION ||
+              this.currentGameState.currentStage === GameStage.GAME_COMPLETE ||
+              this.isLaterStage(this.currentGameState.currentStage, GameStage.DELIVER_SAD))
+
+          if (allStarsDelivered) {
+            return item
+          }
+
+          return null
+        }
+
         return item
       }
     }
@@ -343,7 +486,13 @@ export class ItemManager {
   // 아이템 상호작용 처리 함수 수정
   public async interactWithItem(itemId: string): Promise<void> {
     const item = this.items.find((item) => item.id === itemId)
-    if (item && item.starType) {
+    if (!item) return
+
+    // 상호작용 상태 업데이트
+    item.hasInteracted = true
+
+    // 별 타입 아이템인 경우 기존 로직 사용
+    if (item.starType) {
       try {
         // 로컬 스토리지에서 userId 가져오기
         const userId = localStorage.getItem("userId")
@@ -374,7 +523,7 @@ export class ItemManager {
           console.log("최신 대화:", latestDialogue)
         }
 
-        // 게임 상태 업데이트
+        // ��임 상태 업데이트
         localStorage.setItem("gameState", JSON.stringify(response))
         this.currentGameState = response
 
@@ -400,6 +549,26 @@ export class ItemManager {
         }
       }
     }
+    // 별 도감(book) 오브젝트와 상호작용
+    else if (item.itemType === "book") {
+      console.log("별 도감 오브젝트와 상호작용")
+      // 별 도감 열기 이벤트 발생
+      const openStarGuideEvent = new CustomEvent("openStarGuide")
+      window.dispatchEvent(openStarGuideEvent)
+    }
+    // 의뢰 작성(write, pen) 오브젝트와 상호작용
+    else if (item.itemType === "write" || item.itemType === "pen") {
+      console.log("의뢰 작성 오브젝트와 상호작용")
+      // 의뢰 작성 UI 표시 이벤트 발생
+      const openWriteRequestEvent = new CustomEvent("openWriteRequest")
+      window.dispatchEvent(openWriteRequestEvent)
+    }
+
+    // 상호작용 이벤트 발생
+    const interactEvent = new CustomEvent("objectInteraction", {
+      detail: { itemType: item.itemType, itemId: item.id },
+    })
+    window.dispatchEvent(interactEvent)
   }
 }
 
@@ -412,4 +581,3 @@ export function getItemManager(): ItemManager {
   }
   return itemManagerInstance
 }
-
