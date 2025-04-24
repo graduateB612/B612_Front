@@ -82,76 +82,7 @@ export default function StarGuide({ onClose }: StarGuideProps) {
       }
     } catch (err) {
       console.error("별 도감 데이터 로드 실패:", err)
-
-      // 로컬 스토리지에서 userId 가져오기
-      const userId = localStorage.getItem("userId")
-      const apiUrl = `${API_CONFIG.baseUrl}/interactions/${userId}/star-guide?page=${page}&includeDialogues=${includeDialogues}`
-      console.error("API 요청 URL:", apiUrl)
-
       setError("별 도감 데이터를 불러오는 중 오류가 발생했습니다.")
-
-      // 개발 중에는 더미 데이터 사용
-      const dummyData = {
-        dialogues: [
-          {
-            dialogueId: 1,
-            npcId: 4,
-            npcName: "여우",
-            dialogueText:
-              "감정들은 종류가 다양해!. 하지만 그 중 자주 느낄 수 있고, 우리에게 친숙한 감정들만 별의 모습을 갖추고 있어.",
-          },
-          {
-            dialogueId: 2,
-            npcId: 4,
-            npcName: "여우",
-            dialogueText:
-              "우리! 부정적 감정의 별과 긍정적 감정의 별로 나누어서 관리해. 도감의 초반은 부정적 감정의 별을 구경 할 수 있어.",
-          },
-          {
-            dialogueId: 3,
-            npcId: 4,
-            npcName: "여우",
-            dialogueText: "음... 그건 아니라 생각해! 아름다운 별과 감정은 어두운 곳에서 비로소 탄생하니까?",
-          },
-          {
-            dialogueId: 4,
-            npcId: 4,
-            npcName: "여우",
-            dialogueText: "아무튼 재미있게 구경해!",
-          },
-        ],
-        starEntries: [
-          {
-            entryId: 1,
-            starName: "교만의 별",
-            starSource: "감정: 교만함에서 빚어진 별",
-            description: "잘 달래 준다면 자신감이 넘치는 에너지로도 자란지도 몰라!",
-          },
-          {
-            entryId: 2,
-            starName: "본노의 별",
-            starSource: "감정: 본노에서 빚어진 별",
-            description: "화가 나고 억울할 때 크게 생성. 가끔은 우리를 성장시키는 별이 되기도 해.",
-          },
-          {
-            entryId: 3,
-            starName: "슬픔의 별",
-            starSource: "감정: 슬픔에서 빚어진 별",
-            description: "슬프다는 건 감정이 마르지 않았다 증거라고 생각해. 그 덕에 기쁨이 더 클테니까!",
-          },
-          {
-            entryId: 4,
-            starName: "불안의 별",
-            starSource: "감정: 불안함에서 빚어진 별",
-            description: "적당한 불안감과 긴장은 좀 더 꼼꼼한 사람을 만들어져 한 번 성공을 하면 없어지기도 해.",
-          },
-        ],
-        totalPages: 7,
-        currentPage: page,
-      }
-
-      setGuideData(dummyData)
-      setApiPage(page) // 더미 데이터의 경우 요청한 페이지를 API 페이지로 설정
     } finally {
       setLoading(false)
     }
@@ -159,7 +90,6 @@ export default function StarGuide({ onClose }: StarGuideProps) {
 
   // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
-    console.log("StarGuide 컴포넌트 마운트됨, 데이터 로드 시작")
     fetchStarGuideData(0)
   }, [])
 
@@ -181,10 +111,16 @@ export default function StarGuide({ onClose }: StarGuideProps) {
   // 페이지 이동
   const goToPage = (page: number) => {
     if (dialoguesCompleted) {
-      if (page >= 0 && page < (guideData?.totalPages || 1)) {
+      // API의 totalPages 대신 하드코딩된 값(6)을 사용합니다
+      if (page >= 0 && page < 6) {
+        // 페이지 번호를 먼저 설정
         setApiPage(page)
-        // 페이지 변경 시 해당 페이지의 데이터 로드
-        fetchStarGuideData(page, false)
+
+        // 마지막 페이지(5)로 이동할 때는 API 호출을 하지 않음
+        if (page < 5) {
+          // 페이지 변경 시 해당 페이지의 데이터 로드
+          fetchStarGuideData(page, false)
+        }
       }
     } else {
       // 대화 중에는 첫 페이지만 표시
@@ -205,94 +141,126 @@ export default function StarGuide({ onClose }: StarGuideProps) {
       return null
     }
 
+    // 마지막 페이지(page_6)인 경우 텍스트 오버레이를 표시하지 않음
+    if (apiPage === 5) {
+      return null
+    }
+
     // 한 페이지에 4개의 항목을 표시 (왼쪽 2개, 오른쪽 2개)
     const entries = guideData.starEntries
 
     return (
       <div className="absolute inset-0">
-        {/* 페이지 제목 (첫 번째 페이지인 경우) */}
-        {apiPage === 0 && (
-          <div className="absolute font-bold text-lg" style={{ top: "80px", left: "100px", color: "#8B4513" }}>
-            부정적 감정의 별
-          </div>
-        )}
+        {/* 페이지 제목 */}
+        <div
+          className="absolute font-bold text-lg"
+          style={{
+            top: "35px",
+            left: "100px",
+            color: "#f3c677",
+          }}
+        >
+          {apiPage <= 2 ? "부정적 감정의 별" : "긍정적 감정의 별"}
+        </div>
 
         {/* 왼쪽 페이지 - 첫 번째 별 */}
         {entries.length > 0 && (
-          <div className="absolute" style={{ top: "120px", left: "100px", width: "400px" }}>
-            <div className="flex">
-              <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
-              <div className="ml-4">
-                <p className="font-bold text-m">{entries[0].starSource}</p>
-                <p className="text-sm mt-1 pr-4 leading-tight">{entries[0].description}</p>
-              </div>
+          <>
+            {/* 이미지 프레임 영역 */}
+            <div className="absolute" style={{ top: "140px", left: "120px", width: "80px", height: "80px" }}>
+              {/* 여기에 이미지가 들어갈 수 있음 */}
             </div>
-            <p className="font-bold text-m mt-2" style={{ marginLeft: "8px", marginTop: "-2px" }}>
-              {entries[0].starName}
-            </p>
-          </div>
+
+            {/* 별 이름 (오른쪽 상단) */}
+            <div className="absolute" style={{ top: "115px", left: "200px" }}>
+              <p className="font-bold">{entries[0].starSource}</p>
+            </div>
+
+            {/* 설명 텍스트 */}
+            <div className="absolute" style={{ top: "140px", left: "200px", width: "200px" }}>
+              <p>{entries[0].description}</p>
+            </div>
+
+            {/* 별 이름 (하단) */}
+            <div className="absolute" style={{ top: "210px", left: "107px" }}>
+              <p className="font-bold">{entries[0].starName}</p>
+            </div>
+          </>
         )}
 
-        {/* 왼쪽 페이지 - 세 번째 별 */}
-        {entries.length > 2 && (
-          <div className="absolute" style={{ top: "320px", left: "100px", width: "400px" }}>
-            <div className="flex">
-              <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
-              <div className="ml-4">
-                <p className="font-bold text-m">{entries[2].starSource}</p>
-                <p className="text-sm mt-1 pr-4 leading-tight">{entries[2].description}</p>
-              </div>
-            </div>
-            <p className="font-bold text-m mt-2" style={{ marginLeft: "8px", marginTop: "-2px" }}>
-              {entries[2].starName}
-            </p>
-          </div>
-        )}
-
-        {/* 오른쪽 페이지 - 두 번째 별 */}
+        {/* 왼쪽 페이지 - 두 번째 별 */}
         {entries.length > 1 && (
-          <div className="absolute" style={{ top: "120px", left: "520px", width: "400px" }}>
-            <div className="flex">
-              <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
-              <div className="ml-4">
-                <p className="font-bold text-m">{entries[1].starSource}</p>
-                <p className="text-sm mt-1 pr-4 leading-tight">{entries[1].description}</p>
-              </div>
+          <>
+            {/* 이미지 프레임 영역 */}
+            <div className="absolute" style={{ top: "340px", left: "120px", width: "80px", height: "80px" }}>
+              {/* 여기에 이미지가 들어갈 수 있음 */}
             </div>
-            <p className="font-bold text-m mt-2" style={{ marginLeft: "8px", marginTop: "-2px" }}>
-              {entries[1].starName}
-            </p>
-          </div>
+
+            {/* 별 이름 (오른쪽 상단) */}
+            <div className="absolute" style={{ top: "295px", left: "200px" }}>
+              <p className="font-bold">{entries[1].starSource}</p>
+            </div>
+
+            {/* 설명 텍스트 */}
+            <div className="absolute" style={{ top: "320px", left: "200px", width: "200px" }}>
+              <p>{entries[1].description}</p>
+            </div>
+
+            {/* 별 이름 (하단) */}
+            <div className="absolute" style={{ top: "390px", left: "107px" }}>
+              <p className="font-bold">{entries[1].starName}</p>
+            </div>
+          </>
+        )}
+
+        {/* 오른쪽 페이지 - 세 번째 별 */}
+        {entries.length > 2 && (
+          <>
+            {/* 이미지 프레임 영역 */}
+            <div className="absolute" style={{ top: "140px", left: "560px", width: "80px", height: "80px" }}>
+              {/* 여기에 이미지가 들어갈 수 있음 */}
+            </div>
+
+            {/* 별 이름 (오른쪽 상단) */}
+            <div className="absolute" style={{ top: "115px", left: "600px" }}>
+              <p className="font-bold">{entries[2].starSource}</p>
+            </div>
+
+            {/* 설명 텍스트 */}
+            <div className="absolute" style={{ top: "142px", left: "600px", width: "200px" }}>
+              <p>{entries[2].description}</p>
+            </div>
+
+            {/* 별 이름 (하단) */}
+            <div className="absolute" style={{ top: "210px", left: "510px" }}>
+              <p className="font-bold">{entries[2].starName}</p>
+            </div>
+          </>
         )}
 
         {/* 오른쪽 페이지 - 네 번째 별 */}
         {entries.length > 3 && (
-          <div className="absolute" style={{ top: "320px", left: "520px", width: "400px" }}>
-            <div className="flex">
-              <div className="w-24 h-24 relative">{/* 별 이미지는 배경에 있으므로 여기서는 공간만 확보 */}</div>
-              <div className="ml-4">
-                <p className="font-bold text-m">{entries[3].starSource}</p>
-                <p className="text-sm mt-1 pr-4 leading-tight">{entries[3].description}</p>
-              </div>
+          <>
+            {/* 이미지 프레임 영역 */}
+            <div className="absolute" style={{ top: "340px", left: "560px", width: "80px", height: "80px" }}>
+              {/* 여기에 이미지가 들어갈 수 있음 */}
             </div>
-            <p className="font-bold text-m mt-2" style={{ marginLeft: "8px", marginTop: "-2px" }}>
-              {entries[3].starName}
-            </p>
-          </div>
-        )}
 
-        {/* 왼쪽 페이지 - 하단 별 이름 */}
-        {entries.length > 0 && (
-          <div className="absolute font-bold text-m" style={{ bottom: "120px", left: "180px", color: "#8B4513" }}>
-            {entries[0].starName}
-          </div>
-        )}
+            {/* 별 이름 (오른쪽 상단) */}
+            <div className="absolute" style={{ top: "294px", left: "600px" }}>
+              <p className="font-bold">{entries[3].starSource}</p>
+            </div>
 
-        {/* 오른쪽 페이지 - 하단 별 이름 */}
-        {entries.length > 1 && (
-          <div className="absolute font-bold text-m" style={{ bottom: "120px", right: "180px", color: "#8B4513" }}>
-            {entries[1].starName}
-          </div>
+            {/* 설명 텍스트 */}
+            <div className="absolute" style={{ top: "320px", left: "600px", width: "200px" }}>
+              <p>{entries[3].description}</p>
+            </div>
+
+            {/* 별 이름 (하단) */}
+            <div className="absolute" style={{ top: "391px", left: "510px" }}>
+              <p className="font-bold">{entries[3].starName}</p>
+            </div>
+          </>
         )}
       </div>
     )
@@ -305,6 +273,7 @@ export default function StarGuide({ onClose }: StarGuideProps) {
       return 0
     }
     // 대화 완료 후에는 API 페이지 + 1 (API 페이지 0 -> page_1.png)
+    // 마지막 페이지(apiPage가 5)일 때는 page_6.png 표시
     return apiPage + 1
   }
 
@@ -336,12 +305,12 @@ export default function StarGuide({ onClose }: StarGuideProps) {
                 className="absolute bottom-8 left-1/2 transform -translate-x-1/2 font-bold"
                 style={{ color: "#8B4513" }}
               >
-                {apiPage + 1} / {guideData?.totalPages || 1}
+                {apiPage + 1} / 6
               </div>
 
               {/* 좌측 하단 버튼 영역 (이전 페이지) */}
               <div
-                className={`absolute bottom-8 left-16 w-16 h-16 ${
+                className={`absolute bottom-12 left-9 w-16 h-16 ${
                   apiPage <= 0 ? "opacity-50" : "cursor-pointer hover:bg-opacity-20 rounded-full"
                 }`}
                 style={{ backgroundColor: apiPage > 0 ? "rgba(139, 69, 19, 0.1)" : "transparent" }}
@@ -350,16 +319,15 @@ export default function StarGuide({ onClose }: StarGuideProps) {
 
               {/* 우측 하단 버튼 영역 (다음 페이지) */}
               <div
-                className={`absolute bottom-8 right-16 w-16 h-16 ${
-                  apiPage >= (guideData?.totalPages || 1) - 1
+                className={`absolute bottom-12 right-9 w-16 h-16 ${
+                  apiPage >= 5 // 하드코딩된 값 사용 (0부터 5까지 총 6페이지, 마지막 페이지는 6)
                     ? "opacity-50"
                     : "cursor-pointer hover:bg-opacity-20 rounded-full"
                 }`}
                 style={{
-                  backgroundColor:
-                    apiPage < (guideData?.totalPages || 1) - 1 ? "rgba(139, 69, 19, 0.1)" : "transparent",
+                  backgroundColor: apiPage < 5 ? "rgba(139, 69, 19, 0.1)" : "transparent",
                 }}
-                onClick={() => apiPage < (guideData?.totalPages || 1) - 1 && goToPage(apiPage + 1)}
+                onClick={() => apiPage < 5 && goToPage(apiPage + 1)}
               ></div>
             </>
           )}
