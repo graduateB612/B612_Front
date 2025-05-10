@@ -8,7 +8,6 @@ export default function Home() {
   const [isNavigating, setIsNavigating] = useState(false)
   const [typedText, setTypedText] = useState("")
   const fullText = 'Fixer team - "rose"'
-  const [roseVisible, setRoseVisible] = useState(false)
   const [projectText, setProjectText] = useState("")
   const [b612Text, setB612Text] = useState("")
   const projectFull = "Project"
@@ -60,7 +59,6 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    setTimeout(() => setRoseVisible(true), 100)
     // 장미 깜빡임 + 점점 밝아지는 효과 (불 켜지듯)
     const blinkPattern = [
       { opacity: 0.1, delay: 400 },
