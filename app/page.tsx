@@ -1,7 +1,9 @@
+// page.tsx (수정된 버전)
 "use client"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useState, useEffect, useRef } from "react"
+import ShootingStar from "./components/shooting-star"
 
 export default function Home() {
   const router = useRouter()
@@ -147,7 +149,7 @@ export default function Home() {
   }
 
   return (
-    <div className="snap-y snap-mandatory h-screen overflow-y-auto" style={{
+    <div className="snap-y snap-mandatory h-screen overflow-y-auto relative" style={{
       scrollSnapType: 'y mandatory',
       scrollBehavior: 'smooth',
       overflowY: 'auto',
@@ -157,12 +159,13 @@ export default function Home() {
       backgroundPosition: "center",
       backgroundRepeat: "repeat-y", // 배경 이미지 반복 설정
     }}>
-      {/* Fixer 텍스트는 2번째 섹션에서만 표시됩니다 */}
-
+      {/* 별똥별 효과 컴포넌트 추가 (배경 바로 위에 위치) */}
+      <ShootingStar />
+      
       {/* 첫 번째 섹션: 기존 내용 */}
       <section 
         ref={(el) => addSectionRef(el, 0)}
-        className="flex min-h-screen flex-col items-center justify-center snap-start"
+        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
       >
         <div
           className={`relative cursor-pointer transition-transform hover:scale-110 ${isNavigating ? 'opacity-70' : ''}`}
@@ -193,7 +196,7 @@ export default function Home() {
       {/* 두 번째 섹션 */}
       <section 
         ref={(el) => addSectionRef(el, 1)}
-        className="flex min-h-screen flex-col items-center justify-center snap-start relative"
+        className="flex min-h-screen flex-col items-center justify-center snap-start relative z-10"
         >
         {/* Fixer 텍스트 (2번째 섹션 좌측 상단) */}
         <div className="absolute top-8 left-8 z-50">
@@ -313,7 +316,7 @@ export default function Home() {
       {/* 세 번째 섹션 */}
       <section 
         ref={(el) => addSectionRef(el, 2)}
-        className="flex min-h-screen flex-col items-center justify-center snap-start"
+        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
       >
         {/* 섹션 3 내용은 요구사항에 없어 비워둠 */}
       </section>
