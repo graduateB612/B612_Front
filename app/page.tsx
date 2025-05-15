@@ -1,6 +1,5 @@
 "use client"
 import Image from "next/image"
-import type React from "react"
 
 import { useRouter } from "next/navigation"
 import { useState, useEffect, useRef } from "react"
@@ -72,12 +71,11 @@ export default function Home() {
   const sectionsRef = useRef<(HTMLElement | null)[]>([])
   const totalSections = 5 // 총 섹션 수
 
-
   // 캐릭터 선택 상태 관리
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null)
   const [animationInProgress, setAnimationInProgress] = useState(false)
   const [hoveredCharacter, setHoveredCharacter] = useState<string | null>(null)
-  const [isReturning, setIsReturning] = useState(false)
+  // isReturning 변수는 사용되지 않으므로 제거
 
   // 정보 애니메이션 상태
   const [showName, setShowName] = useState(false)
@@ -273,10 +271,9 @@ export default function Home() {
   }
 
   // 배경 클릭으로 선택 취소 처리 - 수정된 부분
-  const handleBackgroundClick = (e: React.MouseEvent) => {
+  const handleBackgroundClick = () => {
     if (selectedCharacter && !animationInProgress) {
       setAnimationInProgress(true)
-      setIsReturning(true)
 
       // Hide elements in reverse order
       setShowDescription(false)
@@ -293,7 +290,6 @@ export default function Home() {
             // 원래 위치로 돌아가는 애니메이션을 위한 지연
             setTimeout(() => {
               setSelectedCharacter(null)
-              setIsReturning(false)
               setAnimationInProgress(false)
               setHoveredCharacter(null)
             }, 300)

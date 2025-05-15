@@ -13,7 +13,7 @@ export default function TrainSection() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStartX, setDragStartX] = useState(0)
   const [dragOffset, setDragOffset] = useState(0)
-  const [trainFullyVisible, setTrainFullyVisible] = useState(false)
+  // trainFullyVisible 변수는 사용되지 않으므로 제거
   const [trainPassedScreen, setTrainPassedScreen] = useState(false)
 
   // 부드러운 전환을 위한 상태
@@ -64,9 +64,6 @@ export default function TrainSection() {
     // 부드럽게 상태 업데이트
     setDragOffset(newOffset)
 
-    // 열차가 완전히 보이는지 확인
-    setTrainFullyVisible(newOffset >= FULL_TRAIN_OFFSET)
-
     // 열차가 화면을 통과했는지 확인 (마지막 객차의 중간이 왼쪽 끝에 닿을 때)
     setTrainPassedScreen(newOffset >= TRAIN_PASSED_OFFSET) // 정확히 마지막 객차의 중간이 왼쪽 끝에 닿을 때 통과로 간주
   }
@@ -76,51 +73,6 @@ export default function TrainSection() {
     if (!isDragging || isTransitioning) return
     setIsDragging(false)
     // 드래그 종료 시 현재 위치 유지
-  }
-
-  // 부드러운 전환 함수
-  const smoothTransition = (targetOffset: number) => {
-    setIsTransitioning(true)
-
-    // 현재 위치
-    const startOffset = dragOffset
-    // 이동 거리
-    const distance = targetOffset - startOffset
-    // 전환 시간 (밀리초)
-    const duration = 500
-    // 시작 시간
-    const startTime = Date.now()
-
-    // 애니메이션 프레임 함수
-    const animate = () => {
-      const elapsedTime = Date.now() - startTime
-      const progress = Math.min(elapsedTime / duration, 1)
-
-      // 이징 함수 적용 (부드러운 가속/감속)
-      const easeProgress = easeInOutCubic(progress)
-
-      // 새 위치 계산
-      const newOffset = startOffset + distance * easeProgress
-      setDragOffset(newOffset)
-
-      // 상태 업데이트
-      setTrainFullyVisible(newOffset >= FULL_TRAIN_OFFSET)
-      setTrainPassedScreen(newOffset >= TRAIN_PASSED_OFFSET) // 정확히 마지막 객차의 중간이 왼쪽 끝에 닿을 때 통과로 간주
-
-      // 애니메이션 완료 확인
-      if (progress < 1) {
-        requestAnimationFrame(animate)
-      } else {
-        setDragOffset(targetOffset)
-        lastOffsetRef.current = targetOffset // ref도 업데이트
-        setTrainFullyVisible(targetOffset >= FULL_TRAIN_OFFSET)
-        setTrainPassedScreen(targetOffset >= TRAIN_PASSED_OFFSET) // 정확히 마지막 객차의 중간이 왼쪽 끝에 닿을 때 통과로 간주
-        setIsTransitioning(false)
-      }
-    }
-
-    // 애니메이션 시작
-    requestAnimationFrame(animate)
   }
 
   // 이징 함수 (부드러운 가속/감속)
