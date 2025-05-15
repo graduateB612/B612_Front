@@ -5,6 +5,7 @@ import type React from "react"
 import { useRouter } from "next/navigation"
 import { useState, useEffect, useRef } from "react"
 import ShootingStar from "./components/shooting-star"
+import TrainSection from "./components/train-section"
 
 // 캐릭터 정보 인터페이스 정의
 interface CharacterInfo {
@@ -69,7 +70,8 @@ export default function Home() {
   const [blinkCount, setBlinkCount] = useState(0)
   const [currentSection, setCurrentSection] = useState(0)
   const sectionsRef = useRef<(HTMLElement | null)[]>([])
-  const totalSections = 3 // 총 섹션 수
+  const totalSections = 5 // 총 섹션 수
+
 
   // 캐릭터 선택 상태 관리
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null)
@@ -688,6 +690,22 @@ export default function Home() {
         className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
       >
         {/* 섹션 3 내용은 요구사항에 없어 비워둠 */}
+      </section>
+
+      {/* 네 번째 섹션 - 행성 섹션 (비어있음) */}
+      <section
+        ref={(el) => addSectionRef(el, 3)}
+        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
+      >
+        {/* 행성 섹션 내용 - 추후 구현 */}
+      </section>
+
+      {/* 다섯 번째 섹션 - 열차 페이지 */}
+      <section
+        ref={(el) => addSectionRef(el, 4)}
+        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
+      >
+        <TrainSection />
       </section>
     </div>
   )
