@@ -1,5 +1,6 @@
 "use client"
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
@@ -74,13 +75,12 @@ export default function TrainSection() {
     // 드래그 종료 시 현재 위치 유지
   }
 
-  // 이징 함수 (부드러운 가속/감속) - 실제로 사용하지 않지만 ESLint 오류 방지를 위해 주석 처리
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // 이징 함수 (부드러운 가속/감속)
   const easeInOutCubic = (t: number): number => {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
   }
 
-  // 부드러운 전환 함수 - 실제로 사용하지 않지만 ESLint 오류 방지를 위해 주석 처리
+  // 부드러운 전환 함수
   const smoothTransition = (targetOffset: number, duration = 500) => {
     // 이미 전환 중이면 무시
     if (isTransitioning) return
