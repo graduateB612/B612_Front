@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useState, useEffect, useRef } from "react"
 import ShootingStar from "./components/shooting-star"
+import TrainSection from "./components/train-section"
 
 export default function Home() {
   const router = useRouter()
@@ -18,7 +19,7 @@ export default function Home() {
   const [blinkCount, setBlinkCount] = useState(0)
   const [currentSection, setCurrentSection] = useState(0)
   const sectionsRef = useRef<(HTMLElement | null)[]>([])
-  const totalSections = 3 // 총 섹션 수
+  const totalSections = 5 // 총 섹션 수
 
   // 섹션 참조 설정
   const addSectionRef = (el: HTMLElement | null, index: number) => {
@@ -43,7 +44,7 @@ export default function Home() {
           bCurrent++
           if (bCurrent === b612Full.length) {
             clearInterval(bInterval)
-            setRoseBlinkOpacity(1); // B612 타이핑이 끝날 때 장미 완전히 켜짐
+            setRoseBlinkOpacity(1) // B612 타이핑이 끝날 때 장미 완전히 켜짐
             // Fixer team - "rose" 타이핑
             let tCurrent = 0
             const tInterval = setInterval(() => {
@@ -74,73 +75,73 @@ export default function Home() {
       { opacity: 0.6, delay: 60 },
       { opacity: 1, delay: 40 },
       { opacity: 1, delay: 40 },
-    ];
-    let step = 0;
-    let timeoutId: ReturnType<typeof setTimeout>;
+    ]
+    let step = 0
+    let timeoutId: ReturnType<typeof setTimeout>
     const blink = () => {
-      setRoseBlinkOpacity(blinkPattern[step].opacity);
-      setBlinkCount(step);
-      step++;
+      setRoseBlinkOpacity(blinkPattern[step].opacity)
+      setBlinkCount(step)
+      step++
       if (step >= blinkPattern.length) {
-        setRoseBlinkOpacity(1);
-        return;
+        setRoseBlinkOpacity(1)
+        return
       }
-      timeoutId = setTimeout(blink, blinkPattern[step].delay);
-    };
-    blink();
-    return () => clearTimeout(timeoutId);
-  }, []);
+      timeoutId = setTimeout(blink, blinkPattern[step].delay)
+    }
+    blink()
+    return () => clearTimeout(timeoutId)
+  }, [])
 
   useEffect(() => {
     if (b612Text === b612Full) {
-      setRoseBlinkOpacity(1);
+      setRoseBlinkOpacity(1)
     }
-  }, [b612Text]);
+  }, [b612Text])
 
   // 스크롤 이벤트 핸들러
   useEffect(() => {
     let isScrolling = false
-    
+
     const handleWheel = (e: WheelEvent) => {
       if (isScrolling) return
-      
+
       isScrolling = true
-      
+
       if (e.deltaY > 0 && currentSection < totalSections - 1) {
         // 아래로 스크롤
-        setCurrentSection(prev => prev + 1)
+        setCurrentSection((prev) => prev + 1)
       } else if (e.deltaY < 0 && currentSection > 0) {
         // 위로 스크롤
-        setCurrentSection(prev => prev - 1)
+        setCurrentSection((prev) => prev - 1)
       }
-      
+
       // 스크롤 애니메이션이 끝난 후 다시 활성화
       setTimeout(() => {
         isScrolling = false
       }, 800) // 애니메이션 시간에 맞춰 조정
     }
-    
-    window.addEventListener('wheel', handleWheel)
-    
+
+    window.addEventListener("wheel", handleWheel)
+
     return () => {
-      window.removeEventListener('wheel', handleWheel)
+      window.removeEventListener("wheel", handleWheel)
     }
   }, [currentSection, totalSections])
-  
+
   // 현재 섹션으로 스크롤
   useEffect(() => {
     const currentSectionElement = sectionsRef.current[currentSection]
     if (currentSectionElement) {
       currentSectionElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
+        behavior: "smooth",
+        block: "start",
       })
     }
   }, [currentSection])
 
   const handleClick = () => {
     if (isNavigating) return // 중복 클릭 방지
-    
+
     setIsNavigating(true)
     // 약간의 지연 후 라우팅 (애니메이션 정리 시간 확보)
     setTimeout(() => {
@@ -149,31 +150,38 @@ export default function Home() {
   }
 
   return (
-    <div className="snap-y snap-mandatory h-screen overflow-y-auto relative" style={{
-      scrollSnapType: 'y mandatory',
-      scrollBehavior: 'smooth',
-      overflowY: 'auto',
-      height: '100vh',
-      backgroundImage: 'url("/image/space-bg.png")',
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundRepeat: "repeat-y", // 배경 이미지 반복 설정
-    }}>
+    <div
+      className="snap-y snap-mandatory h-screen overflow-y-auto relative"
+      style={{
+        scrollSnapType: "y mandatory",
+        scrollBehavior: "smooth",
+        overflowY: "auto",
+        height: "100vh",
+        backgroundImage: 'url("/image/space-bg.png")',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "repeat-y", // 배경 이미지 반복 설정
+      }}
+    >
       {/* 별똥별 효과 컴포넌트 추가 (배경 바로 위에 위치) */}
       <ShootingStar />
-      
+
       {/* 첫 번째 섹션: 기존 내용 */}
-      <section 
+      <section
         ref={(el) => addSectionRef(el, 0)}
         className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
       >
         <div
-          className={`relative cursor-pointer transition-transform hover:scale-110 ${isNavigating ? 'opacity-70' : ''}`}
+          className={`relative cursor-pointer transition-transform hover:scale-110 ${isNavigating ? "opacity-70" : ""}`}
           onClick={handleClick}
           style={{ width: 400, height: 400 }}
         >
-          <span className="absolute z-10 text-white text-6xl select-none" style={{left: '-140px', top: '80px'}}>{projectText}</span>
-          <span className="absolute z-10 text-white text-6xl select-none" style={{right: '-180px', bottom: '80px'}}>{b612Text}</span>
+          <span className="absolute z-10 text-white text-6xl select-none" style={{ left: "-140px", top: "80px" }}>
+            {projectText}
+          </span>
+          <span className="absolute z-10 text-white text-6xl select-none" style={{ right: "-180px", bottom: "80px" }}>
+            {b612Text}
+          </span>
           <Image
             src="/image/rose.png"
             alt="Rose"
@@ -183,7 +191,7 @@ export default function Home() {
             className="z-0"
             style={{
               opacity: roseBlinkOpacity,
-              transition: roseBlinkOpacity === 1 && blinkCount >= 10 ? "opacity 0.15s" : "none"
+              transition: roseBlinkOpacity === 1 && blinkCount >= 10 ? "opacity 0.15s" : "none",
             }}
           />
         </div>
@@ -194,10 +202,10 @@ export default function Home() {
       </section>
 
       {/* 두 번째 섹션 */}
-      <section 
+      <section
         ref={(el) => addSectionRef(el, 1)}
         className="flex min-h-screen flex-col items-center justify-center snap-start relative z-10"
-        >
+      >
         {/* Fixer 텍스트 (2번째 섹션 좌측 상단) */}
         <div className="absolute top-8 left-8 z-50">
           <span className="text-white text-3xl font-bold">Fixer</span>
@@ -215,21 +223,23 @@ export default function Home() {
                 marginBottom: "20px",
               }}
             >
-              <div style={{ width: 300, height: 450, position: "relative" }}> {/* 200px * 1.5, 300px * 1.5 */}
+              <div style={{ width: 300, height: 450, position: "relative" }}>
+                {" "}
+                {/* 200px * 1.5, 300px * 1.5 */}
                 <Image
                   src="/image/select_fox.png"
                   alt="여우"
                   fill
                   className="object-contain"
                   style={{
-                    filter: 'brightness(0)', // 실루엣 효과
+                    filter: "brightness(0)", // 실루엣 효과
                     objectPosition: "bottom",
                   }}
                 />
               </div>
             </div>
           </div>
-          
+
           {/* 어린왕자 캐릭터 */}
           <div className="flex flex-col items-center">
             <div
@@ -242,21 +252,23 @@ export default function Home() {
                 marginBottom: "20px",
               }}
             >
-              <div style={{ width: 300, height: 450, position: "relative" }}> {/* 200px * 1.5, 300px * 1.5 */}
+              <div style={{ width: 300, height: 450, position: "relative" }}>
+                {" "}
+                {/* 200px * 1.5, 300px * 1.5 */}
                 <Image
                   src="/image/select_prince.png"
                   alt="어린왕자"
                   fill
                   className="object-contain"
                   style={{
-                    filter: 'brightness(0)', // 실루엣 효과
+                    filter: "brightness(0)", // 실루엣 효과
                     objectPosition: "bottom",
                   }}
                 />
               </div>
             </div>
           </div>
-          
+
           {/* 장미 캐릭터 */}
           <div className="flex flex-col items-center">
             <div
@@ -269,21 +281,23 @@ export default function Home() {
                 marginBottom: "20px",
               }}
             >
-              <div style={{ width: 240, height: 360, position: "relative" }}> {/* 160px * 1.5, 240px * 1.5 */}
+              <div style={{ width: 240, height: 360, position: "relative" }}>
+                {" "}
+                {/* 160px * 1.5, 240px * 1.5 */}
                 <Image
                   src="/image/select_rose.png"
                   alt="장미"
                   fill
                   className="object-contain"
                   style={{
-                    filter: 'brightness(0)', // 실루엣 효과
+                    filter: "brightness(0)", // 실루엣 효과
                     objectPosition: "bottom",
                   }}
                 />
               </div>
             </div>
           </div>
-          
+
           {/* 바오밥 캐릭터 */}
           <div className="flex flex-col items-center">
             <div
@@ -296,14 +310,16 @@ export default function Home() {
                 marginBottom: "20px",
               }}
             >
-              <div style={{ width: 300, height: 450, position: "relative" }}> {/* 200px * 1.5, 300px * 1.5 */}
+              <div style={{ width: 300, height: 450, position: "relative" }}>
+                {" "}
+                {/* 200px * 1.5, 300px * 1.5 */}
                 <Image
                   src="/image/select_bob.png"
                   alt="바오밥"
                   fill
                   className="object-contain"
                   style={{
-                    filter: 'brightness(0)', // 실루엣 효과
+                    filter: "brightness(0)", // 실루엣 효과
                     objectPosition: "bottom",
                   }}
                 />
@@ -314,11 +330,27 @@ export default function Home() {
       </section>
 
       {/* 세 번째 섹션 */}
-      <section 
+      <section
         ref={(el) => addSectionRef(el, 2)}
         className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
       >
         {/* 섹션 3 내용은 요구사항에 없어 비워둠 */}
+      </section>
+
+      {/* 네 번째 섹션 - 행성 섹션 (비어있음) */}
+      <section
+        ref={(el) => addSectionRef(el, 3)}
+        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
+      >
+        {/* 행성 섹션 내용 - 추후 구현 */}
+      </section>
+
+      {/* 다섯 번째 섹션 - 열차 페이지 */}
+      <section
+        ref={(el) => addSectionRef(el, 4)}
+        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
+      >
+        <TrainSection />
       </section>
     </div>
   )
