@@ -324,8 +324,8 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
         // 중앙에 있을 때 크기 조정
         return {
           ...baseStyle,
-          width: 800, // 더 큰 컨테이너
-          height: 800, // 더 큰 컨테이너
+          width: 550, // 더 큰 컨테이너
+          height: 550, // 더 큰 컨테이너
         }
       } else if (
         distance === -1 ||
