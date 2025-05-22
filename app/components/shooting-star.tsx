@@ -76,7 +76,7 @@ export default function ShootingStar() {
     // 새 별똥별 추가
     const addNewStar = () => {
       // 확률에 따라 별똥별 생성 (더 낮은 확률로 변경)
-      if (Math.random() < 0.01) { // 1% 확률 (매우 가끔씩만 나타나도록)
+      if (Math.random() < 0.02) { // 3% 확률 (매우 가끔씩만 나타나도록)
         setStars(prevStars => [...prevStars, createStar()]);
       }
     };

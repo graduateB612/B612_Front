@@ -1,105 +1,23 @@
 "use client"
 
-import Image from "next/image"
-import { useRouter } from "next/navigation"
 import { useState, useEffect, useRef } from "react"
 import ShootingStar from "./components/shooting-star"
 import TrainSection from "./components/train-section"
 import PlanetSection from "./components/planet-section"
 import PlanetBackground from "./components/planet-background"
 import CharacterSection from "./components/character-section"
+import StarBackground from "./components/star-background"
+import IntroSection from "./components/intro-section"
 
 export default function Home() {
-  const router = useRouter()
-  const [isNavigating, setIsNavigating] = useState(false)
-  const [typedText, setTypedText] = useState("")
-  const fullText = 'Fixer team - "rose"'
-  const [projectText, setProjectText] = useState("")
-  const [b612Text, setB612Text] = useState("")
-  const projectFull = "Project"
-  const b612Full = "B 6 1 2"
-  const [roseBlinkOpacity, setRoseBlinkOpacity] = useState(0)
-  const [blinkCount, setBlinkCount] = useState(0)
   const [currentSection, setCurrentSection] = useState(0)
   const sectionsRef = useRef<(HTMLElement | null)[]>([])
   const totalSections = 5 // 총 섹션 수
-
-  useEffect(() => {
-    if (b612Text === b612Full) {
-      setRoseBlinkOpacity(1)
-    }
-  }, [b612Text])
 
   // 섹션 참조 설정
   const addSectionRef = (el: HTMLElement | null, index: number) => {
     if (el) sectionsRef.current[index] = el
   }
-
-  useEffect(() => {
-    setTypedText("")
-    setProjectText("")
-    setB612Text("")
-    let current = 0
-    // Project 타이핑
-    const projectInterval = setInterval(() => {
-      setProjectText(projectFull.slice(0, current + 1))
-      current++
-      if (current === projectFull.length) {
-        clearInterval(projectInterval)
-        // B612 타이핑
-        let bCurrent = 0
-        const bInterval = setInterval(() => {
-          setB612Text(b612Full.slice(0, bCurrent + 1))
-          bCurrent++
-          if (bCurrent === b612Full.length) {
-            clearInterval(bInterval)
-            setRoseBlinkOpacity(1) // B612 타이핑이 끝날 때 장미 완전히 켜짐
-            // Fixer team - "rose" 타이핑
-            let tCurrent = 0
-            const tInterval = setInterval(() => {
-              setTypedText(fullText.slice(0, tCurrent + 1))
-              tCurrent++
-              if (tCurrent === fullText.length) clearInterval(tInterval)
-            }, 60)
-          }
-        }, 120)
-      }
-    }, 80)
-    return () => {
-      clearInterval(projectInterval)
-    }
-  }, [])
-
-  useEffect(() => {
-    // 장미 깜빡임 + 점점 밝아지는 효과 (불 켜지듯)
-    const blinkPattern = [
-      { opacity: 0.1, delay: 400 },
-      { opacity: 1, delay: 250 },
-      { opacity: 0.1, delay: 180 },
-      { opacity: 1, delay: 120 },
-      { opacity: 0.1, delay: 100 },
-      { opacity: 1, delay: 80 },
-      { opacity: 0.3, delay: 80 },
-      { opacity: 1, delay: 60 },
-      { opacity: 0.6, delay: 60 },
-      { opacity: 1, delay: 40 },
-      { opacity: 1, delay: 40 },
-    ]
-    let step = 0
-    let timeoutId: ReturnType<typeof setTimeout>
-    const blink = () => {
-      setRoseBlinkOpacity(blinkPattern[step].opacity)
-      setBlinkCount(step)
-      step++
-      if (step >= blinkPattern.length) {
-        setRoseBlinkOpacity(1)
-        return
-      }
-      timeoutId = setTimeout(blink, blinkPattern[step].delay)
-    }
-    blink()
-    return () => clearTimeout(timeoutId)
-  }, [])
 
   // 스크롤 이벤트 핸들러
   useEffect(() => {
@@ -142,16 +60,6 @@ export default function Home() {
     }
   }, [currentSection])
 
-  const handleClick = () => {
-    if (isNavigating) return // 중복 클릭 방지
-
-    setIsNavigating(true)
-    // 약간의 지연 후 라우팅 (애니메이션 정리 시간 확보)
-    setTimeout(() => {
-      router.push("/chat")
-    }, 100)
-  }
-
   return (
     <div
       className="snap-y snap-mandatory h-screen overflow-y-auto relative"
@@ -160,80 +68,106 @@ export default function Home() {
         scrollBehavior: "smooth",
         overflowY: "auto",
         height: "100vh",
-        backgroundImage: 'url("/image/space-bg.png")',
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "repeat-y", // 배경 이미지 반복 설정
       }}
     >
-      {/* 별똥별 효과 컴포넌트 추가 (배경 바로 위에 위치) */}
-      <ShootingStar />
+      <style jsx global>{`
+        @keyframes twinkle {
+          0%, 100% {
+            opacity: 0.3;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+      `}</style>
+
+      {/* 별똥별 효과 컴포넌트 - 전체 페이지에 적용 */}
+      <div className="fixed inset-0 z-[2] pointer-events-none">
+        <ShootingStar />
+      </div>
 
       {/* 첫 번째 섹션: 기존 내용 */}
       <section
         ref={(el) => addSectionRef(el, 0)}
-        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
+        className="flex min-h-screen flex-col items-center justify-center snap-start relative"
+        style={{
+          backgroundImage: 'url("/image/space-bg.png")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       >
-        <div
-          className={`relative cursor-pointer transition-transform hover:scale-110 ${isNavigating ? "opacity-70" : ""}`}
-          onClick={handleClick}
-          style={{ width: 400, height: 400 }}
-        >
-          <span className="absolute z-10 text-white text-6xl select-none" style={{ left: "-140px", top: "80px" }}>
-            {projectText}
-          </span>
-          <span className="absolute z-10 text-white text-6xl select-none" style={{ right: "-180px", bottom: "80px" }}>
-            {b612Text}
-          </span>
-          <Image
-            src="/image/rose.png"
-            alt="Rose"
-            width={400}
-            height={400}
-            priority
-            className="z-0"
-            style={{
-              opacity: roseBlinkOpacity,
-              transition: roseBlinkOpacity === 1 && blinkCount >= 10 ? "opacity 0.15s" : "none",
-            }}
-          />
+        <div className="absolute inset-0 z-[1]">
+          <StarBackground />
         </div>
-        <p className="mt-4 text-2xl text-white min-h-[2.5rem] relative">
-          <span className="invisible">{fullText}</span>
-          <span className="absolute left-0 top-0">{typedText}</span>
-        </p>
+        <IntroSection />
       </section>
 
-      {/* 두 번째 섹션: 캐릭터 선택 (컴포넌트로 분리) */}
+      {/* 두 번째 섹션: 캐릭터 선택 */}
       <section
         ref={(el) => addSectionRef(el, 1)}
-        className="flex min-h-screen flex-col items-center justify-center snap-start relative z-10"
+        className="flex min-h-screen flex-col items-center justify-center snap-start relative"
+        style={{
+          backgroundImage: 'url("/image/space-bg.png")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       >
+        <div className="absolute inset-0 z-[1]">
+          <StarBackground />
+        </div>
         <CharacterSection isActive={currentSection === 1} />
       </section>
 
       {/* 세 번째 섹션 - 행성 섹션 */}
       <section
         ref={(el) => addSectionRef(el, 2)}
-        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
+        className="flex min-h-screen flex-col items-center justify-center snap-start relative"
+        style={{
+          backgroundImage: 'url("/image/space-bg.png")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       >
+        <div className="absolute inset-0 z-[1]">
+          <StarBackground />
+        </div>
         <PlanetSection isActive={currentSection === 2} />
       </section>
 
       {/* 네 번째 섹션 - 행성 배경 */}
       <section
         ref={(el) => addSectionRef(el, 3)}
-        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
+        className="flex min-h-screen flex-col items-center justify-center snap-start relative"
+        style={{
+          backgroundImage: 'url("/image/space-bg.png")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       >
-        <PlanetBackground />
+        <div className="absolute inset-0 z-[1]">
+          <StarBackground />
+        </div>
+        <div className="absolute inset-0 z-[5]">
+          <PlanetBackground isActive={currentSection === 3} />
+        </div>
       </section>
 
       {/* 다섯 번째 섹션 - 열차 페이지 */}
       <section
         ref={(el) => addSectionRef(el, 4)}
-        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
+        className="flex min-h-screen flex-col items-center justify-center snap-start relative"
+        style={{
+          backgroundImage: 'url("/image/space-bg.png")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       >
-        <TrainSection isActive={currentSection === 4} />
+        <div className="absolute inset-0 z-[1]">
+          <StarBackground />
+        </div>
+        <div className="relative z-[5] w-full h-full">
+          <TrainSection isActive={currentSection === 4} />
+        </div>
       </section>
     </div>
   )
