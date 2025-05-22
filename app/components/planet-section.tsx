@@ -292,12 +292,6 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     }
   }, [isActive, currentPlanet])
 
-  // 행성 인덱스 계산 함수 (순환 구조)
-  const getModularIndex = (index: number) => {
-    const totalPlanets = planets.length
-    return ((index % totalPlanets) + totalPlanets) % totalPlanets
-  }
-
   // 행성의 애니메이션 스타일 결정 함수
   const getPlanetAnimationStyle = (distance: number) => {
     if (distance === 0) {
@@ -330,8 +324,8 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
         // 중앙에 있을 때 크기 조정
         return {
           ...baseStyle,
-          width: 550, // 더 큰 컨테이너
-          height: 550, // 더 큰 컨테이너
+          width: 800, // 더 큰 컨테이너
+          height: 800, // 더 큰 컨테이너
         }
       } else if (
         distance === -1 ||
@@ -583,12 +577,8 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
 
     // x에 대한 t 값 계산 (뉴턴 라프슨 방법)
     const solveCurveX = (x: number, epsilon = 1e-6) => {
-      const t0 = 0
-      const t1 = 1
+      // t0와 t1은 사용되지 않으므로 제거
       let t2 = x
-
-      if (x <= 0) return 0
-      if (x >= 1) return 1
 
       // 초기 추측값
       let x2 = sampleCurveX(t2)

@@ -682,7 +682,7 @@ export default function Home() {
       </section>
       {/* 세 번째 섹션 - 행성 섹션 */}
       <section
-        ref={(el) => addSectionRef(el, 3)}
+        ref={(el) => addSectionRef(el, 2)}
         className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
       >
         <PlanetSection isActive={currentSection === 3} />
@@ -690,7 +690,7 @@ export default function Home() {
 
       {/* 네 번째 섹션 */}
       <section
-        ref={(el) => addSectionRef(el, 2)}
+        ref={(el) => addSectionRef(el, 3)}
         className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
       >
         {/* 섹션 4 내용은 요구사항에 없어 비워둠 */}
