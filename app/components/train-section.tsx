@@ -6,7 +6,12 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 
-export default function TrainSection() {
+// 컴포넌트 인터페이스 추가
+interface TrainSectionProps {
+  isActive?: boolean
+}
+
+export default function TrainSection({ isActive = true }: TrainSectionProps) {
   // 슬라이드 텍스트 깜빡임 상태
   const [slideTextVisible, setSlideTextVisible] = useState(true)
 
@@ -152,6 +157,17 @@ export default function TrainSection() {
   // 열차가 화면에 나타나기 시작했는지 확인
   const trainStartedMoving = dragOffset > 0
 
+  // 섹션이 비활성화될 때 상태 초기화를 위한 useEffect 추가
+  useEffect(() => {
+    if (!isActive) {
+      // 다른 섹션으로 이동했을 때는 텍스트 상태를 변경하지 않음
+      // 열차 위치는 그대로 유지
+    } else {
+      // 트레인 섹션으로 돌아왔을 때 열차 위치에 따라 텍스트 표시 상태 업데이트
+      setTrainPassedScreen(dragOffset >= TRAIN_PASSED_OFFSET)
+    }
+  }, [isActive, dragOffset, TRAIN_PASSED_OFFSET])
+
   return (
     <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
       {/* 드래그 영역 */}
@@ -169,8 +185,8 @@ export default function TrainSection() {
         {!trainStartedMoving && (
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
             <div
-              className="text-4xl font-bold text-white transition-opacity duration-300"
-              style={{ opacity: slideTextVisible ? 1 : 0.3 }}
+              className="text-4xl text-white transition-opacity duration-600"
+              style={{ opacity: slideTextVisible ? 1 : 0 }}
             >
               Slide !
             </div>
@@ -245,9 +261,9 @@ export default function TrainSection() {
         </div>
 
         {/* 하단 텍스트 영역 - 열차가 화면을 통과했을 때만 표시 */}
-        {trainPassedScreen && (
+        {trainPassedScreen && isActive && (
           <div
-            className="fixed inset-0 flex flex-col items-center justify-center transition-opacity duration-500 pointer-events-none"
+            className="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500 pointer-events-none"
             style={{
               opacity: trainPassedScreen ? 1 : 0,
               zIndex: 20,

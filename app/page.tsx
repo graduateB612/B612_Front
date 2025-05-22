@@ -1,10 +1,12 @@
 "use client"
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Image from "next/image"
 
 import { useRouter } from "next/navigation"
 import { useState, useEffect, useRef } from "react"
 import ShootingStar from "./components/shooting-star"
 import TrainSection from "./components/train-section"
+import PlanetSection from "./components/planet-section"
 
 // 캐릭터 정보 인터페이스 정의
 interface CharacterInfo {
@@ -75,7 +77,6 @@ export default function Home() {
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null)
   const [animationInProgress, setAnimationInProgress] = useState(false)
   const [hoveredCharacter, setHoveredCharacter] = useState<string | null>(null)
-  // isReturning 변수는 사용되지 않으므로 제거
 
   // 정보 애니메이션 상태
   const [showName, setShowName] = useState(false)
@@ -679,29 +680,30 @@ export default function Home() {
           />
         )}
       </section>
-
-      {/* 세 번째 섹션 */}
-      <section
-        ref={(el) => addSectionRef(el, 2)}
-        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
-      >
-        {/* 섹션 3 내용은 요구사항에 없어 비워둠 */}
-      </section>
-
-      {/* 네 번째 섹션 - 행성 섹션 (비어있음) */}
+      {/* 세 번째 섹션 - 행성 섹션 */}
       <section
         ref={(el) => addSectionRef(el, 3)}
         className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
       >
-        {/* 행성 섹션 내용 - 추후 구현 */}
+        <PlanetSection isActive={currentSection === 3} />
       </section>
+
+      {/* 네 번째 섹션 */}
+      <section
+        ref={(el) => addSectionRef(el, 2)}
+        className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
+      >
+        {/* 섹션 4 내용은 요구사항에 없어 비워둠 */}
+      </section>
+
+      
 
       {/* 다섯 번째 섹션 - 열차 페이지 */}
       <section
         ref={(el) => addSectionRef(el, 4)}
         className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
       >
-        <TrainSection />
+        <TrainSection isActive={currentSection === 4} />
       </section>
     </div>
   )
