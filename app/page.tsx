@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react"
 import ShootingStar from "./components/shooting-star"
 import TrainSection from "./components/train-section"
 import PlanetSection from "./components/planet-section"
+import PlanetBackground from "./components/planet-background"
 
 // 캐릭터 정보 인터페이스 정의
 interface CharacterInfo {
@@ -693,7 +694,7 @@ export default function Home() {
         ref={(el) => addSectionRef(el, 3)}
         className="flex min-h-screen flex-col items-center justify-center snap-start z-10 relative"
       >
-        {/* 섹션 4 내용은 요구사항에 없어 비워둠 */}
+        <PlanetBackground />
       </section>
 
       
