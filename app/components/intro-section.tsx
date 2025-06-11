@@ -13,9 +13,8 @@ export default function IntroSection() {
   const [roseBlinkOpacity, setRoseBlinkOpacity] = useState(0)
   const [blinkCount, setBlinkCount] = useState(0)
 
-  const fullText = 'Fixer team - "rose"'
   const projectFull = "Project"
-  const b612Full = "B 6 1 2"
+  const b612Full = "B612"
 
   useEffect(() => {
     if (b612Text === b612Full) {
@@ -42,13 +41,6 @@ export default function IntroSection() {
           if (bCurrent === b612Full.length) {
             clearInterval(bInterval)
             setRoseBlinkOpacity(1) // B612 타이핑이 끝날 때 장미 완전히 켜짐
-            // Fixer team - "rose" 타이핑
-            let tCurrent = 0
-            const tInterval = setInterval(() => {
-              setTypedText(fullText.slice(0, tCurrent + 1))
-              tCurrent++
-              if (tCurrent === fullText.length) clearInterval(tInterval)
-            }, 60)
           }
         }, 120)
       }
@@ -105,10 +97,10 @@ export default function IntroSection() {
       onClick={handleClick}
       style={{ width: 400, height: 400 }}
     >
-      <span className="absolute z-10 text-white text-6xl select-none" style={{ left: "-140px", top: "80px" }}>
+      <span className="absolute z-10 text-white text-9xl select-none font-[1000]" style={{ left: "-250px", top: "20px" }}>
         {projectText}
       </span>
-      <span className="absolute z-10 text-white text-6xl select-none" style={{ right: "-180px", bottom: "80px" }}>
+      <span className="absolute z-10 text-white text-9xl select-none font-[1000]" style={{ right: "-220px", bottom: "20px" }}>
         {b612Text}
       </span>
       <Image
@@ -124,7 +116,6 @@ export default function IntroSection() {
         }}
       />
       <p className="absolute bottom-[-2rem] left-1/2 transform -translate-x-1/2 text-2xl text-white min-h-[2.5rem] w-full text-center">
-        <span className="invisible whitespace-nowrap">{fullText}</span>
         <span className="absolute left-1/2 transform -translate-x-1/2 whitespace-nowrap">{typedText}</span>
       </p>
     </div>

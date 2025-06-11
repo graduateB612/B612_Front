@@ -131,7 +131,9 @@ export default function Home() {
         <div className="absolute inset-0 z-[1]">
           <StarBackground />
         </div>
-        <PlanetSection isActive={currentSection === 2} />
+        <div className="absolute inset-0 z-[5]">
+          <PlanetBackground isActive={currentSection === 3} />
+        </div>
       </section>
 
       {/* 네 번째 섹션 - 행성 배경 */}
@@ -147,9 +149,7 @@ export default function Home() {
         <div className="absolute inset-0 z-[1]">
           <StarBackground />
         </div>
-        <div className="absolute inset-0 z-[5]">
-          <PlanetBackground isActive={currentSection === 3} />
-        </div>
+        <PlanetSection isActive={currentSection === 2} />
       </section>
 
       {/* 다섯 번째 섹션 - 열차 페이지 */}
