@@ -92,32 +92,75 @@ export default function IntroSection() {
   }
 
   return (
-    <div
-      className={`relative z-[3] cursor-pointer transition-transform hover:scale-110 ${isNavigating ? "opacity-70" : ""}`}
-      onClick={handleClick}
-      style={{ width: 400, height: 400 }}
-    >
-      <span className="absolute z-10 text-white text-9xl select-none font-[1000]" style={{ left: "-250px", top: "20px" }}>
-        {projectText}
-      </span>
-      <span className="absolute z-10 text-white text-9xl select-none font-[1000]" style={{ right: "-220px", bottom: "20px" }}>
-        {b612Text}
-      </span>
-      <Image
-        src="/image/rose.png"
-        alt="Rose"
-        width={400}
-        height={400}
-        priority
-        className="z-[3]"
-        style={{
-          opacity: roseBlinkOpacity,
-          transition: roseBlinkOpacity === 1 && blinkCount >= 10 ? "opacity 0.15s" : "none",
-        }}
-      />
-      <p className="absolute bottom-[-2rem] left-1/2 transform -translate-x-1/2 text-2xl text-white min-h-[2.5rem] w-full text-center">
-        <span className="absolute left-1/2 transform -translate-x-1/2 whitespace-nowrap">{typedText}</span>
-      </p>
-    </div>
+    <>
+      <style jsx>{`
+        @keyframes textGlow {
+          0%, 100% { 
+            text-shadow: 
+              0 0 10px rgba(173, 216, 230, 0.4),
+              0 0 20px rgba(173, 216, 230, 0.3),
+              0 0 30px rgba(173, 216, 230, 0.2);
+          }
+          50% { 
+            text-shadow: 
+              0 0 20px rgba(173, 216, 230, 0.7),
+              0 0 30px rgba(173, 216, 230, 0.5),
+              0 0 40px rgba(173, 216, 230, 0.3);
+          }
+        }
+        
+        @keyframes textFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+        
+        .text-enhanced {
+          animation: textGlow 3s ease-in-out infinite, textFloat 4s ease-in-out infinite;
+        }
+        
+        .text-enhanced-delayed {
+          animation: textGlow 3s ease-in-out infinite, textFloat 4.5s ease-in-out infinite;
+          animation-delay: 1s, 2s;
+        }
+      `}</style>
+      
+      <div
+        className={`relative z-[3] cursor-pointer ${isNavigating ? "opacity-70" : ""}`}
+        onClick={handleClick}
+        style={{ width: 400, height: 400 }}
+      >
+        <span 
+          className={`absolute z-10 text-white text-9xl select-none font-[1000] ${projectText === projectFull ? 'text-enhanced' : ''}`}
+          style={{ left: "-250px", top: "20px" }}
+        >
+          {projectText}
+        </span>
+        
+        <span 
+          className={`absolute z-10 text-white text-9xl select-none font-[1000] ${b612Text === b612Full ? 'text-enhanced-delayed' : ''}`}
+          style={{ right: "-220px", bottom: "20px" }}
+        >
+          {b612Text}
+        </span>
+        
+        <Image
+          src="/image/roseIcon.png"
+          alt="Rose"
+          width={600}
+          height={600}
+          priority
+          className="z-[3]"
+          style={{
+            opacity: roseBlinkOpacity,
+            transition: roseBlinkOpacity === 1 && blinkCount >= 10 ? "opacity 0.15s" : "none",
+            transform: "scale(1.5)",
+            transformOrigin: "center",
+          }}
+        />
+        <p className="absolute bottom-[-2rem] left-1/2 transform -translate-x-1/2 text-2xl text-white min-h-[2.5rem] w-full text-center">
+          <span className="absolute left-1/2 transform -translate-x-1/2 whitespace-nowrap">{typedText}</span>
+        </p>
+      </div>
+    </>
   )
 } 
