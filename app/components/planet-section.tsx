@@ -9,6 +9,7 @@ import Image from "next/image"
 interface Planet {
   id: number
   name: string
+  englishName: string
   image: string
   description: string
   width: number
@@ -40,8 +41,22 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
   // 애니메이션 상태
   const [isAnimating, setIsAnimating] = useState(false)
 
+  // 타이핑 효과 상태
+  const [displayedName, setDisplayedName] = useState("")
+  const [isTyping, setIsTyping] = useState(false)
+
+  // 설명 슬라이드 효과 상태
+  const [displayedSentences, setDisplayedSentences] = useState<string[]>([])
+
+  // 행성 이미지 모자이크 효과 상태
+  const [showPlanetImage, setShowPlanetImage] = useState(false)
+  const [mosaicTiles, setMosaicTiles] = useState<boolean[]>([])
+
   // 애니메이션 타이머 참조
   const animationTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const typingTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const descriptionTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const mosaicTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // 컨테이너 참조
   const containerRef = useRef<HTMLDivElement>(null)
@@ -50,10 +65,11 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
   const planets: Planet[] = [
     {
       id: 1,
-      name: "아쿠아 행성",
+      name: "YAL - DIROOS",
+      englishName: "Aqua Planet",
       image: "/image/planets/planet_1.png",
       description:
-        "물이 풍부한 이 행성은 깊은 바다와 신비로운 해양 생물들로 가득합니다. 푸른빛 표면 아래에는 수정처럼 빛나는 도시들이 숨겨져 있습니다.",
+        "얄-디루스 행성에 오신 것을 환영합니다. 행성의 절반 이상이 물로 이루어져있으며, 수중 가옥부터 수면 위 작은 도시들이 구성되어 있습니다. 북쪽에 위치한 빙하 지대는 얄-디루스 주민들의 단단한 신념을 상징합니다. 독설가의 행성인 얄-디루스 행성은 인생의 옳은 길을 안내해주는 길잡이 행성입니다. 당신의 삶에서 가장 중요한 것이 무엇인지 잊었을 떄, 한 번 쯤 하늘을 바라보며 정답을 찾아 낼 수 있겠지요.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -61,10 +77,11 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     },
     {
       id: 2,
-      name: "테라코타 행성",
+      name: "ERURION",
+      englishName: "Terracotta Planet",
       image: "/image/planets/planet_2.png",
       description:
-        "붉은 사막과 거대한 협곡이 특징인 이 행성은 고대 문명의 흔적이 남아있습니다. 밤이 되면 두 개의 달이 붉은 모래 위에 신비로운 그림자를 드리웁니다.",
+        "에르리온 행성에 오신 것을 환영합니다. 꽃과, 화산의 조화라는 엉터리스러운 특징을 가지고 있습니다.지구의 주기로 1년 365일 내내 꽃이 피어있어 꽃잎으로 덮여 있습니다. 행성 주민들은 비교적 꽃이 피지 않은땅 위에서 생활하며, 꽃밭을 '행복의 근원' 이라는 이름 아래에 신성시 하고 있습니다.행성의 주인인 지질학자는 변화하는 것에 대한 혐오감을 가지고 있으나, 꽃이 그를 행복하게 하는 데에는 변명의 여지가 없습니다.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -72,10 +89,11 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     },
     {
       id: 3,
-      name: "라벤더 행성",
+      name: "LUTIA",
+      englishName: "Lavender Planet",
       image: "/image/planets/planet_3.png",
       description:
-        "보라색 안개로 둘러싸인 이 행성은 향기로운 꽃들과 부드러운 언덕이 특징입니다. 주민들은 꿈과 예술을 중요시하며 평화롭게 살아갑니다.",
+        "루티아 행성에 오신 것을 환영합니다. 루티아 행성은 늦은 밤까지 꺼지지않는 야광 불빛이 유명합니다.도시는 술과 축제로 항상 시끌벅적하며 잡스러운 생각을 술, 그리고 맛있는 음식으로 치유합니다.당신의 과거 또는 미래가 스스로를 곤란하게 만들 때, 의외로 특별하지 않은 무언가가 해답이 될 수도 있습니다.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -83,10 +101,11 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     },
     {
       id: 4,
-      name: "가이아 행성",
+      name: "VELL - RORNA",
+      englishName: "Gaia Planet",
       image: "/image/planets/planet_4.png",
       description:
-        "푸른 하늘과 넓은 초원이 펼쳐진 이 행성은 다양한 생태계가 공존합니다. 거대한 나무들이 행성 전체에 산소를 공급하며 생명을 유지합니다.",
+        "벨로르나 행성에 오신 것을 환영합니다. 벨로르나 행성은 '자유' 라는 단어를 우주에서 가장 잘 표현하는 행성입니다.그들 자신만의 깨달음과 목표를 위해 우주를 유랑하고, 질서를 넘나듭니다.이러한 여행에서 발견되는 것은 긍정적일 수도, 부정적일 수도 있지만 스스로가 책임지는 '경험'을 만들어냅니다. 우리는 무엇이 우릴 붙잡아놓고 있을까요?.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -94,32 +113,35 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     },
     {
       id: 5,
-      name: "에메랄드 행성",
-      image: "/image/planets/planet_5.png",
-      description:
-        "녹색 결정으로 뒤덮인 이 행성은 빛을 반사하여 우주에서도 보일 정도로 밝게 빛납니다. 행성 내부에는 귀중한 에너지원이 풍부하게 매장되어 있습니다.",
-      width: 256,
-      height: 256,
-      centerScale: 1.8, // 중앙에서 스케일
-      sideScale: 0.8, // 측면에서 스케일
-    },
-    {
-      id: 6,
-      name: "클라우드 행성",
+      name: "LUMIRE",
+      englishName: "Emerald Planet",
       image: "/image/planets/planet_6.png",
       description:
-        "항상 구름으로 덮여 있는 이 행성은 공중에 떠 있는 섬들이 특징입니다. 주민들은 구름 사이를 날아다니며 바람의 흐름을 타고 여행합니다.",
+        "루미르 행성에 오신 것을 환영합니다. 루미르 행성은 단 한 명의 행성 주민만이 살고있습니다. 단지 가로등을 켜고 끄는 소리만이 들리지만, 어린 왕자의 마음을 빼앗았던 행성이죠. 자신에게 닥친 외로움과 부정적인 것들이 상황을 안 좋게 만들 순 있어도, 결코 자신을 좀 먹지는 못합니다. 당신은 지금처럼 계속해서 우리의 빛을 잃지 말길 바랍니다.",
       width: 128,
       height: 128,
       centerScale: 2.5,
       sideScale: 0.9,
     },
     {
+      id: 6,
+      name: "URANOS",
+      englishName: "Cloud Planet",
+      image: "/image/planets/planet_5.png",
+      description:
+        "우라노스 행성에 오신 것을 환영합니다. 스스로를 '왕'이라고 칭하는 자가 지내고 있습니다. 그는 사랑받고, 존경받으며, 큰 행성을 관리하지만 어딘가 외로움이 숨겨져 있습니다. 겉이 아름답고 단단하다면 그 이면에는 추하고 연약한 것이 존재하기 마련이죠.",
+      width: 256,
+      height: 256,
+      centerScale: 1.8,
+      sideScale: 0.8,
+    },
+    {
       id: 7,
-      name: "솔라리스 행성",
+      name: "SOLARSNUAR",
+      englishName: "Solar Planet",
       image: "/image/planets/planet_7.png",
       description:
-        "태양과 가까이 있어 항상 뜨거운 이 행성은 불꽃 같은 지형이 특징입니다. 주민들은 열을 에너지로 변환하는 특별한 능력을 가지고 있습니다.",
+        "솔라스나르 행성에 오신 것을 환영합니다. 뜨겁고, 용암이 흘러내리는 모습처럼 이 곳 주민들도 정열적이고 활발한 모습을 가지고 있습니다. 불같은 성격은 그들을 쉽게 좌절감이나 무력감에 빠지지 않도록 도와줍니다. 두 개의 위성을 가지고 있으며 이 곳에서는 주기적으로 행성의 표면 온도를 식혀주는 중요한 설비가 존재합니다. 우리들의 침착함이라는 감정처럼요.",
       width: 64,
       height: 64,
       centerScale: 3.5, // 작은 행성이므로 더 크게 스케일링
@@ -127,10 +149,11 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     },
     {
       id: 8,
-      name: "오리온 행성",
+      name: "KARMIRE",
+      englishName: "Desert Planet",
       image: "/image/planets/planet_8.png",
       description:
-        "황금빛 사막과 고대 유적이 특징인 이 행성은 밤하늘의 별자리를 연구하는 천문학자들의 성지입니다. 모래 아래에는 잊혀진 문명의 비밀이 숨겨져 있습니다.",
+        "카르미르 행성에 오신 것을 환영합니다. 카르미르는 우주에서 가장 번성한 행성입니다. 여러 개의 우주 정거장과, 우주적 자원을 이용한 산업 단지가 분포 해 있습니다. 번영한 남쪽과는 다르게 북쪽은 황폐화된 지대로 뚜렷하게 구분되어 있습니다. 점점 본인들의 여유공간이 없어지고 있다는 것을 알고있을까요?.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -185,11 +208,158 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     }, 16) // 약 60fps
   }
 
+  // 타이핑 효과 시작 함수
+  const startTypingEffect = (text: string) => {
+    // 이전 타이머 정리
+    if (typingTimerRef.current) {
+      clearTimeout(typingTimerRef.current)
+    }
+
+    // 타이핑 효과 초기화
+    setDisplayedName("")
+    setIsTyping(true)
+
+    let currentIndex = 0
+
+    // 타이핑 효과를 위한 함수
+    const typeCharacter = () => {
+      if (currentIndex < text.length) {
+        setDisplayedName(text.substring(0, currentIndex + 1))
+        currentIndex++
+        typingTimerRef.current = setTimeout(typeCharacter, 80) // 80ms 간격
+      } else {
+        setIsTyping(false)
+        typingTimerRef.current = null
+      }
+    }
+
+    // 타이핑 시작
+    typeCharacter()
+  }
+
+  // 설명 슬라이드 효과 시작 함수
+  const startDescriptionSlideEffect = (description: string) => {
+    // 이전 타이머 정리
+    if (descriptionTimerRef.current) {
+      clearTimeout(descriptionTimerRef.current)
+    }
+
+    // 설명을 문장 단위로 분할 (마침표, 물음표, 느낌표 기준)
+    const sentences = description.split(/(?<=[.?!])\s+/).filter(sentence => sentence.trim() !== "")
+    
+    // 초기화
+    setDisplayedSentences([])
+
+    let currentIndex = 0
+
+    // 문장별 슬라이드 효과 함수
+    const showNextSentence = () => {
+      if (currentIndex < sentences.length) {
+        setDisplayedSentences(prev => [...prev, sentences[currentIndex]])
+        currentIndex++
+        descriptionTimerRef.current = setTimeout(showNextSentence, 400) // 400ms 간격으로 문장 표시
+      } else {
+        descriptionTimerRef.current = null
+      }
+    }
+
+    // 타이핑 효과가 끝난 후 설명 슬라이드 시작 (약간의 지연)
+    setTimeout(() => {
+      showNextSentence()
+    }, 500) // 타이핑 효과 후 0.5초 지연
+  }
+
+  // 모자이크 페이드 효과 시작 함수
+  const startMosaicFadeEffect = () => {
+    // 이전 타이머 정리
+    if (mosaicTimerRef.current) {
+      clearTimeout(mosaicTimerRef.current)
+    }
+
+    // 15x10 = 150개의 타일로 구성 (더 세밀한 모자이크 효과)
+    const totalTiles = 150
+    const tiles = new Array(totalTiles).fill(false)
+    
+    // 초기화
+    setShowPlanetImage(false)
+    setMosaicTiles(tiles)
+
+    // 약간의 지연 후 모자이크 효과 시작
+    setTimeout(() => {
+      setShowPlanetImage(true)
+      
+      // 타일들을 랜덤 순서로 나타나게 하기
+      const indices = Array.from({ length: totalTiles }, (_, i) => i)
+      // Fisher-Yates 셔플 알고리즘으로 랜덤 순서 생성
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]]
+      }
+
+      let currentTileIndex = 0
+      let lastTime = 0
+      const targetInterval = 8 // 8ms 목표 간격
+
+      // 타일별 나타나는 효과 (requestAnimationFrame 사용)
+      const showNextTile = (currentTime: number) => {
+        if (currentTime - lastTime >= targetInterval) {
+          if (currentTileIndex < totalTiles) {
+            const tileIndex = indices[currentTileIndex]
+            setMosaicTiles(prev => {
+              const newTiles = [...prev]
+              newTiles[tileIndex] = true
+              return newTiles
+            })
+            currentTileIndex++
+            lastTime = currentTime
+          }
+        }
+        
+        if (currentTileIndex < totalTiles) {
+          requestAnimationFrame(showNextTile)
+        }
+      }
+
+      requestAnimationFrame(showNextTile)
+    }, 500) // 설명 슬라이드 효과 후 0.5초 지연
+  }
+
+  // 현재 행성이 변경될 때마다 타이핑 효과와 설명 슬라이드 효과, 모자이크 효과 시작
+  useEffect(() => {
+    const planetName = planets[currentPlanet]?.name || ""
+    const planetDescription = planets[currentPlanet]?.description || ""
+    
+    startTypingEffect(planetName)
+    startDescriptionSlideEffect(planetDescription)
+    startMosaicFadeEffect()
+  }, [currentPlanet])
+
+  // 섹션이 활성화될 때도 효과들 시작 (처음 스크롤해서 들어올 때)
+  useEffect(() => {
+    if (isActive) {
+      const planetName = planets[currentPlanet]?.name || ""
+      const planetDescription = planets[currentPlanet]?.description || ""
+      
+      startTypingEffect(planetName)
+      startDescriptionSlideEffect(planetDescription)
+      startMosaicFadeEffect()
+    }
+  }, [isActive])
+
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
     return () => {
       if (animationTimerRef.current) {
         clearInterval(animationTimerRef.current)
+      }
+      if (typingTimerRef.current) {
+        clearTimeout(typingTimerRef.current)
+      }
+      if (descriptionTimerRef.current) {
+        clearTimeout(descriptionTimerRef.current)
+      }
+      if (mosaicTimerRef.current) {
+        clearTimeout(mosaicTimerRef.current)
       }
     }
   }, [])
@@ -309,7 +479,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     return "none"
   }
 
-  // 행성 크기 조정 함수 (에메랄드 행성 특별 처리)
+  // 행성 크기 조정 함수 (우라노스 행성 특별 처리)
   const getPlanetContainerStyle = (planet: Planet, distance: number) => {
     // 기본 스타일
     const baseStyle = {
@@ -318,8 +488,8 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       position: "relative" as const,
     }
 
-    // 에메랄드 행성(id: 5)인 경우 특별 처리
-    if (planet.id === 5) {
+    // 우라노스 행성(id: 6)인 경우 특별 처리
+    if (planet.id === 6) {
       if (distance === 0) {
         // 중앙에 있을 때 크기 조정
         return {
@@ -359,8 +529,8 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       MozUserSelect: "none" as const, // Firefox용
     }
 
-    // 에메랄드 행성(id: 5)인 경우 특별 처리
-    if (planet.id === 5) {
+    // 우라노스 행성(id: 6)인 경우 특별 처리
+    if (planet.id === 6) {
       return {
         ...baseStyle,
         objectFit: "contain" as const, // 이미지가 잘리지 않도록 contain 사용
@@ -400,8 +570,8 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
         // 양쪽 행성
         if (planet.id === 7) {
           return 0.6 // 솔라리스 행성은 더 작게
-        } else if (planet.id === 5) {
-          return 0.8 // 에메랄드 행성은 측면에서 작게
+        } else if (planet.id === 6) {
+          return 0.8 // 우라노스 행성은 측면에서 작게
         } else {
           return 0.9 // 일반 행성
         }
@@ -417,8 +587,8 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
 
     // 애니메이션 중이면 스케일 보간, 아니면 타겟 스케일 바로 적용
     if (isAnimating) {
-      // 에메랄드 행성의 경우 특별 처리
-      if (planet.id === 5) {
+      // 우라노스 행성의 경우 특별 처리
+      if (planet.id === 6) {
         // 이징 함수 적용 (cubic-bezier)
         const easeProgress = cubicBezier(0.4, 0, 0.2, 1, animationProgress)
         return prevScale + (targetScale - prevScale) * easeProgress
@@ -458,10 +628,10 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
         return 0
       } else if (dist === -1 || dist === planets.length - 1) {
         // 이전 행성 (왼쪽)
-        return planet.id === 5 ? -650 : -550
+        return planet.id === 6 ? -650 : -550
       } else if (dist === 1 || dist === -(planets.length - 1)) {
         // 다음 행성 (오른쪽)
-        return planet.id === 5 ? 650 : 550
+        return planet.id === 6 ? 650 : 550
       } else {
         // 나머지 행성
         return dist * 1000
@@ -474,8 +644,8 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
 
     // 애니메이션 중이면 위치 보간, 아니면 타겟 위치 바로 적용
     if (isAnimating) {
-      // 에메랄드 행성의 경우 특별 처리
-      if (planet.id === 5) {
+      // 우라노스 행성의 경우 특별 처리
+      if (planet.id === 6) {
         // 이징 함수 적용 (cubic-bezier)
         const easeProgress = cubicBezier(0.4, 0, 0.2, 1, animationProgress)
         return prevX + (targetX - prevX) * easeProgress
@@ -604,6 +774,194 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
 
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
+      {/* 우상단 페이지 카운터 */}
+      <div className="absolute top-8 right-8 z-20 flex items-center space-x-2 pointer-events-none">
+        <span className="text-white font-pf-stardust text-7xl font-bold pixelated">
+          {String(currentPlanet + 1).padStart(2, "0")}
+        </span>
+        <span className="text-white font-pf-stardust text-7xl">/</span>
+        <span className="text-white font-pf-stardust text-7xl font-bold pixelated">
+          {String(planets.length).padStart(2, "0")}
+        </span>
+      </div>
+
+      {/* 행성 이름 (왼쪽 중상단) - 타이핑 효과 적용 */}
+      <div className="absolute left-16 top-1/3 z-20 pointer-events-none">
+        <h1 
+          className="text-6xl font-bold font-pf-stardust leading-tight"
+          style={{ 
+            color: currentPlanet === 0 ? '#6BE2EF' : 
+                   currentPlanet === 1 ? '#E5B597' : 
+                   currentPlanet === 2 ? '#F1B9E2' :
+                   currentPlanet === 4 ? '#B2D8F8' :
+                   currentPlanet === 5 ? '#ABE3B4' :
+                   currentPlanet === 6 ? '#ECB462' :
+                   currentPlanet === 7 ? '#E6CFB0' : 'white' 
+          }}
+        >
+          {displayedName}
+          {isTyping && <span className="animate-pulse">|</span>}
+        </h1>
+      </div>
+
+      {/* 행성 설명 (왼쪽 중간) - 슬라이드 효과 적용 */}
+      <div className="absolute left-16 top-1/2 transform -translate-y-8 z-20 max-w-3xl pointer-events-none">
+        <div className="text-white text-lg font-pf-stardust leading-relaxed">
+          {displayedSentences.map((sentence, index) => (
+            <div
+              key={index}
+              className="overflow-hidden"
+              style={{
+                animation: `slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${index * 0.1}s both`,
+              }}
+            >
+              <p className="transform translate-y-full animate-slideInUp">
+                {sentence}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 행성 이미지 영역 (우측) - 모자이크 페이드 효과 */}
+      {showPlanetImage && (
+        <div className="absolute right-20 bottom-11 transform z-20 pointer-events-none">
+          <div 
+            className="relative"
+            style={{ width: "450px", height: "350px" }}
+          >
+            {/* 모자이크 타일들 */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(15, 1fr)",
+                gridTemplateRows: "repeat(10, 1fr)",
+              }}
+            >
+              {mosaicTiles.map((isVisible, index) => {
+                const row = Math.floor(index / 15)
+                const col = index % 15
+                const tileWidth = 450 / 15
+                const tileHeight = 350 / 10
+                
+                return (
+                  <div
+                    key={index}
+                    className="overflow-hidden"
+                    style={{
+                      width: `${tileWidth}px`,
+                      height: `${tileHeight}px`,
+                      opacity: isVisible ? 1 : 0,
+                      transition: "opacity 0.2s ease-in-out",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "450px",
+                        height: "350px",
+                        backgroundImage: `url(/image/Planet_image_${currentPlanet + 1}.png)`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        transform: `translate(-${col * tileWidth}px, -${row * tileHeight}px)`,
+                      }}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 행성 정보 (좌하단) */}
+      <div 
+        className="absolute bottom-8 left-28 z-20 font-mono text-sm space-y-1 pointer-events-none"
+        style={{ 
+          color: currentPlanet === 0 ? '#78BDD2' : 
+                 currentPlanet === 1 ? '#BB967B' : 
+                 currentPlanet === 2 ? '#CC82BE' :
+                 currentPlanet === 4 ? '#5289C6' :
+                 currentPlanet === 5 ? '#6FAD76' :
+                 currentPlanet === 6 ? '#C68510' :
+                 currentPlanet === 7 ? '#C3B07F' : 'white' 
+        }}
+      >
+        <div>PLANET . . . . . . . . . . {planets[currentPlanet].name}</div>
+        <div>COLONIZATION . . . . . {currentPlanet === 0 ? 'ARBORIS CIVILIZATION' : 
+                                       currentPlanet === 1 ? 'ARBORIS CIVILIZATION' :
+                                       currentPlanet === 2 ? 'ARBORIS CIVILIZATION' :
+                                       currentPlanet === 3 ? 'WANDERING CIVILIZATION' :
+                                       currentPlanet === 4 ? 'Non CIVILIZATION' :
+                                       currentPlanet === 5 ? 'ARBORIS CIVILIZATION' :
+                                       currentPlanet === 6 ? 'ARBORIS CIVILIZATION' :
+                                       'BUSINESS CIVILIZATION'}</div>
+        <div>ORBITAL DISTANCE . . . . {currentPlanet === 0 ? '0.025 AU' :
+                                        currentPlanet === 1 ? '0.046 AU' :
+                                        currentPlanet === 2 ? '0.07 AU' :
+                                        currentPlanet === 3 ? '0.05 AU' :
+                                        currentPlanet === 4 ? '0.015 AU' :
+                                        currentPlanet === 5 ? '0.1 AU' :
+                                        currentPlanet === 6 ? '0.04 AU' :
+                                        '0.017 AU'}</div>
+        <div>MASS . . . . . . . . . . . . . . . . . . . . . {currentPlanet === 0 ? '1.05KG X 10^2' :
+                                           currentPlanet === 1 ? '2.07KG X 10^2' :
+                                           currentPlanet === 2 ? '3.3KG X 10^2' :
+                                           currentPlanet === 3 ? '0.7KG X 10^2' :
+                                           currentPlanet === 4 ? '0.64KG X 10^2' :
+                                           currentPlanet === 5 ? '4.21KG X 10^2' :
+                                           currentPlanet === 6 ? '2.77KG X 10^2' :
+                                           '3.44KG X 10^2'}</div>
+        <div>DIAMETER . . . . . . . . . . . . . . . . . . . . . . {currentPlanet === 0 ? '12,742 KM' :
+                                              currentPlanet === 1 ? '16,811 KM' :
+                                              currentPlanet === 2 ? '10.841 KM' :
+                                              currentPlanet === 3 ? '9.672 KM' :
+                                              currentPlanet === 4 ? '9,655 KM' :
+                                              currentPlanet === 5 ? '22.551 KM' :
+                                              currentPlanet === 6 ? '14.581 KM' :
+                                              '10.158 KM'}</div>
+        <div>GRAVITY . . . . . . . . . . . . . . . . . . . . . . . . . {currentPlanet === 0 ? '1. 11 G' :
+                                                 currentPlanet === 1 ? '1. 02 G' :
+                                                 currentPlanet === 2 ? '1.6 G' :
+                                                 currentPlanet === 3 ? '0.4 G' :
+                                                 currentPlanet === 4 ? '0.9 G' :
+                                                 currentPlanet === 5 ? '2.13G' :
+                                                 currentPlanet === 6 ? '0.2 G' :
+                                                 '0.19 G'}</div>
+        <div>ATMOSPHERIC DENSITY . . . . . . . . . . . . . . . . {currentPlanet === 0 ? '10.9 M/S^2' :
+                                          currentPlanet === 1 ? '12.1 M/S^2' :
+                                          currentPlanet === 2 ? '12.1 M/S^2' :
+                                          currentPlanet === 3 ? '7.7 M/S^2' :
+                                          currentPlanet === 4 ? '5.11 M/S^2' :
+                                          currentPlanet === 5 ? '14.4 M/S^2' :
+                                          currentPlanet === 6 ? '1.5 M/S^2' :
+                                          '10.9 M/S^2'}</div>
+        <div>ORBITAL PERIOD . . . . . . . . . . . . {currentPlanet === 0 ? '4.91 EARTH DAYS' :
+                                           currentPlanet === 1 ? '7.3 EARTH DAYS' :
+                                           currentPlanet === 2 ? '6 EARTH DAYS' :
+                                           currentPlanet === 3 ? '5 EARTH DAYS' :
+                                           currentPlanet === 4 ? '7 EARTH DAYS' :
+                                           currentPlanet === 5 ? '6 EARTH DAYS' :
+                                           currentPlanet === 6 ? '9 EARTH DAYS' :
+                                           '8.45 EARTH DAYS'}</div>
+        <div>ENERGY FLUX . . . . . . . . . . . . . . . . . {currentPlanet === 0 ? '0.02 W/M^2' :
+                                              currentPlanet === 1 ? '0.3 W/M^2' :
+                                              currentPlanet === 2 ? '1 W/M^2' :
+                                              currentPlanet === 3 ? '0.2 W/M^2' :
+                                              currentPlanet === 4 ? '0.002 W/M^2' :
+                                              currentPlanet === 5 ? '0.8 W/M^2' :
+                                              currentPlanet === 6 ? '5.0 W/M^2' :
+                                              '0.61 W/M^2'}</div>
+        <div>DAY LENGTH . . . . . . . . . . . . . {currentPlanet === 0 ? '23.6 H' :
+                                               currentPlanet === 1 ? '11.5 H' :
+                                               currentPlanet === 2 ? '14.3 H' :
+                                               currentPlanet === 3 ? '26.7 H' :
+                                               currentPlanet === 4 ? '25 H' :
+                                               currentPlanet === 5 ? '7.4 H' :
+                                               currentPlanet === 6 ? '4 H' :
+                                               '21.16 H'}</div>
+      </div>
+
       {/* 행성 갤러리 */}
       <div
         ref={containerRef}
@@ -624,7 +982,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
         }}
       >
         {/* 행성들 */}
-        <div className="relative w-full h-full flex items-center justify-center z-10">
+        <div className="relative w-full h-full flex items-center justify-center z-25">
           {planets.map((planet, index) => {
             // 행성이 화면 밖으로 너무 멀리 벗어나면 렌더링하지 않음
             const rawDistance = index - currentPlanet
@@ -723,6 +1081,21 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
           100% {
             transform: translateY(0px) rotate(0deg);
           }
+        }
+
+        @keyframes slideUp {
+          0% {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        .animate-slideInUp {
+          animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
         }
         
         /* 전역 선택 방지 스타일 */
