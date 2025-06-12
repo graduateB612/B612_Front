@@ -823,56 +823,92 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
         </div>
       </div>
 
-      {/* 행성 이미지 영역 (우측) - 모자이크 페이드 효과 */}
-      {showPlanetImage && (
-        <div className="absolute right-20 bottom-11 transform z-20 pointer-events-none">
-          <div 
-            className="relative"
-            style={{ width: "450px", height: "350px" }}
-          >
-            {/* 모자이크 타일들 */}
-            <div 
-              className="absolute inset-0"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(15, 1fr)",
-                gridTemplateRows: "repeat(10, 1fr)",
-              }}
-            >
-              {mosaicTiles.map((isVisible, index) => {
-                const row = Math.floor(index / 15)
-                const col = index % 15
-                const tileWidth = 450 / 15
-                const tileHeight = 350 / 10
-                
-                return (
-                  <div
-                    key={index}
-                    className="overflow-hidden"
-                    style={{
-                      width: `${tileWidth}px`,
-                      height: `${tileHeight}px`,
-                      opacity: isVisible ? 1 : 0,
-                      transition: "opacity 0.2s ease-in-out",
-                    }}
-                  >
+      {/* 영사기 빛 효과 */}
+      <div className="absolute inset-0 projector-light z-15 pointer-events-none"></div>
+
+      {/* 행성 이미지 영역 (우측) - 모자이크 페이드 효과 with CRT */}
+      <div className="absolute right-20 bottom-11 transform z-20 pointer-events-none">
+        <div 
+          className="relative crt-monitor"
+          style={{ width: "450px", height: "350px" }}
+        >
+          {/* CRT 화면 베젤 */}
+          <div className="absolute inset-0 crt-bezel"></div>
+          
+          {/* CRT 화면 내용 */}
+          <div className="absolute inset-3 crt-screen overflow-hidden">
+            {/* 모자이크 타일들 - showPlanetImage 조건 내부로 이동 */}
+            {showPlanetImage && (
+              <div 
+                className="absolute inset-0 crt-content relative z-5"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(15, 1fr)",
+                  gridTemplateRows: "repeat(10, 1fr)",
+                }}
+              >
+                {mosaicTiles.map((isVisible, index) => {
+                  const row = Math.floor(index / 15)
+                  const col = index % 15
+                  const tileWidth = (450 - 24) / 15 // 베젤 고려 (inset-3 = 12px * 2)
+                  const tileHeight = (350 - 24) / 10 // 베젤 고려
+                  
+                  return (
                     <div
+                      key={index}
+                      className="overflow-hidden relative"
                       style={{
-                        width: "450px",
-                        height: "350px",
-                        backgroundImage: `url(/image/Planet_image_${currentPlanet + 1}.png)`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        transform: `translate(-${col * tileWidth}px, -${row * tileHeight}px)`,
+                        width: `${tileWidth}px`,
+                        height: `${tileHeight}px`,
+                        opacity: isVisible ? 1 : 0,
+                        transition: "opacity 0.2s ease-in-out",
                       }}
-                    />
-                  </div>
-                )
-              })}
-            </div>
+                    >
+                      <div
+                        className="crt-image-tile"
+                        style={{
+                          width: `${(450 - 24)}px`, // 실제 화면 크기
+                          height: `${(350 - 24)}px`,
+                          backgroundImage: `url(/image/Planet_image_${currentPlanet + 1}.png)`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          transform: `translate(-${col * tileWidth}px, -${row * tileHeight}px)`,
+                        }}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            
+            {/* CRT 스캔라인 */}
+            <div className="absolute inset-0 crt-scanlines pointer-events-none z-10"></div>
+            
+            {/* CRT 노이즈 */}
+            <div className="absolute inset-0 crt-noise pointer-events-none z-15"></div>
+            
+            {/* CRT 정적 노이즈 */}
+            <div className="absolute inset-0 crt-static pointer-events-none z-20"></div>
+            
+            {/* CRT 수직 동기화 라인 */}
+            <div className="absolute inset-0 crt-vsync pointer-events-none z-25"></div>
+            
+            {/* CRT 빠른 스캔 라인 */}
+            <div className="absolute inset-0 crt-fast-scan pointer-events-none z-30"></div>
+            
+            {/* CRT 도트 피치 (격자무늬) */}
+            <div className="absolute inset-0 crt-dot-pitch pointer-events-none z-32"></div>
+            
+            {/* CRT 인터레이싱 */}
+            <div className="absolute inset-0 crt-interlacing pointer-events-none z-33"></div>
+            
+            {/* CRT 곡면 효과 */}
+            <div className="absolute inset-0 crt-curvature pointer-events-none z-35"></div>
           </div>
+          
+
         </div>
-      )}
+      </div>
 
       {/* 행성 정보 (좌하단) */}
       <div 
@@ -1097,6 +1133,556 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
         .animate-slideInUp {
           animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
         }
+
+        /* CRT 모니터 효과 */
+        @keyframes crt-flicker {
+          0% { opacity: 1; filter: brightness(1.1) contrast(1.2); }
+          95% { opacity: 1; filter: brightness(1.1) contrast(1.2); }
+          96% { opacity: 0.95; filter: brightness(1.3) contrast(1.1); }
+          97% { opacity: 0.98; filter: brightness(0.9) contrast(1.3); }
+          98% { opacity: 1; filter: brightness(1.1) contrast(1.2); }
+          99% { opacity: 0.96; filter: brightness(1.2) contrast(1.1); }
+          100% { opacity: 1; filter: brightness(1.1) contrast(1.2); }
+        }
+
+        @keyframes crt-noise {
+          0% { transform: translateX(0); }
+          5% { transform: translateX(-3px); }
+          10% { transform: translateX(-1px); }
+          15% { transform: translateX(2px); }
+          20% { transform: translateX(1px); }
+          25% { transform: translateX(-2px); }
+          30% { transform: translateX(-1px); }
+          35% { transform: translateX(3px); }
+          40% { transform: translateX(1px); }
+          45% { transform: translateX(-2px); }
+          50% { transform: translateX(-3px); }
+          55% { transform: translateX(2px); }
+          60% { transform: translateX(2px); }
+          65% { transform: translateX(-1px); }
+          70% { transform: translateX(-2px); }
+          75% { transform: translateX(1px); }
+          80% { transform: translateX(3px); }
+          85% { transform: translateX(-1px); }
+          90% { transform: translateX(-2px); }
+          95% { transform: translateX(1px); }
+          100% { transform: translateX(0); }
+        }
+
+
+
+        .crt-monitor {
+          filter: brightness(1.1) contrast(1.2) saturate(1.1);
+          animation: crt-flicker 2s infinite linear;
+          transform: perspective(1000px) rotateX(2deg) rotateY(-1deg);
+        }
+
+        .crt-bezel {
+          background: linear-gradient(
+            145deg,
+            #2a2a2a 0%,
+            #1a1a1a 50%,
+            #0f0f0f 100%
+          );
+          border: 2px solid #333;
+          border-radius: 12px;
+          box-shadow: 
+            inset 0 0 20px rgba(0, 0, 0, 0.8),
+            0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .crt-screen {
+          background: #000;
+          border-radius: 8px;
+          box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9);
+          overflow: hidden;
+        }
+
+        .crt-content {
+          filter: 
+            blur(0.5px) 
+            sepia(0.1) 
+            hue-rotate(15deg)
+            contrast(0.85)
+            brightness(0.95)
+            saturate(0.9);
+          transform: scale(1);
+          image-rendering: pixelated;
+          image-rendering: -moz-crisp-edges;
+          image-rendering: crisp-edges;
+          animation: content-sync-distortion 8s infinite linear;
+        }
+
+        .crt-image-tile {
+          filter: 
+            contrast(0.8) 
+            brightness(1.05) 
+            saturate(0.85)
+            blur(0.3px);
+          /* RGB 색상 분리 효과 */
+          position: relative;
+          image-rendering: pixelated;
+          background-size: 110% !important; /* 약간 확대로 픽셀화 효과 */
+        }
+
+        .crt-image-tile::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-image: inherit;
+          background-size: inherit;
+          background-position: inherit;
+          transform: translateX(-1px) translateY(-0.5px);
+          filter: sepia(0.8) hue-rotate(300deg) saturate(2) blur(0.5px);
+          opacity: 0.25;
+          mix-blend-mode: screen;
+        }
+
+        .crt-image-tile::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-image: inherit;
+          background-size: inherit;
+          background-position: inherit;
+          transform: translateX(1px) translateY(0.5px);
+          filter: sepia(0.8) hue-rotate(120deg) saturate(2) blur(0.5px);
+          opacity: 0.25;
+          mix-blend-mode: screen;
+        }
+
+        .crt-scanlines {
+          background: linear-gradient(
+            transparent 48%,
+            rgba(0, 255, 0, 0.08) 49%,
+            rgba(0, 255, 0, 0.12) 50%,
+            rgba(0, 255, 0, 0.08) 51%,
+            transparent 52%
+          );
+          background-size: 100% 2px;
+          pointer-events: none;
+          animation: 
+            scanline-flicker 0.1s infinite linear,
+            scanline-sync-interference 8s infinite linear;
+        }
+
+        @keyframes scanline-flicker {
+          0% { opacity: 0.8; }
+          50% { opacity: 1; }
+          100% { opacity: 0.8; }
+        }
+
+        @keyframes scanline-sync-interference {
+          0% { 
+            transform: translateY(0) scaleY(1);
+            filter: brightness(1);
+          }
+          12% { 
+            transform: translateY(0) scaleY(1);
+            filter: brightness(1);
+          }
+          15% { 
+            transform: translateY(-1px) scaleY(1.1);
+            filter: brightness(1.2);
+          }
+          18% { 
+            transform: translateY(1px) scaleY(0.9);
+            filter: brightness(0.8);
+          }
+          21% { 
+            transform: translateY(0) scaleY(1);
+            filter: brightness(1);
+          }
+          88% { 
+            transform: translateY(0) scaleY(1);
+            filter: brightness(1);
+          }
+          91% { 
+            transform: translateY(-1px) scaleY(1.1);
+            filter: brightness(1.2);
+          }
+          94% { 
+            transform: translateY(1px) scaleY(0.9);
+            filter: brightness(0.8);
+          }
+          97% { 
+            transform: translateY(0) scaleY(1);
+            filter: brightness(1);
+          }
+          100% { 
+            transform: translateY(0) scaleY(1);
+            filter: brightness(1);
+          }
+        }
+
+        @keyframes content-sync-distortion {
+          0% { 
+            transform: translateX(0) scale(1);
+            filter: 
+              blur(0.5px) 
+              sepia(0.1) 
+              hue-rotate(15deg)
+              contrast(0.85)
+              brightness(0.95)
+              saturate(0.9);
+          }
+          12% { 
+            transform: translateX(0) scale(1);
+          }
+          15% { 
+            transform: translateX(-1px) scale(1.002);
+            filter: 
+              blur(0.7px) 
+              sepia(0.15) 
+              hue-rotate(20deg)
+              contrast(0.9)
+              brightness(1.1)
+              saturate(0.85);
+          }
+          18% { 
+            transform: translateX(1px) scale(0.998);
+            filter: 
+              blur(0.3px) 
+              sepia(0.05) 
+              hue-rotate(10deg)
+              contrast(0.8)
+              brightness(0.85)
+              saturate(0.95);
+          }
+          21% { 
+            transform: translateX(0) scale(1);
+            filter: 
+              blur(0.5px) 
+              sepia(0.1) 
+              hue-rotate(15deg)
+              contrast(0.85)
+              brightness(0.95)
+              saturate(0.9);
+          }
+          88% { 
+            transform: translateX(0) scale(1);
+          }
+          91% { 
+            transform: translateX(-1px) scale(1.002);
+            filter: 
+              blur(0.7px) 
+              sepia(0.15) 
+              hue-rotate(20deg)
+              contrast(0.9)
+              brightness(1.1)
+              saturate(0.85);
+          }
+          94% { 
+            transform: translateX(1px) scale(0.998);
+            filter: 
+              blur(0.3px) 
+              sepia(0.05) 
+              hue-rotate(10deg)
+              contrast(0.8)
+              brightness(0.85)
+              saturate(0.95);
+          }
+          97% { 
+            transform: translateX(0) scale(1);
+            filter: 
+              blur(0.5px) 
+              sepia(0.1) 
+              hue-rotate(15deg)
+              contrast(0.85)
+              brightness(0.95)
+              saturate(0.9);
+          }
+          100% { 
+            transform: translateX(0) scale(1);
+            filter: 
+              blur(0.5px) 
+              sepia(0.1) 
+              hue-rotate(15deg)
+              contrast(0.85)
+              brightness(0.95)
+              saturate(0.9);
+          }
+        }
+
+        .crt-noise {
+          background: 
+            radial-gradient(circle, transparent 40%, rgba(255, 255, 255, 0.05) 50%, transparent 60%),
+            repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 1px,
+              rgba(255, 255, 255, 0.03) 2px,
+              rgba(255, 255, 255, 0.03) 3px
+            ),
+            repeating-linear-gradient(
+              -45deg,
+              transparent,
+              transparent 1px,
+              rgba(0, 0, 0, 0.02) 2px,
+              rgba(0, 0, 0, 0.02) 3px
+            );
+          animation: crt-noise 0.15s infinite linear, noise-shift 2s infinite ease-in-out;
+          pointer-events: none;
+          opacity: 0.9;
+        }
+
+        @keyframes noise-shift {
+          0% { transform: translateX(0) translateY(0); }
+          25% { transform: translateX(-1px) translateY(1px); }
+          50% { transform: translateX(1px) translateY(-1px); }
+          75% { transform: translateX(-1px) translateY(-1px); }
+          100% { transform: translateX(0) translateY(0); }
+        }
+
+        .crt-static {
+          background: 
+            repeating-conic-gradient(
+              from 0deg at 50% 50%,
+              transparent 0deg,
+              rgba(255, 255, 255, 0.08) 0.1deg,
+              transparent 0.2deg,
+              rgba(0, 0, 0, 0.05) 0.3deg
+            ),
+            repeating-linear-gradient(
+              0deg,
+              transparent 0px,
+              rgba(255, 255, 255, 0.03) 1px,
+              transparent 2px
+            ),
+            repeating-linear-gradient(
+              90deg,
+              transparent 0px,
+              rgba(0, 0, 0, 0.02) 1px,
+              transparent 2px
+            );
+          animation: static-noise 0.05s infinite steps(20), static-drift 3s infinite ease-in-out;
+          opacity: 0.4;
+          mix-blend-mode: overlay;
+        }
+
+        @keyframes static-noise {
+          0% { opacity: 0.4; }
+          50% { opacity: 0.6; }
+          100% { opacity: 0.3; }
+        }
+
+        @keyframes static-drift {
+          0% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(-2px, 1px) scale(1.01); }
+          66% { transform: translate(1px, -2px) scale(0.99); }
+          100% { transform: translate(0, 0) scale(1); }
+        }
+
+        .crt-vsync {
+          background: linear-gradient(
+            to bottom,
+            transparent 0%,
+            transparent 48%,
+            rgba(255, 255, 255, 0.05) 48.5%,
+            rgba(255, 255, 255, 0.1) 49%,
+            rgba(255, 255, 255, 0.15) 49.5%,
+            rgba(255, 255, 255, 0.3) 49.8%,
+            rgba(255, 255, 255, 0.6) 49.9%,
+            rgba(255, 255, 255, 0.8) 50%,
+            rgba(255, 255, 255, 0.6) 50.1%,
+            rgba(255, 255, 255, 0.3) 50.2%,
+            rgba(255, 255, 255, 0.15) 50.5%,
+            rgba(255, 255, 255, 0.1) 51%,
+            rgba(255, 255, 255, 0.05) 51.5%,
+            transparent 52%,
+            transparent 100%
+          );
+          background-size: 100% 800%;
+          animation: vsync-scan 8s infinite linear, vsync-distortion 0.3s infinite ease-in-out;
+          opacity: 0.6;
+          mix-blend-mode: screen;
+        }
+
+        @keyframes vsync-scan {
+          0% {
+            background-position: 0% 100%;
+            opacity: 0;
+          }
+          5% {
+            opacity: 0.4;
+          }
+          15% {
+            opacity: 0.6;
+          }
+          85% {
+            opacity: 0.6;
+          }
+          95% {
+            opacity: 0.4;
+          }
+          100% {
+            background-position: 0% -100%;
+            opacity: 0;
+          }
+        }
+
+        @keyframes vsync-distortion {
+          0% { 
+            transform: translateX(0) scaleX(1);
+            filter: brightness(1);
+          }
+          25% { 
+            transform: translateX(-0.5px) scaleX(1.01);
+            filter: brightness(1.1);
+          }
+          50% { 
+            transform: translateX(0.5px) scaleX(0.99);
+            filter: brightness(0.95);
+          }
+          75% { 
+            transform: translateX(-0.3px) scaleX(1.005);
+            filter: brightness(1.05);
+          }
+          100% { 
+            transform: translateX(0) scaleX(1);
+            filter: brightness(1);
+          }
+        }
+
+        .crt-fast-scan {
+          background: linear-gradient(
+            to bottom,
+            transparent 0%,
+            transparent 49.85%,
+            rgba(0, 255, 255, 0.4) 49.95%,
+            rgba(255, 255, 255, 0.7) 50%,
+            rgba(0, 255, 255, 0.4) 50.05%,
+            transparent 50.15%,
+            transparent 100%
+          );
+          background-size: 100% 1500%;
+          animation: fast-scan 18s infinite linear;
+          opacity: 0;
+          mix-blend-mode: screen;
+        }
+
+        @keyframes fast-scan {
+          0% {
+            background-position: 0% 200%;
+            opacity: 0;
+          }
+          15% {
+            opacity: 0;
+          }
+          18% {
+            opacity: 0.7;
+          }
+          22% {
+            background-position: 0% -200%;
+            opacity: 0.7;
+          }
+          25% {
+            opacity: 0;
+          }
+          100% {
+            background-position: 0% -200%;
+            opacity: 0;
+          }
+        }
+
+        .crt-dot-pitch {
+          background: 
+            radial-gradient(circle at 25% 25%, rgba(255, 0, 0, 0.15) 0%, transparent 25%),
+            radial-gradient(circle at 75% 25%, rgba(0, 255, 0, 0.15) 0%, transparent 25%),
+            radial-gradient(circle at 25% 75%, rgba(0, 0, 255, 0.15) 0%, transparent 25%),
+            radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 0%, transparent 25%),
+            repeating-linear-gradient(
+              0deg,
+              transparent 0px,
+              rgba(0, 0, 0, 0.02) 1px,
+              transparent 2px
+            ),
+            repeating-linear-gradient(
+              90deg,
+              transparent 0px,
+              rgba(0, 0, 0, 0.02) 1px,
+              transparent 2px
+            );
+          background-size: 3px 3px, 3px 3px, 3px 3px, 3px 3px, 100% 100%, 100% 100%;
+          opacity: 0.4;
+          mix-blend-mode: multiply;
+        }
+
+        .crt-interlacing {
+          background: repeating-linear-gradient(
+            0deg,
+            transparent 0px,
+            transparent 1px,
+            rgba(0, 0, 0, 0.08) 2px,
+            rgba(0, 0, 0, 0.08) 3px,
+            transparent 4px
+          );
+          animation: interlace-flicker 0.1s infinite alternate;
+          opacity: 0.6;
+          mix-blend-mode: multiply;
+        }
+
+        @keyframes interlace-flicker {
+          0% { 
+            opacity: 0.6; 
+            transform: translateY(0px);
+          }
+          100% { 
+            opacity: 0.7; 
+            transform: translateY(1px);
+          }
+        }
+
+        .crt-curvature {
+          background: radial-gradient(
+            ellipse at center,
+            transparent 60%,
+            rgba(0, 0, 0, 0.1) 70%,
+            rgba(0, 0, 0, 0.3) 100%
+          );
+          border-radius: 8px;
+          pointer-events: none;
+        }
+
+        .projector-light {
+          background: 
+            conic-gradient(
+              from 55deg at 50% 50%,
+              transparent 0deg,
+              transparent 50deg,
+              rgba(255, 255, 255, 0.02) 55deg,
+              rgba(255, 255, 255, 0.04) 58deg,
+              rgba(255, 255, 255, 0.06) 61deg,
+              rgba(255, 255, 255, 0.04) 64deg,
+              rgba(255, 255, 255, 0.02) 67deg,
+              transparent 70deg,
+              transparent 360deg
+            );
+          mix-blend-mode: screen;
+          animation: projector-flicker 0.5s infinite ease-in-out;
+        }
+
+        @keyframes projector-flicker {
+          0% { 
+            opacity: 0.8;
+            filter: brightness(1);
+          }
+          50% { 
+            opacity: 0.9;
+            filter: brightness(1.1);
+          }
+          100% { 
+            opacity: 0.8;
+            filter: brightness(1);
+          }
+        }
+
         
         /* 전역 선택 방지 스타일 */
         .select-none {
