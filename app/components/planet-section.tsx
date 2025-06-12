@@ -1042,8 +1042,10 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
         </div>
       </div>
 
-      {/* 영사기 빛 효과 */}
-      <div className="absolute inset-0 projector-light z-15 pointer-events-none"></div>
+      {/* 영사기 빛 효과 - 애니메이션 중이 아닐 때만 표시 */}
+      {!isAnimating && (
+        <div className="absolute inset-0 projector-light z-15 pointer-events-none"></div>
+      )}
 
       {/* 행성 이미지 영역 (우측) - 모자이크 페이드 효과 with CRT */}
       <div className="absolute right-20 bottom-11 transform z-20 pointer-events-none">
