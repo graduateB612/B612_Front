@@ -47,6 +47,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
 
   // 설명 슬라이드 효과 상태
   const [displayedSentences, setDisplayedSentences] = useState<string[]>([])
+  const [sentenceVisibility, setSentenceVisibility] = useState<boolean[]>([])
 
   // 행성 이미지 모자이크 효과 상태
   const [showPlanetImage, setShowPlanetImage] = useState(false)
@@ -250,7 +251,6 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     }
 
     // 설명을 문장 단위로 분할 (마침표, 물음표, 느낌표 기준)
-    // 더 단순하고 확실한 방법으로 문장 분할
     const sentences: string[] = []
     let currentSentence = ""
     
@@ -260,7 +260,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       
       // 문장 끝 문자를 만났을 때
       if (char === '.' || char === '!' || char === '?') {
-        // 문장 완료 - 다음 문자가 공백이든 아니든 상관없이 분할
+        // 문장 완료
         sentences.push(currentSentence.trim())
         currentSentence = ""
         
@@ -276,31 +276,22 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       sentences.push(currentSentence.trim())
     }
     
-    // 초기화 - 첫 번째 문장을 즉시 표시
-    if (sentences.length > 0) {
-      setDisplayedSentences([sentences[0]])
-      
-      let currentIndex = 1
-      
-      const showNextSentence = () => {
-        if (currentIndex < sentences.length) {
-          setDisplayedSentences(prev => [...prev, sentences[currentIndex]])
-          currentIndex++
-          if (currentIndex < sentences.length) {
-            descriptionTimerRef.current = setTimeout(showNextSentence, 800) // 800ms 간격으로 문장 표시
-          } else {
-            descriptionTimerRef.current = null
-          }
-        }
+    // 모든 문장을 설정하되 첫 번째만 즉시 표시
+    setDisplayedSentences(sentences)
+    setSentenceVisibility(sentences.map((_, index) => index === 0))
+    
+    // 두 번째 문장부터 순차적으로 표시
+    sentences.forEach((_, index) => {
+      if (index > 0) {
+        setTimeout(() => {
+          setSentenceVisibility(prev => {
+            const newVisibility = [...prev]
+            newVisibility[index] = true
+            return newVisibility
+          })
+        }, 800 * index) // 800ms씩 지연
       }
-      
-      // 두 번째 문장부터 지연 후 시작
-      if (sentences.length > 1) {
-        descriptionTimerRef.current = setTimeout(showNextSentence, 800)
-      }
-    } else {
-      setDisplayedSentences([])
-    }
+    })
   }
 
   // 모자이크 페이드 효과 시작 함수
@@ -1023,12 +1014,14 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
           {displayedSentences.map((sentence, index) => (
             <div
               key={index}
-              className={index === 0 ? "select-none" : "overflow-hidden select-none"}
+              className="overflow-hidden select-none"
             >
-              <p 
-                className={index === 0 ? "select-none" : "transform translate-y-full select-none"}
+              <p
+                className="select-none transition-transform duration-600 ease-out"
                 style={{
-                  animation: index === 0 ? "none" : `slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${(index - 1) * 0.1}s both`,
+                  transform: sentenceVisibility[index] ? 'translateY(0)' : 'translateY(100%)',
+                  opacity: sentenceVisibility[index] ? 1 : 0,
+                  transitionDelay: index === 0 ? '0ms' : `${100 * index}ms`,
                   userSelect: 'none',
                   WebkitUserSelect: 'none',
                   MozUserSelect: 'none',
@@ -1386,6 +1379,15 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
 
         .animate-slideInUp {
           animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        /* 문장 슬라이드 효과 개선 */
+        .duration-600 {
+          transition-duration: 600ms;
+        }
+
+        .ease-out {
+          transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
         }
 
           

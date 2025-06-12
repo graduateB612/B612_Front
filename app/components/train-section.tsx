@@ -24,9 +24,9 @@ export default function TrainSection({ isActive = true }: TrainSectionProps) {
 
   // 열차가 완전히 보이는 기준 오프셋
   const FULL_TRAIN_OFFSET = 750
-  // 열차가 화면을 통과한 기준 오프셋 (마지막 객차의 중간이 왼쪽 끝에 닿을 때)
-  // 기관차(500px) + 객차1(475px) + 객차2(475px) + 객차3(475px) + 객차4(500px) = 약 3000px
-  const TRAIN_PASSED_OFFSET = 3200
+  // 열차가 화면을 통과한 기준 오프셋 (마지막 객차의 절반이 화면에 남도록)
+  // 전체 기차 길이 1925px에서 마지막칸 절반(250px) 정도 남기기
+  const TRAIN_PASSED_OFFSET = 2275
 
   // 슬라이드 텍스트 깜빡임 효과
   useEffect(() => {
@@ -107,64 +107,25 @@ export default function TrainSection({ isActive = true }: TrainSectionProps) {
         <div className="relative w-full flex flex-col items-center justify-center">
           {/* 열차 이미지 컨테이너 */}
           <div
-            className="flex items-center"
+            className="relative cursor-pointer hover:brightness-110 transition-all duration-200"
             style={{
               transform: `translateX(${-trainOffset}px)`,
-              marginLeft: "calc(160%)", // 사용자 요청대로 160%로 설정
+              marginLeft: "calc(120%)", // 기차 앞부분이 더 보이도록 140%로 조정
               transition: isTransitioning ? 'none' : 'transform 0.1s ease-out',
+              width: "2225px",
+              height: "350px"
             }}
+            onClick={handleTrainClick}
           >
-            {/* 기관차 (train_1) - 클릭 가능 */}
-            <div 
-              className="relative cursor-pointer hover:brightness-110 transition-all duration-200" 
-              style={{ width: "500px", height: "250px" }}
-              onClick={handleTrainClick}
-            >
-              <Image
-                src="/image/train_1.png"
-                alt="별빛 기차 기관차"
-                fill
-                className="pixelated object-contain"
-                style={{ imageRendering: "pixelated", pointerEvents: "none" }}
-                draggable={false}
-              />
-            </div>
-
-            {/* 객차 1 (train_2) */}
-            <div className="relative" style={{ width: "500px", height: "250px", marginLeft: "-25px" }}>
-              <Image
-                src="/image/train_2.png"
-                alt="별빛 기차 객차 1"
-                fill
-                className="pixelated object-contain"
-                style={{ imageRendering: "pixelated", pointerEvents: "none" }}
-                draggable={false}
-              />
-            </div>
-
-            {/* 객차 2 (train_3) */}
-            <div className="relative" style={{ width: "500px", height: "250px", marginLeft: "-25px" }}>
-              <Image
-                src="/image/train_3.png"
-                alt="별빛 기차 객차 2"
-                fill
-                className="pixelated object-contain"
-                style={{ imageRendering: "pixelated", pointerEvents: "none" }}
-                draggable={false}
-              />
-            </div>
-
-            {/* 객차 3 (train_4) */}
-            <div className="relative" style={{ width: "500px", height: "250px", marginLeft: "-25px" }}>
-              <Image
-                src="/image/train_4.png"
-                alt="별빛 기차 객차 3"
-                fill
-                className="pixelated object-contain"
-                style={{ imageRendering: "pixelated", pointerEvents: "none" }}
-                draggable={false}
-              />
-            </div>
+            {/* 합쳐진 기차 이미지 */}
+            <Image
+              src="/image/train.png"
+              alt="별빛 기차"
+              fill
+              className="pixelated object-contain"
+              style={{ imageRendering: "pixelated", pointerEvents: "none" }}
+              draggable={false}
+            />
           </div>
         </div>
 
