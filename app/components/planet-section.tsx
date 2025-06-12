@@ -52,11 +52,16 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
   const [showPlanetImage, setShowPlanetImage] = useState(false)
   const [mosaicTiles, setMosaicTiles] = useState<boolean[]>([])
 
+  // 글리치 효과 상태 추가
+  const [glitchTexts, setGlitchTexts] = useState<{ [key: string]: string }>({})
+  const [isGlitching, setIsGlitching] = useState(false)
+
   // 애니메이션 타이머 참조
   const animationTimerRef = useRef<NodeJS.Timeout | null>(null)
   const typingTimerRef = useRef<NodeJS.Timeout | null>(null)
   const descriptionTimerRef = useRef<NodeJS.Timeout | null>(null)
   const mosaicTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const glitchTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // 컨테이너 참조
   const containerRef = useRef<HTMLDivElement>(null)
@@ -69,7 +74,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       englishName: "Aqua Planet",
       image: "/image/planets/planet_1.png",
       description:
-        "얄-디루스 행성에 오신 것을 환영합니다. 행성의 절반 이상이 물로 이루어져있으며, 수중 가옥부터 수면 위 작은 도시들이 구성되어 있습니다. 북쪽에 위치한 빙하 지대는 얄-디루스 주민들의 단단한 신념을 상징합니다. 독설가의 행성인 얄-디루스 행성은 인생의 옳은 길을 안내해주는 길잡이 행성입니다. 당신의 삶에서 가장 중요한 것이 무엇인지 잊었을 떄, 한 번 쯤 하늘을 바라보며 정답을 찾아 낼 수 있겠지요.",
+        "얄-디루스 행성에 오신 것을 환영합니다. 행성의 절반 이상이 물로 이루어져있으며, 수중 가옥부터 수면 위 작은 도시들이 구성되어 있습니다. 북쪽에 위치한 빙하 지대는 얄-디루스 주민들의 단단한 신념을 상징합니다. 독설가의 행성인 얄-디루스 행성은 인생의 옳은 길을 안내해주는 길잡이 행성입니다. 당신의 삶에서 가장 중요한 것이 무엇인지 잊었을 때, 한 번 쯤 하늘을 바라보며 정답을 찾아 낼 수 있겠지요.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -81,7 +86,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       englishName: "Terracotta Planet",
       image: "/image/planets/planet_2.png",
       description:
-        "에르리온 행성에 오신 것을 환영합니다. 꽃과, 화산의 조화라는 엉터리스러운 특징을 가지고 있습니다.지구의 주기로 1년 365일 내내 꽃이 피어있어 꽃잎으로 덮여 있습니다. 행성 주민들은 비교적 꽃이 피지 않은땅 위에서 생활하며, 꽃밭을 '행복의 근원' 이라는 이름 아래에 신성시 하고 있습니다.행성의 주인인 지질학자는 변화하는 것에 대한 혐오감을 가지고 있으나, 꽃이 그를 행복하게 하는 데에는 변명의 여지가 없습니다.",
+        "에르리온 행성에 오신 것을 환영합니다. 꽃과, 화산의 조화라는 엉터리스러운 특징을 가지고 있습니다. 지구의 주기로 1년 365일 내내 꽃이 피어있어 꽃잎으로 덮여 있습니다. 행성 주민들은 비교적 꽃이 피지 않은땅 위에서 생활하며, 꽃밭을 '행복의 근원' 이라는 이름 아래에 신성시 하고 있습니다. 행성의 주인인 지질학자는 변화하는 것에 대한 혐오감을 가지고 있으나, 꽃이 그를 행복하게 하는 데에는 변명의 여지가 없습니다.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -93,7 +98,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       englishName: "Lavender Planet",
       image: "/image/planets/planet_3.png",
       description:
-        "루티아 행성에 오신 것을 환영합니다. 루티아 행성은 늦은 밤까지 꺼지지않는 야광 불빛이 유명합니다.도시는 술과 축제로 항상 시끌벅적하며 잡스러운 생각을 술, 그리고 맛있는 음식으로 치유합니다.당신의 과거 또는 미래가 스스로를 곤란하게 만들 때, 의외로 특별하지 않은 무언가가 해답이 될 수도 있습니다.",
+        "루티아 행성에 오신 것을 환영합니다. 루티아 행성은 늦은 밤까지 꺼지지않는 야광 불빛이 유명합니다. 도시는 술과 축제로 항상 시끌벅적하며 잡스러운 생각을 술, 그리고 맛있는 음식으로 치유합니다.당신의 과거 또는 미래가 스스로를 곤란하게 만들 때, 의외로 특별하지 않은 무언가가 해답이 될 수도 있습니다.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -105,7 +110,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       englishName: "Gaia Planet",
       image: "/image/planets/planet_4.png",
       description:
-        "벨로르나 행성에 오신 것을 환영합니다. 벨로르나 행성은 '자유' 라는 단어를 우주에서 가장 잘 표현하는 행성입니다.그들 자신만의 깨달음과 목표를 위해 우주를 유랑하고, 질서를 넘나듭니다.이러한 여행에서 발견되는 것은 긍정적일 수도, 부정적일 수도 있지만 스스로가 책임지는 '경험'을 만들어냅니다. 우리는 무엇이 우릴 붙잡아놓고 있을까요?.",
+        "벨로르나 행성에 오신 것을 환영합니다. 벨로르나 행성은 '자유' 라는 단어를 우주에서 가장 잘 표현하는 행성입니다. 그들 자신만의 깨달음과 목표를 위해 우주를 유랑하고, 질서를 넘나듭니다.이러한 여행에서 발견되는 것은 긍정적일 수도, 부정적일 수도 있지만 스스로가 책임지는 '경험'을 만들어냅니다. 우리는 무엇이 우릴 붙잡아놓고 있을까요?.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -245,28 +250,57 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     }
 
     // 설명을 문장 단위로 분할 (마침표, 물음표, 느낌표 기준)
-    const sentences = description.split(/(?<=[.?!])\s+/).filter(sentence => sentence.trim() !== "")
+    // 더 단순하고 확실한 방법으로 문장 분할
+    const sentences: string[] = []
+    let currentSentence = ""
     
-    // 초기화
-    setDisplayedSentences([])
-
-    let currentIndex = 0
-
-    // 문장별 슬라이드 효과 함수
-    const showNextSentence = () => {
-      if (currentIndex < sentences.length) {
-        setDisplayedSentences(prev => [...prev, sentences[currentIndex]])
-        currentIndex++
-        descriptionTimerRef.current = setTimeout(showNextSentence, 400) // 400ms 간격으로 문장 표시
-      } else {
-        descriptionTimerRef.current = null
+    for (let i = 0; i < description.length; i++) {
+      const char = description[i]
+      currentSentence += char
+      
+      // 문장 끝 문자를 만났을 때
+      if (char === '.' || char === '!' || char === '?') {
+        // 문장 완료 - 다음 문자가 공백이든 아니든 상관없이 분할
+        sentences.push(currentSentence.trim())
+        currentSentence = ""
+        
+        // 다음 문자가 공백이면 건너뛰기
+        if (i < description.length - 1 && description[i + 1] === ' ') {
+          i++
+        }
       }
     }
-
-    // 타이핑 효과가 끝난 후 설명 슬라이드 시작 (약간의 지연)
-    setTimeout(() => {
-      showNextSentence()
-    }, 500) // 타이핑 효과 후 0.5초 지연
+    
+    // 마지막에 남은 문장이 있으면 추가
+    if (currentSentence.trim()) {
+      sentences.push(currentSentence.trim())
+    }
+    
+    // 초기화 - 첫 번째 문장을 즉시 표시
+    if (sentences.length > 0) {
+      setDisplayedSentences([sentences[0]])
+      
+      let currentIndex = 1
+      
+      const showNextSentence = () => {
+        if (currentIndex < sentences.length) {
+          setDisplayedSentences(prev => [...prev, sentences[currentIndex]])
+          currentIndex++
+          if (currentIndex < sentences.length) {
+            descriptionTimerRef.current = setTimeout(showNextSentence, 800) // 800ms 간격으로 문장 표시
+          } else {
+            descriptionTimerRef.current = null
+          }
+        }
+      }
+      
+      // 두 번째 문장부터 지연 후 시작
+      if (sentences.length > 1) {
+        descriptionTimerRef.current = setTimeout(showNextSentence, 800)
+      }
+    } else {
+      setDisplayedSentences([])
+    }
   }
 
   // 모자이크 페이드 효과 시작 함수
@@ -324,6 +358,176 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     }, 500) // 설명 슬라이드 효과 후 0.5초 지연
   }
 
+  // 글리치 효과 시작 함수
+  const startGlitchEffect = () => {
+    // 이전 타이머 정리
+    if (glitchTimerRef.current) {
+      clearTimeout(glitchTimerRef.current)
+    }
+
+    setIsGlitching(true)
+
+    // 행성 정보 데이터 - 라벨과 값을 모두 포함한 전체 문자열
+    const planetInfo = {
+      line1: `PLANET . . . . . . . . . . ${planets[currentPlanet].name}`,
+      line2: `COLONIZATION . . . . . ${currentPlanet === 0 ? 'ARBORIS CIVILIZATION' : 
+                   currentPlanet === 1 ? 'ARBORIS CIVILIZATION' :
+                   currentPlanet === 2 ? 'ARBORIS CIVILIZATION' :
+                   currentPlanet === 3 ? 'WANDERING CIVILIZATION' :
+                   currentPlanet === 4 ? 'Non CIVILIZATION' :
+                   currentPlanet === 5 ? 'ARBORIS CIVILIZATION' :
+                   currentPlanet === 6 ? 'ARBORIS CIVILIZATION' :
+                   'BUSINESS CIVILIZATION'}`,
+      line3: `ORBITAL DISTANCE . . . . ${currentPlanet === 0 ? '0.025 AU' :
+                      currentPlanet === 1 ? '0.046 AU' :
+                      currentPlanet === 2 ? '0.07 AU' :
+                      currentPlanet === 3 ? '0.05 AU' :
+                      currentPlanet === 4 ? '0.015 AU' :
+                      currentPlanet === 5 ? '0.1 AU' :
+                      currentPlanet === 6 ? '0.04 AU' :
+                      '0.017 AU'}`,
+      line4: `MASS . . . . . . . . . . . . . . . . . . . . . ${currentPlanet === 0 ? '1.05KG X 10^2' :
+            currentPlanet === 1 ? '2.07KG X 10^2' :
+            currentPlanet === 2 ? '3.3KG X 10^2' :
+            currentPlanet === 3 ? '0.7KG X 10^2' :
+            currentPlanet === 4 ? '0.64KG X 10^2' :
+            currentPlanet === 5 ? '4.21KG X 10^2' :
+            currentPlanet === 6 ? '2.77KG X 10^2' :
+            '3.44KG X 10^2'}`,
+      line5: `DIAMETER . . . . . . . . . . . . . . . . . . . . . . ${currentPlanet === 0 ? '12,742 KM' :
+               currentPlanet === 1 ? '16,811 KM' :
+               currentPlanet === 2 ? '10.841 KM' :
+               currentPlanet === 3 ? '9.672 KM' :
+               currentPlanet === 4 ? '9,655 KM' :
+               currentPlanet === 5 ? '22.551 KM' :
+               currentPlanet === 6 ? '14.581 KM' :
+               '10.158 KM'}`,
+      line6: `GRAVITY . . . . . . . . . . . . . . . . . . . . . . . . . ${currentPlanet === 0 ? '1. 11 G' :
+              currentPlanet === 1 ? '1. 02 G' :
+              currentPlanet === 2 ? '1.6 G' :
+              currentPlanet === 3 ? '0.4 G' :
+              currentPlanet === 4 ? '0.9 G' :
+              currentPlanet === 5 ? '2.13G' :
+              currentPlanet === 6 ? '0.2 G' :
+              '0.19 G'}`,
+      line7: `ATMOSPHERIC DENSITY . . . . . . . . . . . . . . . . ${currentPlanet === 0 ? '10.9 M/S^2' :
+                         currentPlanet === 1 ? '12.1 M/S^2' :
+                         currentPlanet === 2 ? '12.1 M/S^2' :
+                         currentPlanet === 3 ? '7.7 M/S^2' :
+                         currentPlanet === 4 ? '5.11 M/S^2' :
+                         currentPlanet === 5 ? '14.4 M/S^2' :
+                         currentPlanet === 6 ? '1.5 M/S^2' :
+                         '10.9 M/S^2'}`,
+      line8: `ORBITAL PERIOD . . . . . . . . . . . . ${currentPlanet === 0 ? '4.91 EARTH DAYS' :
+                    currentPlanet === 1 ? '7.3 EARTH DAYS' :
+                    currentPlanet === 2 ? '6 EARTH DAYS' :
+                    currentPlanet === 3 ? '5 EARTH DAYS' :
+                    currentPlanet === 4 ? '7 EARTH DAYS' :
+                    currentPlanet === 5 ? '6 EARTH DAYS' :
+                    currentPlanet === 6 ? '9 EARTH DAYS' :
+                    '8.45 EARTH DAYS'}`,
+      line9: `ENERGY FLUX . . . . . . . . . . . . . . . . . ${currentPlanet === 0 ? '0.02 W/M^2' :
+                 currentPlanet === 1 ? '0.3 W/M^2' :
+                 currentPlanet === 2 ? '1 W/M^2' :
+                 currentPlanet === 3 ? '0.2 W/M^2' :
+                 currentPlanet === 4 ? '0.002 W/M^2' :
+                 currentPlanet === 5 ? '0.8 W/M^2' :
+                 currentPlanet === 6 ? '5.0 W/M^2' :
+                 '0.61 W/M^2'}`,
+      line10: `DAY LENGTH . . . . . . . . . . . . . ${currentPlanet === 0 ? '23.6 H' :
+                currentPlanet === 1 ? '11.5 H' :
+                currentPlanet === 2 ? '14.3 H' :
+                currentPlanet === 3 ? '26.7 H' :
+                currentPlanet === 4 ? '25 H' :
+                currentPlanet === 5 ? '7.4 H' :
+                currentPlanet === 6 ? '4 H' :
+                '21.16 H'}`
+    }
+
+    // 글리치 문자 세트 - 실제 텍스트와 유사한 문자 폭을 가진 문자들로 제한
+    const glitchChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-'
+    
+    // 랜덤 글리치 텍스트 생성 함수 - 원본과 동일한 구조 유지
+    const generateGlitchText = (originalText: string) => {
+      return originalText.split('').map((char) => {
+        // 공백, 점, 특수문자는 그대로 유지
+        if (char === ' ' || char === '.' || char === '-' || char === '(' || char === ')' || char === '^') {
+          return char
+        }
+        // 알파벳과 숫자만 글리치 처리
+        return glitchChars[Math.floor(Math.random() * glitchChars.length)]
+      }).join('')
+    }
+
+    // 초기 글리치 텍스트 설정
+    const initialGlitchTexts: { [key: string]: string } = {}
+    Object.keys(planetInfo).forEach(key => {
+      initialGlitchTexts[key] = generateGlitchText(planetInfo[key as keyof typeof planetInfo])
+    })
+    setGlitchTexts(initialGlitchTexts)
+
+    // 점진적 복원 효과
+    const totalDuration = 2000 // 2초
+    const stepCount = 20 // 20단계로 복원
+    const stepDuration = totalDuration / stepCount
+    let currentStep = 0
+
+    const restoreStep = () => {
+      if (currentStep >= stepCount) {
+        setIsGlitching(false)
+        setGlitchTexts({})
+        return
+      }
+
+      const newGlitchTexts: { [key: string]: string } = {}
+      
+      Object.entries(planetInfo).forEach(([key, originalText]) => {
+        const originalChars = originalText.split('')
+        
+        // 글리치 처리할 수 있는 문자들의 인덱스 찾기
+        const glitchableIndices: number[] = []
+        originalChars.forEach((char, index) => {
+          // 공백, 점, 특수문자가 아닌 경우만 글리치 처리 대상
+          if (char !== ' ' && char !== '.' && char !== '-' && char !== '(' && char !== ')' && char !== '^') {
+            glitchableIndices.push(index)
+          }
+        })
+        
+        // 현재 단계에서 복원할 글리치 문자 수 계산
+        const restoreCount = Math.floor((glitchableIndices.length * (currentStep + 1)) / stepCount)
+        
+        // 새로운 글리치 텍스트 생성
+        const newChars = originalChars.map((char, index) => {
+          // 글리치 처리 대상이 아닌 문자는 그대로 유지
+          if (!glitchableIndices.includes(index)) {
+            return char
+          }
+          
+          // 글리치 처리 대상 문자 중에서 복원된 문자인지 확인
+          const glitchIndex = glitchableIndices.indexOf(index)
+          if (glitchIndex < restoreCount) {
+            return char // 이미 복원된 문자
+          } else {
+            // 아직 복원되지 않은 문자는 새로운 랜덤 문자
+            return glitchChars[Math.floor(Math.random() * glitchChars.length)]
+          }
+        })
+        
+        newGlitchTexts[key] = newChars.join('')
+      })
+      
+      setGlitchTexts(newGlitchTexts)
+      currentStep++
+      
+      glitchTimerRef.current = setTimeout(restoreStep, stepDuration)
+    }
+
+    // 약간의 지연 후 복원 시작
+    setTimeout(() => {
+      restoreStep()
+    }, 300)
+  }
+
   // 현재 행성이 변경될 때마다 타이핑 효과와 설명 슬라이드 효과, 모자이크 효과 시작
   useEffect(() => {
     const planetName = planets[currentPlanet]?.name || ""
@@ -332,6 +536,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     startTypingEffect(planetName)
     startDescriptionSlideEffect(planetDescription)
     startMosaicFadeEffect()
+    startGlitchEffect() // 글리치 효과 추가
   }, [currentPlanet])
 
   // 섹션이 활성화될 때도 효과들 시작 (처음 스크롤해서 들어올 때)
@@ -343,6 +548,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       startTypingEffect(planetName)
       startDescriptionSlideEffect(planetDescription)
       startMosaicFadeEffect()
+      startGlitchEffect() // 글리치 효과 추가
     }
   }, [isActive])
 
@@ -360,6 +566,9 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       }
       if (mosaicTimerRef.current) {
         clearTimeout(mosaicTimerRef.current)
+      }
+      if (glitchTimerRef.current) {
+        clearTimeout(glitchTimerRef.current)
       }
     }
   }, [])
@@ -775,20 +984,20 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
       {/* 우상단 페이지 카운터 */}
-      <div className="absolute top-8 right-8 z-20 flex items-center space-x-2 pointer-events-none">
-        <span className="text-white font-pf-stardust text-7xl font-bold pixelated">
+      <div className="absolute top-8 right-8 z-20 flex items-center space-x-2 pointer-events-none select-none">
+        <span className="text-white font-pf-stardust text-7xl font-bold pixelated select-none">
           {String(currentPlanet + 1).padStart(2, "0")}
         </span>
-        <span className="text-white font-pf-stardust text-7xl">/</span>
-        <span className="text-white font-pf-stardust text-7xl font-bold pixelated">
+        <span className="text-white font-pf-stardust text-7xl select-none">/</span>
+        <span className="text-white font-pf-stardust text-7xl font-bold pixelated select-none">
           {String(planets.length).padStart(2, "0")}
         </span>
       </div>
 
       {/* 행성 이름 (왼쪽 중상단) - 타이핑 효과 적용 */}
-      <div className="absolute left-16 top-1/3 z-20 pointer-events-none">
+      <div className="absolute left-16 top-1/3 z-20 pointer-events-none select-none">
         <h1 
-          className="text-6xl font-bold font-pf-stardust leading-tight"
+          className="text-6xl font-bold font-pf-stardust leading-tight select-none"
           style={{ 
             color: currentPlanet === 0 ? '#6BE2EF' : 
                    currentPlanet === 1 ? '#E5B597' : 
@@ -796,7 +1005,11 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
                    currentPlanet === 4 ? '#B2D8F8' :
                    currentPlanet === 5 ? '#ABE3B4' :
                    currentPlanet === 6 ? '#ECB462' :
-                   currentPlanet === 7 ? '#E6CFB0' : 'white' 
+                   currentPlanet === 7 ? '#E6CFB0' : 'white',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none'
           }}
         >
           {displayedName}
@@ -805,17 +1018,23 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       </div>
 
       {/* 행성 설명 (왼쪽 중간) - 슬라이드 효과 적용 */}
-      <div className="absolute left-16 top-1/2 transform -translate-y-8 z-20 max-w-3xl pointer-events-none">
-        <div className="text-white text-lg font-pf-stardust leading-relaxed">
+      <div className="absolute left-16 top-1/2 transform -translate-y-8 z-20 max-w-3xl pointer-events-none select-none">
+        <div className="text-white text-lg font-pf-stardust leading-relaxed select-none">
           {displayedSentences.map((sentence, index) => (
             <div
               key={index}
-              className="overflow-hidden"
-              style={{
-                animation: `slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${index * 0.1}s both`,
-              }}
+              className={index === 0 ? "select-none" : "overflow-hidden select-none"}
             >
-              <p className="transform translate-y-full animate-slideInUp">
+              <p 
+                className={index === 0 ? "select-none" : "transform translate-y-full select-none"}
+                style={{
+                  animation: index === 0 ? "none" : `slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${(index - 1) * 0.1}s both`,
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  MozUserSelect: 'none',
+                  msUserSelect: 'none'
+                }}
+              >
                 {sentence}
               </p>
             </div>
@@ -910,9 +1129,9 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
         </div>
       </div>
 
-      {/* 행성 정보 (좌하단) */}
+      {/* 행성 정보 (좌하단) - 글리치 효과 적용 */}
       <div 
-        className="absolute bottom-8 left-28 z-20 font-mono text-sm space-y-1 pointer-events-none"
+        className="absolute bottom-8 left-28 z-20 font-mono text-sm space-y-1 pointer-events-none select-none"
         style={{ 
           color: currentPlanet === 0 ? '#78BDD2' : 
                  currentPlanet === 1 ? '#BB967B' : 
@@ -920,82 +1139,115 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
                  currentPlanet === 4 ? '#5289C6' :
                  currentPlanet === 5 ? '#6FAD76' :
                  currentPlanet === 6 ? '#C68510' :
-                 currentPlanet === 7 ? '#C3B07F' : 'white' 
+                 currentPlanet === 7 ? '#C3B07F' : 'white',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none'
         }}
       >
-        <div>PLANET . . . . . . . . . . {planets[currentPlanet].name}</div>
-        <div>COLONIZATION . . . . . {currentPlanet === 0 ? 'ARBORIS CIVILIZATION' : 
-                                       currentPlanet === 1 ? 'ARBORIS CIVILIZATION' :
-                                       currentPlanet === 2 ? 'ARBORIS CIVILIZATION' :
-                                       currentPlanet === 3 ? 'WANDERING CIVILIZATION' :
-                                       currentPlanet === 4 ? 'Non CIVILIZATION' :
-                                       currentPlanet === 5 ? 'ARBORIS CIVILIZATION' :
-                                       currentPlanet === 6 ? 'ARBORIS CIVILIZATION' :
-                                       'BUSINESS CIVILIZATION'}</div>
-        <div>ORBITAL DISTANCE . . . . {currentPlanet === 0 ? '0.025 AU' :
-                                        currentPlanet === 1 ? '0.046 AU' :
-                                        currentPlanet === 2 ? '0.07 AU' :
-                                        currentPlanet === 3 ? '0.05 AU' :
-                                        currentPlanet === 4 ? '0.015 AU' :
-                                        currentPlanet === 5 ? '0.1 AU' :
-                                        currentPlanet === 6 ? '0.04 AU' :
-                                        '0.017 AU'}</div>
-        <div>MASS . . . . . . . . . . . . . . . . . . . . . {currentPlanet === 0 ? '1.05KG X 10^2' :
-                                           currentPlanet === 1 ? '2.07KG X 10^2' :
-                                           currentPlanet === 2 ? '3.3KG X 10^2' :
-                                           currentPlanet === 3 ? '0.7KG X 10^2' :
-                                           currentPlanet === 4 ? '0.64KG X 10^2' :
-                                           currentPlanet === 5 ? '4.21KG X 10^2' :
-                                           currentPlanet === 6 ? '2.77KG X 10^2' :
-                                           '3.44KG X 10^2'}</div>
-        <div>DIAMETER . . . . . . . . . . . . . . . . . . . . . . {currentPlanet === 0 ? '12,742 KM' :
-                                              currentPlanet === 1 ? '16,811 KM' :
-                                              currentPlanet === 2 ? '10.841 KM' :
-                                              currentPlanet === 3 ? '9.672 KM' :
-                                              currentPlanet === 4 ? '9,655 KM' :
-                                              currentPlanet === 5 ? '22.551 KM' :
-                                              currentPlanet === 6 ? '14.581 KM' :
-                                              '10.158 KM'}</div>
-        <div>GRAVITY . . . . . . . . . . . . . . . . . . . . . . . . . {currentPlanet === 0 ? '1. 11 G' :
-                                                 currentPlanet === 1 ? '1. 02 G' :
-                                                 currentPlanet === 2 ? '1.6 G' :
-                                                 currentPlanet === 3 ? '0.4 G' :
-                                                 currentPlanet === 4 ? '0.9 G' :
-                                                 currentPlanet === 5 ? '2.13G' :
-                                                 currentPlanet === 6 ? '0.2 G' :
-                                                 '0.19 G'}</div>
-        <div>ATMOSPHERIC DENSITY . . . . . . . . . . . . . . . . {currentPlanet === 0 ? '10.9 M/S^2' :
-                                          currentPlanet === 1 ? '12.1 M/S^2' :
-                                          currentPlanet === 2 ? '12.1 M/S^2' :
-                                          currentPlanet === 3 ? '7.7 M/S^2' :
-                                          currentPlanet === 4 ? '5.11 M/S^2' :
-                                          currentPlanet === 5 ? '14.4 M/S^2' :
-                                          currentPlanet === 6 ? '1.5 M/S^2' :
-                                          '10.9 M/S^2'}</div>
-        <div>ORBITAL PERIOD . . . . . . . . . . . . {currentPlanet === 0 ? '4.91 EARTH DAYS' :
-                                           currentPlanet === 1 ? '7.3 EARTH DAYS' :
-                                           currentPlanet === 2 ? '6 EARTH DAYS' :
-                                           currentPlanet === 3 ? '5 EARTH DAYS' :
-                                           currentPlanet === 4 ? '7 EARTH DAYS' :
-                                           currentPlanet === 5 ? '6 EARTH DAYS' :
-                                           currentPlanet === 6 ? '9 EARTH DAYS' :
-                                           '8.45 EARTH DAYS'}</div>
-        <div>ENERGY FLUX . . . . . . . . . . . . . . . . . {currentPlanet === 0 ? '0.02 W/M^2' :
-                                              currentPlanet === 1 ? '0.3 W/M^2' :
-                                              currentPlanet === 2 ? '1 W/M^2' :
-                                              currentPlanet === 3 ? '0.2 W/M^2' :
-                                              currentPlanet === 4 ? '0.002 W/M^2' :
-                                              currentPlanet === 5 ? '0.8 W/M^2' :
-                                              currentPlanet === 6 ? '5.0 W/M^2' :
-                                              '0.61 W/M^2'}</div>
-        <div>DAY LENGTH . . . . . . . . . . . . . {currentPlanet === 0 ? '23.6 H' :
-                                               currentPlanet === 1 ? '11.5 H' :
-                                               currentPlanet === 2 ? '14.3 H' :
-                                               currentPlanet === 3 ? '26.7 H' :
-                                               currentPlanet === 4 ? '25 H' :
-                                               currentPlanet === 5 ? '7.4 H' :
-                                               currentPlanet === 6 ? '4 H' :
-                                               '21.16 H'}</div>
+        <div className="planet-info-line">
+          {isGlitching && glitchTexts.line1 ? glitchTexts.line1 : `PLANET . . . . . . . . . . ${planets[currentPlanet].name}`}
+        </div>
+        <div className="planet-info-line">
+          {isGlitching && glitchTexts.line2 ? glitchTexts.line2 : 
+           `COLONIZATION . . . . . ${currentPlanet === 0 ? 'ARBORIS CIVILIZATION' : 
+                                     currentPlanet === 1 ? 'ARBORIS CIVILIZATION' :
+                                     currentPlanet === 2 ? 'ARBORIS CIVILIZATION' :
+                                     currentPlanet === 3 ? 'WANDERING CIVILIZATION' :
+                                     currentPlanet === 4 ? 'Non CIVILIZATION' :
+                                     currentPlanet === 5 ? 'ARBORIS CIVILIZATION' :
+                                     currentPlanet === 6 ? 'ARBORIS CIVILIZATION' :
+                                     'BUSINESS CIVILIZATION'}`}
+        </div>
+        <div className="planet-info-line">
+          {isGlitching && glitchTexts.line3 ? glitchTexts.line3 :
+           `ORBITAL DISTANCE . . . . ${currentPlanet === 0 ? '0.025 AU' :
+                                       currentPlanet === 1 ? '0.046 AU' :
+                                       currentPlanet === 2 ? '0.07 AU' :
+                                       currentPlanet === 3 ? '0.05 AU' :
+                                       currentPlanet === 4 ? '0.015 AU' :
+                                       currentPlanet === 5 ? '0.1 AU' :
+                                       currentPlanet === 6 ? '0.04 AU' :
+                                       '0.017 AU'}`}
+        </div>
+        <div className="planet-info-line">
+          {isGlitching && glitchTexts.line4 ? glitchTexts.line4 :
+           `MASS . . . . . . . . . . . . . . . . . . . . . ${currentPlanet === 0 ? '1.05KG X 10^2' :
+                                                            currentPlanet === 1 ? '2.07KG X 10^2' :
+                                                            currentPlanet === 2 ? '3.3KG X 10^2' :
+                                                            currentPlanet === 3 ? '0.7KG X 10^2' :
+                                                            currentPlanet === 4 ? '0.64KG X 10^2' :
+                                                            currentPlanet === 5 ? '4.21KG X 10^2' :
+                                                            currentPlanet === 6 ? '2.77KG X 10^2' :
+                                                            '3.44KG X 10^2'}`}
+        </div>
+        <div className="planet-info-line">
+          {isGlitching && glitchTexts.line5 ? glitchTexts.line5 :
+           `DIAMETER . . . . . . . . . . . . . . . . . . . . . . ${currentPlanet === 0 ? '12,742 KM' :
+                                                                 currentPlanet === 1 ? '16,811 KM' :
+                                                                 currentPlanet === 2 ? '10.841 KM' :
+                                                                 currentPlanet === 3 ? '9.672 KM' :
+                                                                 currentPlanet === 4 ? '9,655 KM' :
+                                                                 currentPlanet === 5 ? '22.551 KM' :
+                                                                 currentPlanet === 6 ? '14.581 KM' :
+                                                                 '10.158 KM'}`}
+        </div>
+        <div className="planet-info-line">
+          {isGlitching && glitchTexts.line6 ? glitchTexts.line6 :
+           `GRAVITY . . . . . . . . . . . . . . . . . . . . . . . . . ${currentPlanet === 0 ? '1. 11 G' :
+                                                                      currentPlanet === 1 ? '1. 02 G' :
+                                                                      currentPlanet === 2 ? '1.6 G' :
+                                                                      currentPlanet === 3 ? '0.4 G' :
+                                                                      currentPlanet === 4 ? '0.9 G' :
+                                                                      currentPlanet === 5 ? '2.13G' :
+                                                                      currentPlanet === 6 ? '0.2 G' :
+                                                                      '0.19 G'}`}
+        </div>
+        <div className="planet-info-line">
+          {isGlitching && glitchTexts.line7 ? glitchTexts.line7 :
+           `ATMOSPHERIC DENSITY . . . . . . . . . . . . . . . . ${currentPlanet === 0 ? '10.9 M/S^2' :
+                                                                 currentPlanet === 1 ? '12.1 M/S^2' :
+                                                                 currentPlanet === 2 ? '12.1 M/S^2' :
+                                                                 currentPlanet === 3 ? '7.7 M/S^2' :
+                                                                 currentPlanet === 4 ? '5.11 M/S^2' :
+                                                                 currentPlanet === 5 ? '14.4 M/S^2' :
+                                                                 currentPlanet === 6 ? '1.5 M/S^2' :
+                                                                 '10.9 M/S^2'}`}
+        </div>
+        <div className="planet-info-line">
+          {isGlitching && glitchTexts.line8 ? glitchTexts.line8 :
+           `ORBITAL PERIOD . . . . . . . . . . . . ${currentPlanet === 0 ? '4.91 EARTH DAYS' :
+                                                    currentPlanet === 1 ? '7.3 EARTH DAYS' :
+                                                    currentPlanet === 2 ? '6 EARTH DAYS' :
+                                                    currentPlanet === 3 ? '5 EARTH DAYS' :
+                                                    currentPlanet === 4 ? '7 EARTH DAYS' :
+                                                    currentPlanet === 5 ? '6 EARTH DAYS' :
+                                                    currentPlanet === 6 ? '9 EARTH DAYS' :
+                                                    '8.45 EARTH DAYS'}`}
+        </div>
+        <div className="planet-info-line">
+          {isGlitching && glitchTexts.line9 ? glitchTexts.line9 :
+           `ENERGY FLUX . . . . . . . . . . . . . . . . . ${currentPlanet === 0 ? '0.02 W/M^2' :
+                                                           currentPlanet === 1 ? '0.3 W/M^2' :
+                                                           currentPlanet === 2 ? '1 W/M^2' :
+                                                           currentPlanet === 3 ? '0.2 W/M^2' :
+                                                           currentPlanet === 4 ? '0.002 W/M^2' :
+                                                           currentPlanet === 5 ? '0.8 W/M^2' :
+                                                           currentPlanet === 6 ? '5.0 W/M^2' :
+                                                           '0.61 W/M^2'}`}
+        </div>
+        <div className="planet-info-line">
+          {isGlitching && glitchTexts.line10 ? glitchTexts.line10 :
+           `DAY LENGTH . . . . . . . . . . . . . ${currentPlanet === 0 ? '23.6 H' :
+                                                  currentPlanet === 1 ? '11.5 H' :
+                                                  currentPlanet === 2 ? '14.3 H' :
+                                                  currentPlanet === 3 ? '26.7 H' :
+                                                  currentPlanet === 4 ? '25 H' :
+                                                  currentPlanet === 5 ? '7.4 H' :
+                                                  currentPlanet === 6 ? '4 H' :
+                                                  '21.16 H'}`}
+        </div>
       </div>
 
       {/* 행성 갤러리 */}
@@ -1132,6 +1384,27 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
 
         .animate-slideInUp {
           animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+          
+          /* 행성 정보 라인 스타일 - 위치 고정 */
+        .planet-info-line {
+          /* 글리치 효과가 있든 없든 항상 동일한 스타일 유지 */
+          display: block;
+          position: relative;
+          letter-spacing: 0.1em;
+          line-height: 1.2;
+          margin: 0;
+          padding: 0;
+          transform: none;
+          animation: none;
+          font-variant-numeric: tabular-nums;
+          font-feature-settings: "tnum";
+          white-space: pre;
+          font-kerning: none;
+          height: auto;
+          min-height: 1.2em;
+          box-sizing: border-box;
         }
 
         /* CRT 모니터 효과 */
