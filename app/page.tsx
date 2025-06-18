@@ -132,7 +132,7 @@ export default function Home() {
           <StarBackground />
         </div>
         <div className="absolute inset-0 z-[5]">
-          <PlanetBackground isActive={currentSection === 3} />
+          <PlanetBackground key={currentSection} isActive={currentSection === 2} />
         </div>
       </section>
 
