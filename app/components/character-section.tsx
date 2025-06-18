@@ -55,7 +55,7 @@ const characters: CharacterInfo[] = [
       " 이내 자신의 소행성 B612 주변 행성들이 이상 현상을 겪고 있다는 것을 눈치챈다.",
       "",
       "각 행성의 주인들이 부정하게 변해 간다는 것.",
-      "자신이 해야 할 일을 깨달은 어린 왕자는 단원을 소집 해 여행을 시작하게 된다."
+      "자신이 해야 할 일을 깨달은 어린 왕자는 단원을 ㅤ소집 해 여행을 시작하게 된다."
     ],
     starTypes: ["/image/prince-star1.png", "/image/prince-star2.png", "/image/prince-star3.png"],
     size: {
