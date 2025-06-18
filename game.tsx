@@ -1238,7 +1238,6 @@ export default function Game() {
           overflow: "hidden",
           width: `${viewportWidth}px`,
           height: `${viewportHeight}px`,
-          boxShadow: "0 0 20px rgba(0, 0, 255, 0.5)",
           backgroundColor: "transparent", // 항상 투명 배경 사용
         }}
       >
@@ -1346,9 +1345,6 @@ export default function Game() {
         }}
       >
         <p>방향키를 사용하여 캐릭터를 움직이세요</p>
-        <p>
-          플레이어 위치: X: {Math.round(playerWorldPosition.x)}, Y: {Math.round(playerWorldPosition.y)}
-        </p>
       </div>
       {showStarGuide && <StarGuide onClose={() => setShowStarGuide(false)} />}
     </div>
