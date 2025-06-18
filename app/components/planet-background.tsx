@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useRef, useEffect, useState, useLayoutEffect, useMemo } from "react"
+import { useRef, useEffect, useState, useLayoutEffect } from "react"
 
 interface PlanetProps {
   src: string
@@ -41,7 +41,6 @@ const Planet = ({ src, alt, size, center, orbitRadius, speed, initialAngle = 0, 
 
   // 상태 변화 확인용 로그
   useEffect(() => {
-    // eslint-disable-next-line no-console
     console.log(`${alt} angle:`, angle)
   }, [angle, alt])
 
@@ -85,6 +84,16 @@ interface PlanetBackgroundProps {
   isActive?: boolean
 }
 
+interface PlanetData {
+  src: string
+  alt: string
+  size: number
+  center: { x: number; y: number }
+  orbitRadius: number
+  speed: number
+  initialAngle: number
+}
+
 export default function PlanetBackground({ isActive = true }: PlanetBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerSize, setContainerSize] = useState({ width: 1920, height: 1080 })
@@ -119,7 +128,8 @@ export default function PlanetBackground({ isActive = true }: PlanetBackgroundPr
   ]
 
   // 행성 랜덤 속성 생성 (클라이언트에서만)
-  const [planets, setPlanets] = useState<any[] | null>(null)
+  const [planets, setPlanets] = useState<PlanetData[] | null>(null)
+  
   useEffect(() => {
     setPlanets(
       planetData.map((p) => ({
