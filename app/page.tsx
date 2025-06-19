@@ -18,7 +18,6 @@ export default function Home() {
   const [currentTextIndex, setCurrentTextIndex] = useState(0)
   const [showCursor, setShowCursor] = useState(true)
   const [displayText, setDisplayText] = useState("")
-  const [currentCharIndex, setCurrentCharIndex] = useState(0)
   const [isTyping, setIsTyping] = useState(false)
   const [showDoor, setShowDoor] = useState(false)
   const [showText, setShowText] = useState(true)
@@ -31,6 +30,18 @@ export default function Home() {
     "'장미'의 고객이 되어 고민을 해결하고자 그들의 사무실로 향합니다.",
     "하지만 어째선지, 사무실 안은 어수선하기만 합니다."
   ]
+
+  // 페이지 로드 시 targetSection 확인하여 해당 섹션으로 이동
+  useEffect(() => {
+    const targetSection = localStorage.getItem("targetSection")
+    if (targetSection) {
+      const sectionNumber = parseInt(targetSection, 10)
+      if (sectionNumber >= 0 && sectionNumber < totalSections) {
+        setCurrentSection(sectionNumber)
+      }
+      localStorage.removeItem("targetSection") // 사용 후 제거
+    }
+  }, [])
 
   // 섹션 참조 설정
   const addSectionRef = (el: HTMLElement | null, index: number) => {
@@ -100,7 +111,6 @@ export default function Home() {
   // 타이핑 효과
   useEffect(() => {
     if (currentSection === 5 && currentTextIndex < texts.length) {
-      setCurrentCharIndex(0)
       setDisplayText("")
       setIsTyping(true)
       
