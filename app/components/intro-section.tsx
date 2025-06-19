@@ -2,11 +2,8 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
 
 export default function IntroSection() {
-  const router = useRouter()
-  const [isNavigating, setIsNavigating] = useState(false)
   const [typedText, setTypedText] = useState("")
   const [projectText, setProjectText] = useState("")
   const [b612Text, setB612Text] = useState("")
@@ -81,16 +78,6 @@ export default function IntroSection() {
     return () => clearTimeout(timeoutId)
   }, [])
 
-  const handleClick = () => {
-    if (isNavigating) return // 중복 클릭 방지
-
-    setIsNavigating(true)
-    // 약간의 지연 후 라우팅 (애니메이션 정리 시간 확보)
-    setTimeout(() => {
-      router.push("/chat")
-    }, 100)
-  }
-
   return (
     <>
       <style jsx>{`
@@ -125,8 +112,7 @@ export default function IntroSection() {
       `}</style>
       
       <div
-        className={`relative z-[3] cursor-pointer ${isNavigating ? "opacity-70" : ""}`}
-        onClick={handleClick}
+        className="relative z-[3]"
         style={{ width: 400, height: 400 }}
       >
         <span 
