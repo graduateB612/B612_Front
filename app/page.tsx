@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import ShootingStar from "./components/shooting-star"
 import TrainSection from "./components/train-section"
 import PlanetSection from "./components/planet-section"
@@ -8,11 +9,28 @@ import PlanetBackground from "./components/planet-background"
 import CharacterSection from "./components/character-section"
 import StarBackground from "./components/star-background"
 import IntroSection from "./components/intro-section"
+import Image from "next/image"
 
 export default function Home() {
+  const router = useRouter()
+  const [isNavigating, setIsNavigating] = useState(false)
   const [currentSection, setCurrentSection] = useState(0)
+  const [currentTextIndex, setCurrentTextIndex] = useState(0)
+  const [showCursor, setShowCursor] = useState(true)
+  const [displayText, setDisplayText] = useState("")
+  const [currentCharIndex, setCurrentCharIndex] = useState(0)
+  const [isTyping, setIsTyping] = useState(false)
+  const [showDoor, setShowDoor] = useState(false)
+  const [showText, setShowText] = useState(true)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const sectionsRef = useRef<(HTMLElement | null)[]>([])
-  const totalSections = 5 // 총 섹션 수
+  const totalSections = 6 // 총 섹션 수
+
+  const texts = [
+    "여러분들은 B612 행성에 존재하는 해결단,",
+    "'장미'의 고객이 되어 고민을 해결하고자 그들의 사무실로 향합니다.",
+    "하지만 어째선지, 사무실 안은 어수선하기만 합니다."
+  ]
 
   // 섹션 참조 설정
   const addSectionRef = (el: HTMLElement | null, index: number) => {
@@ -60,6 +78,76 @@ export default function Home() {
     }
   }, [currentSection])
 
+  // 커서 깜빡임 효과
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowCursor(prev => !prev)
+    }, 800)
+    return () => clearInterval(interval)
+  }, [])
+
+  // 섹션 변경 시 효과
+  useEffect(() => {
+    if (currentSection === 5) {
+      setCurrentTextIndex(0)
+      setDisplayText("")
+      setIsTyping(true)
+      setShowText(true)
+      setShowDoor(false)
+    }
+  }, [currentSection])
+
+  // 타이핑 효과
+  useEffect(() => {
+    if (currentSection === 5 && currentTextIndex < texts.length) {
+      setCurrentCharIndex(0)
+      setDisplayText("")
+      setIsTyping(true)
+      
+      const text = texts[currentTextIndex]
+      let charIndex = 0
+      
+      const typeNextChar = () => {
+        if (charIndex < text.length) {
+          setDisplayText(text.slice(0, charIndex + 1))
+          charIndex++
+          typingTimeoutRef.current = setTimeout(typeNextChar, 50)
+        } else {
+          setIsTyping(false)
+        }
+      }
+      
+      typingTimeoutRef.current = setTimeout(typeNextChar, 50)
+      
+      return () => {
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current)
+        }
+      }
+    }
+  }, [currentTextIndex, currentSection])
+
+  // 마지막 섹션 클릭 핸들러
+  const handleLastSectionClick = () => {
+    if (currentSection === 5) {
+      if (isTyping) {
+        // 타이핑 중일 때는 현재 텍스트를 즉시 완성
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current)
+        }
+        setDisplayText(texts[currentTextIndex])
+        setIsTyping(false)
+      } else if (currentTextIndex < texts.length - 1) {
+        setCurrentTextIndex(prev => prev + 1)
+      } else {
+        setShowText(false)
+        setTimeout(() => {
+          setShowDoor(true)
+        }, 500)
+      }
+    }
+  }
+
   return (
     <div
       className="snap-y snap-mandatory h-screen overflow-y-auto relative"
@@ -78,6 +166,50 @@ export default function Home() {
           50% {
             opacity: 1;
           }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes ripple {
+          0% {
+            transform: scale(1);
+            opacity: 0.7;
+          }
+          50% {
+            opacity: 0.4;
+          }
+          100% {
+            transform: scale(1.3);
+            opacity: 0;
+          }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 2s ease-in forwards;
+        }
+
+        .ripple {
+          position: absolute;
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          border: 2px solid rgba(255, 255, 255, 0.8);
+          animation: ripple 2.5s ease-in-out infinite;
+        }
+
+        .ripple-2 {
+          animation-delay: 0.8s;
+        }
+
+        .ripple-3 {
+          animation-delay: 1.6s;
         }
       `}</style>
 
@@ -167,6 +299,55 @@ export default function Home() {
         </div>
         <div className="relative z-[5] w-full h-full">
           <TrainSection isActive={currentSection === 4} />
+        </div>
+      </section>
+
+      {/* 여섯 번째 섹션 - 새로운 섹션 */}
+      <section
+        ref={(el) => addSectionRef(el, 5)}
+        className="flex min-h-screen flex-col items-center justify-center snap-start relative bg-black"
+        onClick={handleLastSectionClick}
+        style={{ cursor: 'default' }}
+      >
+        <div className="relative z-[5] w-full h-full flex items-center justify-center">
+          <div className="text-white text-center text-2xl leading-relaxed">
+            <div className={`mb-4 transition-opacity duration-500 ${showText ? 'opacity-100' : 'opacity-0'}`}>
+              {displayText}
+              {isTyping && <span className="inline-block w-0.5 h-6 bg-white ml-1 animate-pulse"></span>}
+              <span className={`ml-8 transition-opacity duration-200 ${showCursor ? 'opacity-100' : 'opacity-0'}`}>
+                ▼
+              </span>
+            </div>
+            {showDoor && (
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-2000 opacity-0 animate-fadeIn">
+                <div className="relative">
+                  <Image
+                    src="/image/door.png"
+                    alt="Wooden door with vines"
+                    width={400}
+                    height={533}
+                    priority
+                  />
+                  <div 
+                    className="absolute" 
+                    style={{ top: '47%', left: '60%', transform: 'translate(-50%, -50%)', cursor: 'pointer' }}
+                    onClick={() => {
+                      if (!isNavigating) {
+                        setIsNavigating(true)
+                        setTimeout(() => {
+                          router.push("/chat")
+                        }, 100)
+                      }
+                    }}
+                  >
+                    <div className="ripple"></div>
+                    <div className="ripple ripple-2"></div>
+                    <div className="ripple ripple-3"></div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </div>
