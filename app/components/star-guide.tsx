@@ -157,7 +157,7 @@ export default function StarGuide({ onClose }: StarGuideProps) {
           style={{
             top: "35px",
             left: "100px",
-            color: "#f3c677",
+            color: "black",
           }}
         >
           {apiPage <= 2 ? "부정적 감정의 별" : "긍정적 감정의 별"}
@@ -172,17 +172,17 @@ export default function StarGuide({ onClose }: StarGuideProps) {
             </div>
 
             {/* 별 이름 (오른쪽 상단) */}
-            <div className="absolute" style={{ top: "115px", left: "200px" }}>
+            <div className="absolute" style={{ top: "115px", left: "200px", color: "black" }}>
               <p className="font-bold">{entries[0].starSource}</p>
             </div>
 
             {/* 설명 텍스트 */}
-            <div className="absolute" style={{ top: "140px", left: "200px", width: "200px" }}>
+            <div className="absolute" style={{ top: "140px", left: "200px", width: "200px", color: "black" }}>
               <p>{entries[0].description}</p>
             </div>
 
             {/* 별 이름 (하단) */}
-            <div className="absolute" style={{ top: "210px", left: "107px" }}>
+            <div className="absolute" style={{ top: "210px", left: "107px", color: "black" }}>
               <p className="font-bold">{entries[0].starName}</p>
             </div>
           </>
@@ -197,17 +197,17 @@ export default function StarGuide({ onClose }: StarGuideProps) {
             </div>
 
             {/* 별 이름 (오른쪽 상단) */}
-            <div className="absolute" style={{ top: "295px", left: "200px" }}>
+            <div className="absolute" style={{ top: "295px", left: "200px", color: "black" }}>
               <p className="font-bold">{entries[1].starSource}</p>
             </div>
 
             {/* 설명 텍스트 */}
-            <div className="absolute" style={{ top: "320px", left: "200px", width: "200px" }}>
+            <div className="absolute" style={{ top: "320px", left: "200px", width: "200px", color: "black" }}>
               <p>{entries[1].description}</p>
             </div>
 
             {/* 별 이름 (하단) */}
-            <div className="absolute" style={{ top: "390px", left: "107px" }}>
+            <div className="absolute" style={{ top: "390px", left: "107px", color: "black" }}>
               <p className="font-bold">{entries[1].starName}</p>
             </div>
           </>
@@ -222,17 +222,17 @@ export default function StarGuide({ onClose }: StarGuideProps) {
             </div>
 
             {/* 별 이름 (오른쪽 상단) */}
-            <div className="absolute" style={{ top: "115px", left: "600px" }}>
+            <div className="absolute" style={{ top: "115px", left: "600px", color: "black" }}>
               <p className="font-bold">{entries[2].starSource}</p>
             </div>
 
             {/* 설명 텍스트 */}
-            <div className="absolute" style={{ top: "142px", left: "600px", width: "200px" }}>
+            <div className="absolute" style={{ top: "142px", left: "600px", width: "200px", color: "black" }}>
               <p>{entries[2].description}</p>
             </div>
 
             {/* 별 이름 (하단) */}
-            <div className="absolute" style={{ top: "210px", left: "510px" }}>
+            <div className="absolute" style={{ top: "210px", left: "510px", color: "black" }}>
               <p className="font-bold">{entries[2].starName}</p>
             </div>
           </>
@@ -247,17 +247,17 @@ export default function StarGuide({ onClose }: StarGuideProps) {
             </div>
 
             {/* 별 이름 (오른쪽 상단) */}
-            <div className="absolute" style={{ top: "294px", left: "600px" }}>
+            <div className="absolute" style={{ top: "294px", left: "600px", color: "black" }}>
               <p className="font-bold">{entries[3].starSource}</p>
             </div>
 
             {/* 설명 텍스트 */}
-            <div className="absolute" style={{ top: "320px", left: "600px", width: "200px" }}>
+            <div className="absolute" style={{ top: "320px", left: "600px", width: "200px", color: "black" }}>
               <p>{entries[3].description}</p>
             </div>
 
             {/* 별 이름 (하단) */}
-            <div className="absolute" style={{ top: "391px", left: "510px" }}>
+            <div className="absolute" style={{ top: "391px", left: "510px", color: "black" }}>
               <p className="font-bold">{entries[3].starName}</p>
             </div>
           </>
@@ -303,7 +303,7 @@ export default function StarGuide({ onClose }: StarGuideProps) {
               {/* 페이지 번호 표시 - API 페이지 번호 그대로 표시 */}
               <div
                 className="absolute bottom-8 left-1/2 transform -translate-x-1/2 font-bold"
-                style={{ color: "#8B4513" }}
+                style={{ color: "black" }}
               >
                 {apiPage + 1} / 6
               </div>
