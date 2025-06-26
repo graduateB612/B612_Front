@@ -3,7 +3,20 @@ import type { Metadata } from "next"
 import localFont from "next/font/local"
 import "./globals.css"
 
-// 폰트 설정 - 경로 확인 필요
+// // PF Stardust 3.0 폰트 설정
+// const pfStardust = localFont({
+//   src: [
+//     {
+//       path: "../public/font/PFstardust 3.0.ttf",
+//       weight: "400",
+//       style: "normal",
+//     },
+//   ],
+//   display: "swap",
+//   variable: "--font-pf-stardust",
+// })
+
+// neodgm 폰트 설정 (보조 폰트로 유지)
 const neodgm = localFont({
   src: [
     {
@@ -27,8 +40,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={neodgm.variable}>
-      <body style={{ fontFamily: "var(--font-neodgm), sans-serif" }}>{children}</body>
+    <html lang="en" className={` ${neodgm.variable}`}>
+      <body style={{ fontFamily: " var(--font-neodgm), sans-serif" }}>{children}</body>
     </html>
   )
 }

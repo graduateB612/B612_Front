@@ -57,7 +57,9 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
+        'pf-stardust': ['var(--font-pf-stardust)'],
         neodgm: ['var(--font-neodgm)'],
+        sans: ['var(--font-pf-stardust)', 'var(--font-neodgm)', 'Arial', 'Helvetica', 'sans-serif'],
       },
     },
   },
