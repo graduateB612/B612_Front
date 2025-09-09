@@ -406,9 +406,8 @@ export default function Page() {
         MozUserSelect: 'none',
         msUserSelect: 'none',
         WebkitTouchCallout: 'none',
-        WebkitUserDrag: 'none',
         KhtmlUserSelect: 'none'
-      }}
+      } as React.CSSProperties}
       onDragStart={(e) => e.preventDefault()}
       onContextMenu={(e) => e.preventDefault()}
     >

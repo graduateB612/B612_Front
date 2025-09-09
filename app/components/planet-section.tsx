@@ -322,7 +322,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       }
 
       let currentTileIndex = 0
-      let currentTiles = [...tiles] // 로컬 상태로 관리
+      const currentTiles = [...tiles] // 로컬 상태로 관리
 
       // setInterval을 사용해서 더 안전하게 처리
       const intervalId = setInterval(() => {
@@ -598,7 +598,6 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
 
   // 마우스 이벤트
   const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault() // 기본 드래그 동작 방지
     handleDragStart(e.clientX)
   }
 
@@ -607,8 +606,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     handleDragMove(e.clientX)
   }
 
-  const handleMouseUp = (e: React.MouseEvent) => {
-    e.preventDefault() // 기본 드래그 동작 방지
+  const handleMouseUp = () => {
     handleDragEnd()
   }
 
@@ -621,7 +619,6 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
 
   // 터치 이벤트
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault() // 기본 드래그 동작 방지
     handleDragStart(e.touches[0].clientX)
   }
 
@@ -630,10 +627,10 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     handleDragMove(e.touches[0].clientX)
   }
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    e.preventDefault() // 기본 드래그 동작 방지
+  const handleTouchEnd = () => {
     handleDragEnd()
   }
+
 
   // 키보드 이벤트 핸들러
   useEffect(() => {
@@ -714,7 +711,6 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       animation: getPlanetAnimationStyle(distance),
       objectFit: "contain" as const,
       userSelect: "none" as const, // 이미지 선택 방지
-      pointerEvents: "none" as const, // 이미지에 대한 포인터 이벤트 방지
       WebkitUserSelect: "none" as const, // Safari용
       WebkitTouchCallout: "none" as const, // iOS Safari용
       MozUserSelect: "none" as const, // Firefox용
@@ -1239,7 +1235,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       {/* 행성 갤러리 */}
       <div
         ref={containerRef}
-        className="relative w-full max-w-5xl h-[90vh] flex items-center justify-center select-none"
+        className="relative w-full max-w-5xl h-[90vh] flex items-center justify-center"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -1248,11 +1244,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         style={{
-          userSelect: "none",
-          WebkitUserSelect: "none",
-          MozUserSelect: "none",
-          msUserSelect: "none",
-          touchAction: "none",
+          zIndex: 10,
         }}
       >
         {/* 행성들 */}
@@ -1281,7 +1273,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
             return (
               <div
                 key={planet.id}
-                className="absolute cursor-pointer select-none"
+                className="absolute cursor-pointer"
                 style={{
                   transform: `translateX(${positionX + dragOffset}px) scale(${scale})`,
                   opacity,
@@ -1289,27 +1281,18 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
                   transition: isAnimating
                     ? "none"
                     : "transform 1200ms cubic-bezier(0.4, 0, 0.2, 1), opacity 1200ms cubic-bezier(0.4, 0, 0.2, 1)",
-                  userSelect: "none",
-                  WebkitUserSelect: "none",
-                  MozUserSelect: "none",
-                  msUserSelect: "none",
                 }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  goToPlanet(index)
-                }}
-                onDragStart={(e) => e.preventDefault()} // 드래그 시작 방지
+                onClick={() => goToPlanet(index)}
               >
                 <div className="relative select-none" style={getPlanetContainerStyle(planet, distance)}>
                   <Image
                     src={planet.image || "/placeholder.svg"}
                     alt={planet.name}
                     fill
-                    className="pixelated object-contain select-none"
+                    className="pixelated object-contain"
                     style={getPlanetImageStyle(planet, distance)}
                     priority={distance === 0} // 중앙 행성은 우선 로딩
                     draggable={false} // 이미지 드래그 방지
-                    onDragStart={(e) => e.preventDefault()} // 이미지 드래그 시작 방지
                   />
                 </div>
               </div>

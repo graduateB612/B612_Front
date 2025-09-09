@@ -291,7 +291,7 @@ export default function Home() {
         <div className="absolute inset-0 z-[1]">
           <StarBackground />
         </div>
-        <PlanetSection isActive={currentSection === 3} />
+        <PlanetSection isActive={currentSection === 2} />
       </section>
 
       {/* 다섯 번째 섹션 - 열차 페이지 */}
@@ -324,9 +324,8 @@ export default function Home() {
           MozUserSelect: 'none',
           msUserSelect: 'none',
           WebkitTouchCallout: 'none',
-          WebkitUserDrag: 'none',
           KhtmlUserSelect: 'none'
-        }}
+        } as React.CSSProperties}
         onDragStart={(e) => e.preventDefault()}
         onContextMenu={(e) => e.preventDefault()}
       >
