@@ -80,11 +80,43 @@ export default function TrainSection({ isActive = true }: TrainSectionProps) {
 
   // 열차가 화면에 나타나기 시작했는지 확인
   const trainStartedMoving = trainOffset > 0
+  
+  // 배경 전환 상태
+  const [backgroundOpacity, setBackgroundOpacity] = useState(0)
+  
+  // 열차 움직임에 따른 배경 전환 효과
+  useEffect(() => {
+    if (trainStartedMoving) {
+      // 열차가 움직이기 시작하면 배경을 더 빠르게 나타나게 함
+      const maxOffset = TRAIN_PASSED_OFFSET
+      const progress = Math.min(trainOffset / (maxOffset * 0.3), 1) // 30% 지점에서 완전히 전환
+      setBackgroundOpacity(progress)
+    } else {
+      setBackgroundOpacity(0)
+    }
+  }, [trainOffset, trainStartedMoving])
 
   return (
     <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+      {/* train_background.png 배경 - 열차 움직임에 따라 점차 나타남 */}
+      <div 
+        className="fixed top-0 left-0 w-screen h-screen z-[2] transition-opacity duration-500 ease-in-out"
+        style={{ opacity: backgroundOpacity }}
+      >
+        <Image
+          src="/image/train_background.png"
+          alt="Train background"
+          fill
+          style={{ 
+            objectPosition: 'center',
+            objectFit: 'cover',
+          }}
+          priority
+        />
+      </div>
+      
       {/* 메인 컨테이너 */}
-      <div className="relative w-full h-full flex flex-col items-center justify-center select-none">
+      <div className="relative w-full h-full flex flex-col items-center justify-center select-none z-10">
         {/* 슬라이드 텍스트 - 열차가 움직이기 전까지만 표시 */}
         {!trainStartedMoving && (
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
@@ -104,7 +136,7 @@ export default function TrainSection({ isActive = true }: TrainSectionProps) {
         )}
 
         {/* 열차 컨테이너 */}
-        <div className="relative w-full flex flex-col items-center justify-center">
+        <div className="relative w-full flex flex-col items-center justify-center" style={{ marginTop: '260px' }}>
           {/* 열차 이미지 컨테이너 */}
           <div
             className="relative cursor-pointer hover:brightness-110 transition-all duration-200"
