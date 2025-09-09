@@ -1230,7 +1230,16 @@ export default function Game() {
         height: "100vh",
         overflow: "hidden",
         backgroundColor: "#000",
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        MozUserSelect: "none",
+        msUserSelect: "none",
+        WebkitTouchCallout: "none",
+        WebkitUserDrag: "none",
+        KhtmlUserSelect: "none"
       }}
+      onDragStart={(e) => e.preventDefault()}
+      onContextMenu={(e) => e.preventDefault()}
     >
       <div
         style={{
@@ -1239,7 +1248,12 @@ export default function Game() {
           width: `${viewportWidth}px`,
           height: `${viewportHeight}px`,
           backgroundColor: "transparent", // 항상 투명 배경 사용
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          MozUserSelect: "none",
+          msUserSelect: "none"
         }}
+        onDragStart={(e) => e.preventDefault()}
       >
         {/* 배경 - 항상 표시 */}
         <div
@@ -1251,7 +1265,13 @@ export default function Game() {
             backgroundRepeat: "no-repeat",
             backgroundSize: `${backgroundWidth}px ${backgroundHeight}px`,
             transform: `translate(${backgroundPosition.x}px, ${backgroundPosition.y}px)`,
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            MozUserSelect: "none",
+            msUserSelect: "none",
+            pointerEvents: "none"
           }}
+          onDragStart={(e) => e.preventDefault()}
         />
 
         {/* 캔버스 오버레이 (NPC 및 아이템 렌더링용) - 항상 표시 */}
@@ -1263,7 +1283,12 @@ export default function Game() {
             position: "absolute",
             pointerEvents: "none",
             zIndex: 5,
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            MozUserSelect: "none",
+            msUserSelect: "none"
           }}
+          onDragStart={(e) => e.preventDefault()}
         />
 
         {/* 플레이어 */}

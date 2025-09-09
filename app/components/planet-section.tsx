@@ -310,7 +310,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     setMosaicTiles(tiles)
 
     // 약간의 지연 후 모자이크 효과 시작
-    setTimeout(() => {
+    mosaicTimerRef.current = setTimeout(() => {
       setShowPlanetImage(true)
       
       // 타일들을 랜덤 순서로 나타나게 하기
@@ -322,30 +322,21 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       }
 
       let currentTileIndex = 0
-      let lastTime = 0
-      const targetInterval = 8 // 8ms 목표 간격
+      let currentTiles = [...tiles] // 로컬 상태로 관리
 
-      // 타일별 나타나는 효과 (requestAnimationFrame 사용)
-      const showNextTile = (currentTime: number) => {
-        if (currentTime - lastTime >= targetInterval) {
-          if (currentTileIndex < totalTiles) {
-            const tileIndex = indices[currentTileIndex]
-            setMosaicTiles(prev => {
-              const newTiles = [...prev]
-              newTiles[tileIndex] = true
-              return newTiles
-            })
-            currentTileIndex++
-            lastTime = currentTime
-          }
-        }
-        
+      // setInterval을 사용해서 더 안전하게 처리
+      const intervalId = setInterval(() => {
         if (currentTileIndex < totalTiles) {
-          requestAnimationFrame(showNextTile)
+          const tileIndex = indices[currentTileIndex]
+          currentTiles[tileIndex] = true
+          setMosaicTiles([...currentTiles]) // 복사본으로 업데이트
+          currentTileIndex++
+        } else {
+          // 모든 타일이 완료되면 인터벌 정리
+          clearInterval(intervalId)
         }
-      }
-
-      requestAnimationFrame(showNextTile)
+      }, 8) // 8ms 간격
+      
     }, 500) // 설명 슬라이드 효과 후 0.5초 지연
   }, [])
 

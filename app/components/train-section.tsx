@@ -83,10 +83,28 @@ export default function TrainSection({ isActive = true }: TrainSectionProps) {
   
   // 배경 전환 상태
   const [backgroundOpacity, setBackgroundOpacity] = useState(0)
+  const [isSectionVisible, setIsSectionVisible] = useState(false)
+  const sectionRef = useRef<HTMLDivElement>(null)
+  
+  // 섹션 가시성 추적
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsSectionVisible(entry.isIntersecting)
+      },
+      { threshold: 0.1 }
+    )
+    
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current)
+    }
+    
+    return () => observer.disconnect()
+  }, [])
   
   // 열차 움직임에 따른 배경 전환 효과
   useEffect(() => {
-    if (trainStartedMoving) {
+    if (trainStartedMoving && isSectionVisible) {
       // 열차가 움직이기 시작하면 배경을 더 빠르게 나타나게 함
       const maxOffset = TRAIN_PASSED_OFFSET
       const progress = Math.min(trainOffset / (maxOffset * 0.3), 1) // 30% 지점에서 완전히 전환
@@ -94,10 +112,10 @@ export default function TrainSection({ isActive = true }: TrainSectionProps) {
     } else {
       setBackgroundOpacity(0)
     }
-  }, [trainOffset, trainStartedMoving])
+  }, [trainOffset, trainStartedMoving, isSectionVisible])
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+    <div ref={sectionRef} className="relative w-full h-full flex items-center justify-center overflow-hidden">
       {/* train_background.png 배경 - 열차 움직임에 따라 점차 나타남 */}
       <div 
         className="fixed top-0 left-0 w-screen h-screen z-[2] transition-opacity duration-500 ease-in-out"

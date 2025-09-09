@@ -398,26 +398,52 @@ export default function Page() {
   }
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-black">
+    <main 
+      className="relative min-h-screen w-full overflow-hidden bg-black select-none"
+      style={{ 
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        MozUserSelect: 'none',
+        msUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+        WebkitUserDrag: 'none',
+        KhtmlUserSelect: 'none'
+      }}
+      onDragStart={(e) => e.preventDefault()}
+      onContextMenu={(e) => e.preventDefault()}
+    >
       {/* prince_text.png 배경 이미지 */}
-      <div className="relative w-full min-h-screen flex items-center justify-center">
+      <div className="relative w-full min-h-screen flex items-center justify-center select-none" style={{ userSelect: 'none' }}>
         <Image
           src="/image/prince_text.png"
           alt="Prince background"
           width={1920}
           height={1080}
-          className="w-4/5 h-auto max-w-4xl"
-          style={{ maxWidth: '80%', height: 'auto' }}
+          className="w-4/5 h-auto max-w-4xl select-none"
+          style={{ 
+            maxWidth: '80%', 
+            height: 'auto',
+            userSelect: 'none',
+            pointerEvents: 'none'
+          }}
           priority
+          draggable={false}
         />
         
         {/* 대화 텍스트 오버레이 */}
-        <div className="absolute inset-0 flex flex-col justify-center items-center px-8">
-          <div className="text-white max-w-5xl text-left ml-96 w-full">
+        <div className="absolute inset-0 flex flex-col justify-center items-center px-8 select-none" style={{ userSelect: 'none' }}>
+          <div className="text-white max-w-5xl text-left ml-96 w-full select-none" style={{ userSelect: 'none' }}>
             <div 
-              className="text-3xl cursor-pointer leading-loose"
+              className="text-3xl cursor-pointer leading-loose select-none"
               onClick={!showChoices && !showNameInput ? handleClick : undefined}
-              style={{ lineHeight: '1.8' }}
+              style={{ 
+                lineHeight: '1.8',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none'
+              }}
+              onDragStart={(e) => e.preventDefault()}
             >
               {formatTextWithCursor(currentText, isTyping)}
             </div>
@@ -425,19 +451,23 @@ export default function Page() {
 
           {/* 선택지 영역 - prince_text.png 우하단에 위치 */}
           {showChoices && (
-            <div className="absolute bottom-40 right-56 text-white text-2xl">
-              <span className="mx-3">▶</span>
+            <div className="absolute bottom-40 right-56 text-white text-2xl select-none" style={{ userSelect: 'none' }}>
+              <span className="mx-3 select-none" style={{ userSelect: 'none' }}>▶</span>
               <span 
                 onClick={() => handleChoice("help")}
-                className="cursor-pointer hover:opacity-80 transition"
+                className="cursor-pointer hover:opacity-80 transition select-none"
+                style={{ userSelect: 'none' }}
+                onDragStart={(e) => e.preventDefault()}
               >
                 무슨 일 인지 묻는다.
               </span>
-              <span className="mx-3"></span>
-              <span className="mx-3">▶</span>
+              <span className="mx-3 select-none" style={{ userSelect: 'none' }}></span>
+              <span className="mx-3 select-none" style={{ userSelect: 'none' }}>▶</span>
               <span 
                 onClick={() => handleChoice("noHelp")}
-                className="cursor-pointer hover:opacity-80 transition"
+                className="cursor-pointer hover:opacity-80 transition select-none"
+                style={{ userSelect: 'none' }}
+                onDragStart={(e) => e.preventDefault()}
               >
                 기다린다.
               </span>

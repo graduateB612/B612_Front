@@ -315,12 +315,23 @@ export default function Home() {
       {/* 여섯 번째 섹션 - 새로운 섹션 */}
       <section
         ref={(el) => addSectionRef(el, 5)}
-        className="flex min-h-screen flex-col items-center justify-center snap-start relative bg-black"
+        className="flex min-h-screen flex-col items-center justify-center snap-start relative bg-black select-none"
         onClick={handleLastSectionClick}
-        style={{ cursor: 'default' }}
+        style={{ 
+          cursor: 'default',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          WebkitUserDrag: 'none',
+          KhtmlUserSelect: 'none'
+        }}
+        onDragStart={(e) => e.preventDefault()}
+        onContextMenu={(e) => e.preventDefault()}
       >
-        <div className="relative z-[5] w-full h-full flex items-center justify-center">
-          <div className="text-white text-center text-2xl leading-relaxed">
+        <div className="relative z-[5] w-full h-full flex items-center justify-center select-none" style={{ userSelect: 'none' }}>
+          <div className="text-white text-center text-2xl leading-relaxed select-none" style={{ userSelect: 'none' }}>
             <div className={`mb-4 transition-opacity duration-500 ${showText ? 'opacity-100' : 'opacity-0'}`}>
               {displayText}
               {isTyping && <span className="inline-block w-0.5 h-6 bg-white ml-1 animate-pulse"></span>}
@@ -329,18 +340,30 @@ export default function Home() {
               </span>
             </div>
             {showDoor && (
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-2000 opacity-0 animate-fadeIn">
-                <div className="relative">
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-2000 opacity-0 animate-fadeIn select-none" style={{ userSelect: 'none' }}>
+                <div className="relative select-none" style={{ userSelect: 'none' }}>
                   <Image
                     src="/image/door.png"
                     alt="Wooden door with vines"
                     width={400}
                     height={533}
                     priority
+                    draggable={false}
+                    style={{ userSelect: 'none', pointerEvents: 'none' }}
                   />
                   <div 
-                    className="absolute" 
-                    style={{ top: '47%', left: '60%', transform: 'translate(-50%, -50%)', cursor: 'pointer' }}
+                    className="absolute select-none" 
+                    style={{ 
+                      top: '47%', 
+                      left: '60%', 
+                      transform: 'translate(-50%, -50%)', 
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none'
+                    }}
+                    onDragStart={(e) => e.preventDefault()}
                     onClick={() => {
                       if (!isNavigating) {
                         setIsNavigating(true)
