@@ -9,6 +9,7 @@ import PlanetBackground from "./components/planet-background"
 import CharacterSection from "./components/character-section"
 import StarBackground from "./components/star-background"
 import IntroSection from "./components/intro-section"
+import Header from "./components/header"
 import Image from "next/image"
 
 export default function Home() {
@@ -238,6 +239,8 @@ export default function Home() {
           backgroundPosition: "center",
         }}
       >
+        {/* 헤더 - 첫 번째 섹션에만 표시 */}
+        {currentSection === 0 && <Header />}
         <div className="absolute inset-0 z-[1]">
           <StarBackground />
         </div>
