@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import ShootingStar from "./components/shooting-star"
 import TrainSection from "./components/train-section"
@@ -8,8 +8,8 @@ import PlanetSection from "./components/planet-section"
 import PlanetBackground from "./components/planet-background"
 import CharacterSection from "./components/character-section"
 import StarBackground from "./components/star-background"
-import IntroSection from "./components/intro-section"
 import Header from "./components/header"
+import IntroSection from "./components/intro-section"
 import Image from "next/image"
 
 export default function Home() {
@@ -26,11 +26,11 @@ export default function Home() {
   const sectionsRef = useRef<(HTMLElement | null)[]>([])
   const totalSections = 6 // 총 섹션 수
 
-  const texts = [
+  const texts = useMemo(() => [
     "여러분들은 B612 행성에 존재하는 해결단,",
     "'장미'의 고객이 되어 고민을 해결하고자 그들의 사무실로 향합니다.",
     "하지만 어째선지, 사무실 안은 어수선하기만 합니다."
-  ]
+  ], [])
 
   // 페이지 로드 시 targetSection 확인하여 해당 섹션으로 이동
   useEffect(() => {
@@ -136,7 +136,7 @@ export default function Home() {
         }
       }
     }
-  }, [currentTextIndex, currentSection])
+  }, [currentTextIndex, currentSection, texts])
 
   // 마지막 섹션 클릭 핸들러
   const handleLastSectionClick = () => {
