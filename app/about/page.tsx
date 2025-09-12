@@ -90,9 +90,9 @@ export default function AboutPage() {
           </div>
 
           {/* 행들 */}
-          <div className="mt-8 space-y-0">
+          <div className="mt-8 border-t border-gray-700/60">
             {/* Row 1 */}
-            <div className="grid grid-cols-3 gap-x-10 items-center border-t border-gray-700/60 pt-6 pb-6 my-5">
+            <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-gray-700/60">
               <div className="flex items-center gap-6">
                 <Image src="/image/rose.png" alt="rose" width={64} height={64} />
                 <div className="text-white text-xl md:text-2xl font-semibold">가격</div>
@@ -108,7 +108,7 @@ export default function AboutPage() {
             </div>
 
             {/* Row 2 */}
-            <div className="grid grid-cols-3 gap-x-10 items-center border-t border-gray-700/60 pt-6 pb-6 my-5">
+            <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-gray-700/60">
               <div className="flex items-center gap-6">
                 <Image src="/image/rose.png" alt="rose" width={64} height={64} />
                 <div className="text-white text-xl md:text-2xl font-semibold">운영 시간</div>
@@ -124,7 +124,7 @@ export default function AboutPage() {
             </div>
 
             {/* Row 3 */}
-            <div className="grid grid-cols-3 gap-x-10 items-center border-t border-gray-700/60 pt-6 pb-6 my-5">
+            <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-gray-700/60">
               <div className="flex items-center gap-6">
                 <Image src="/image/rose.png" alt="rose" width={64} height={64} />
                 <div className="text-white text-xl md:text-2xl font-semibold">업무 시간</div>
@@ -140,7 +140,7 @@ export default function AboutPage() {
             </div>
 
             {/* Row 4 */}
-            <div className="grid grid-cols-3 gap-x-10 items-center border-t border-gray-700/60 pt-6 pb-6 my-5 last:border-b">
+            <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-gray-700/60 last:border-b-0">
               <div className="flex items-center gap-6">
                 <Image src="/image/rose.png" alt="rose" width={64} height={64} />
                 <div className="text-white text-xl md:text-2xl font-semibold">인원</div>
