@@ -104,9 +104,9 @@ export default function HowPage() {
       </SectionFrame>
 
       {/* 섹션 2: 스크롤 텍스트 전환 */}
-      <SectionFrame withPattern className="items-stretch" disableSnap>
+      <SectionFrame withPattern className="items-stretch">
         <div className="w-full">
-          <ScrollChangingText snapStepVh={70} />
+          <ScrollChangingText snapStepVh={35} />
         </div>
       </SectionFrame>
     </div>
@@ -117,7 +117,7 @@ export default function HowPage() {
 
 type ScrollChangingTextProps = { snapStepVh?: number }
 
-function ScrollChangingText({ snapStepVh = 70 }: ScrollChangingTextProps) {
+function ScrollChangingText({ snapStepVh = 35 }: ScrollChangingTextProps) {
   const messages = [
     "VScode",
     "InelliJ",
@@ -128,54 +128,57 @@ function ScrollChangingText({ snapStepVh = 70 }: ScrollChangingTextProps) {
     "PostgreSQL"
   ]
 
-  const containerRef = useRef<HTMLDivElement | null>(null)
+  // 내부 스크롤 컨테이너 참조 (섹션 2 내부에서만 스크롤; 바깥으로 전파 안 됨)
+  const scrollerRef = useRef<HTMLDivElement | null>(null)
   const [index, setIndex] = useState(0)
   const rafRef = useRef<number | null>(null)
 
   useEffect(() => {
-    const measureAndUpdate = () => {
-      if (!containerRef.current) return
-      const root = document.querySelector('[data-scroll-root="how-scroll"]') as HTMLElement | null
-      const scrollY = root ? root.scrollTop : window.scrollY
-      const start = containerRef.current.offsetTop
-      const end = start + containerRef.current.offsetHeight - (root ? root.clientHeight : window.innerHeight)
-      const progressed = Math.min(Math.max((scrollY - start) / Math.max(end - start, 1), 0), 1)
+    const update = () => {
+      if (!scrollerRef.current) return
+      const el = scrollerRef.current
+      const total = Math.max(1, el.scrollHeight - el.clientHeight)
+      const progressed = Math.min(Math.max(el.scrollTop / total, 0), 1)
       const segment = 1 / messages.length
-      const nextIdx = Math.min(messages.length - 1, Math.floor(progressed / segment))
+      const nextIdx = Math.min(messages.length - 1, Math.round(progressed / segment))
       setIndex(nextIdx)
     }
     const onScroll = () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
-      rafRef.current = requestAnimationFrame(measureAndUpdate)
+      rafRef.current = requestAnimationFrame(update)
     }
-    measureAndUpdate()
-    const root = document.querySelector('[data-scroll-root="how-scroll"]') as HTMLElement | null
-    const target: HTMLElement | Window = root || window
-    if (target instanceof Window) {
-      target.addEventListener('scroll', onScroll, { passive: true })
-    } else {
-      target.addEventListener('scroll', onScroll, { passive: true })
-    }
-    window.addEventListener('resize', measureAndUpdate)
+    update()
+    const el = scrollerRef.current
+    el?.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', update)
     return () => {
-      if (target instanceof Window) {
-        target.removeEventListener('scroll', onScroll)
-      } else {
-        target.removeEventListener('scroll', onScroll)
-      }
-      window.removeEventListener('resize', measureAndUpdate)
+      el?.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', update)
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
     }
   }, [messages.length])
 
   const totalVh = Math.max(120, messages.length * snapStepVh)
   return (
-    <div ref={containerRef} className="relative" style={{ height: `${totalVh}vh` }}>
+    <div className="relative w-full">
       <style jsx>{`
         @keyframes fadeText { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
         .fade-in { animation: fadeText 0.6s ease both; will-change: opacity, transform; }
       `}</style>
-      <div className="sticky top-0 h-screen flex items-center pointer-events-none">
+      <style jsx global>{`
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+      `}</style>
+      {/* 내부 스크롤러: 섹션2 안에서만 스크롤되고 바깥으로 전달되지 않음 */}
+      <div
+        ref={scrollerRef}
+        className="h-screen overflow-y-auto no-scrollbar"
+        style={{ overscrollBehavior: 'auto' }}
+      >
+        <div style={{ height: `${totalVh}vh` }} />
+      </div>
+      {/* 텍스트는 오버레이로 고정 표시 */}
+      <div className="pointer-events-none absolute inset-0 flex items-center">
         <div className="w-[80%] mx-auto px-6 md:px-8">
           <h3 key={index} className="fade-in text-white/90 text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
             {messages[index]}
