@@ -6,12 +6,13 @@ interface SectionFrameProps {
   children: ReactNode
   className?: string
   withPattern?: boolean
+  disableSnap?: boolean
 }
 
-export default function SectionFrame({ children, className = "", withPattern = true }: SectionFrameProps) {
+export default function SectionFrame({ children, className = "", withPattern = true, disableSnap = false }: SectionFrameProps) {
   return (
     <section
-      className={`snap-start relative flex min-h-screen items-center justify-center overflow-hidden bg-gray-900 ${className}`}
+      className={`${disableSnap ? '' : 'snap-start'} relative flex min-h-screen items-center justify-center overflow-hidden bg-gray-900 ${className}`}
     >
       {/* 점 패턴 오버레이 (옵션) */}
       {withPattern && (

@@ -102,7 +102,7 @@ export default function AboutPage() {
                 <div className="text-cyan-400 font-semibold text-xl">당신의 부정적 감정</div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-gray-400 text-gray-300 items-center justify-center text-base">×</span>
+                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
                 <div className="text-white text-xl">모든 감정은 중요함</div>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function AboutPage() {
                 <div className="text-cyan-400 font-semibold text-xl">24/7 항상</div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-gray-400 text-gray-300 items-center justify-center text-base">×</span>
+                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
                 <div className="text-white text-xl">보이지 않는 곳에서 진행</div>
               </div>
             </div>
@@ -134,7 +134,7 @@ export default function AboutPage() {
                 <div className="text-cyan-400 font-semibold text-xl">‘장미’의 존재를 잊을 때까지</div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-gray-400 text-gray-300 items-center justify-center text-base">×</span>
+                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
                 <div className="text-white text-xl">좋은 어른이 되었다!</div>
               </div>
             </div>
@@ -150,7 +150,7 @@ export default function AboutPage() {
                 <div className="text-cyan-400 font-semibold text-xl">4명의 해결사</div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-gray-400 text-gray-300 items-center justify-center text-base">×</span>
+                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
                 <div className="text-white text-xl">원하는 해결사를 선택</div>
               </div>
             </div>
