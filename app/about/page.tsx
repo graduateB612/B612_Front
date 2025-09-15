@@ -30,17 +30,17 @@ export default function AboutPage() {
       {/* About 전용 전체 화면 배경 (모든 섹션 공통) */}
       <div
         className="fixed inset-0 -z-10 bg-cover bg-center pointer-events-none"
-        style={{ backgroundImage: 'url("/image/space-bg.png")' }}
+        style={{ backgroundImage: 'url("/image/space-bg2.png")' }}
       ></div>
       <Header />
 
       {/* 섹션 1: 기존 히어로 */}
-      <SectionFrame withPattern>
-        <HeroSection noGradient />
+      <SectionFrame withPattern={false} transparent>
+        <HeroSection noGradient transparent showPattern={false} />
       </SectionFrame>
 
       {/* 섹션 2: 레이아웃 + 우측 카드 이미지 배치 */}
-      <SectionFrame withPattern className="items-start justify-start">
+      <SectionFrame withPattern transparent className="items-start justify-start">
         <div className="max-w-7xl w-full px-6 pt-10 md:pt-16 grid grid-cols-1 md:grid-cols-2 gap-10 items-start text-gray-200">
           {/* 좌측 텍스트 영역 - 시안 레이아웃 (헤드라인 박스 + 본문 박스) */}
           <div className="text-left max-w-3xl">
@@ -80,7 +80,7 @@ export default function AboutPage() {
       </SectionFrame>
 
       {/* 섹션 3: 표 형식 섹션 */}
-      <SectionFrame withPattern>
+      <SectionFrame withPattern transparent>
         <div className="w-[80%] max-w-none mx-auto px-6 md:px-8 text-gray-200">
           {/* 헤더 */}
           <div className="grid grid-cols-3 gap-x-10 items-center">

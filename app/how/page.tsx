@@ -12,11 +12,15 @@ export default function HowPage() {
       data-scroll-root="how-scroll"
       style={{ scrollSnapType: "y mandatory", scrollBehavior: "smooth" }}
     >
-      {/* 배경은 비워둠 */}
+      {/* How 전용 전체 화면 배경 (모든 섹션 공통) */}
+      <div
+        className="fixed inset-0 -z-10 bg-cover bg-center pointer-events-none"
+        style={{ backgroundImage: 'url("/image/space-bg2.png")' }}
+      ></div>
       <Header />
 
       {/* 섹션 1: 타이틀 + 가이드 카드 2x2 (한 화면) */}
-      <SectionFrame withPattern>
+      <SectionFrame withPattern transparent>
         <div className="w-[80%] max-w-none mx-auto px-6 md:px-8 text-gray-200">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 items-start">
             {/* 타이틀 블록 */}
@@ -104,7 +108,7 @@ export default function HowPage() {
       </SectionFrame>
 
       {/* 섹션 2: 스크롤 텍스트 전환 */}
-      <SectionFrame withPattern className="items-stretch">
+      <SectionFrame withPattern transparent className="items-stretch">
         <div className="w-full">
           <ScrollChangingText snapStepVh={35} />
         </div>

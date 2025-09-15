@@ -7,12 +7,13 @@ interface SectionFrameProps {
   className?: string
   withPattern?: boolean
   disableSnap?: boolean
+  transparent?: boolean
 }
 
-export default function SectionFrame({ children, className = "", withPattern = true, disableSnap = false }: SectionFrameProps) {
+export default function SectionFrame({ children, className = "", withPattern = true, disableSnap = false, transparent = false }: SectionFrameProps) {
   return (
     <section
-      className={`${disableSnap ? '' : 'snap-start'} relative flex min-h-screen items-center justify-center overflow-hidden bg-gray-900 ${className}`}
+      className={`${disableSnap ? '' : 'snap-start'} relative flex min-h-screen items-center justify-center overflow-hidden ${transparent ? 'bg-transparent' : 'bg-gray-900'} ${className}`}
     >
       {/* 점 패턴 오버레이 (옵션) */}
       {withPattern && (

@@ -12,9 +12,11 @@ interface StarItem {
 
 interface HeroSectionProps {
   noGradient?: boolean
+  transparent?: boolean
+  showPattern?: boolean
 }
 
-export default function HeroSection({ noGradient = false }: HeroSectionProps) {
+export default function HeroSection({ noGradient = false, transparent = false, showPattern = true }: HeroSectionProps) {
   const ITEM_SPACING = 180 // 아이템 간 가로 간격(px)
   const SPEED_PX_PER_SEC = 90 // 오른쪽으로 흐르는 속도
   const [offsetPx, setOffsetPx] = useState(0) // 트랙 이동량(px)
@@ -139,14 +141,16 @@ export default function HeroSection({ noGradient = false }: HeroSectionProps) {
           50% { opacity: 0.6; }
         }
       `}</style>
-      <div className={`relative min-h-screen ${noGradient ? 'bg-gray-900' : 'bg-gradient-to-b from-gray-900 via-gray-800 to-black'} overflow-hidden`}>
-      {/* 배경 패턴 */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
-          backgroundSize: '20px 20px'
-        }}></div>
-      </div>
+      <div className={`relative min-h-screen ${transparent ? 'bg-transparent' : (noGradient ? 'bg-gray-900' : 'bg-gradient-to-b from-gray-900 via-gray-800 to-black')} overflow-hidden`}>
+      {/* 배경 패턴 (옵션) */}
+      {showPattern && !transparent && (
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
+            backgroundSize: '20px 20px'
+          }}></div>
+        </div>
+      )}
 
       {/* 별 슬라이더 컨테이너 */}
       <div className="relative w-full h-96 flex items-center justify-center mt-20" ref={containerRef}>
@@ -165,8 +169,16 @@ export default function HeroSection({ noGradient = false }: HeroSectionProps) {
         {/* 중앙선 코어 */}
         <div ref={centerRef} className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400 via-cyan-300 to-cyan-400 transform -translate-x-1/2 z-20"></div>
         
-        {/* 연속적인 슬라이드 컨테이너 */}
-        <div className="relative w-full h-full overflow-hidden">
+        {/* 연속적인 슬라이드 컨테이너 (가장자리 투명 마스크 적용) */}
+        <div
+          className="relative w-full h-full overflow-hidden"
+          style={{
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+            maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+            WebkitMaskRepeat: 'no-repeat',
+            maskRepeat: 'no-repeat',
+          }}
+        >
           {/* 슬라이드되는 별들 - 왼쪽에서 시작해 오른쪽으로 흐름 (끊김 없이 루프) */}
           {isMounted && (
             <div
@@ -241,21 +253,7 @@ export default function HeroSection({ noGradient = false }: HeroSectionProps) {
           )}
         </div>
 
-        {/* 이미지 슬라이드 가장자리 페이드 마스크 */}
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 w-24 z-20"
-          style={{
-            background:
-              'linear-gradient(90deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0) 100%)'
-          }}
-        ></div>
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 w-24 z-20"
-          style={{
-            background:
-              'linear-gradient(270deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0) 100%)'
-          }}
-        ></div>
+        {/* 기존 좌우 오버레이 그라디언트 제거 → 투명 마스크로 대체 */}
 
         {/* 좌우 네비게이션 인디케이터 제거 */}
       </div>
