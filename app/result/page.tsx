@@ -10,15 +10,17 @@ export default function ResultPage() {
   const [email, setEmail] = useState("")
   const [fadeIn, setFadeIn] = useState(false)
   const [dialogueText, setDialogueText] = useState({
-    title: "의뢰가 접수 되었습니다!",
-    content: "작성 해 주신 주소로 의뢰주소 확인서를 보냈습니다.",
+    title: "의뢰가 접수되었습니다!",
+    content: "작성해주신 주소로 의뢰 접수 확인서와 선물을 보냈습니다.",
   })
+  // 캐릭터 선택 여부는 로컬 스토리지에서 직접 확인
 
   useEffect(() => {
     // 로컬 스토리지에서 사용자 이름과 이메일 가져오기
     const userNameFromStorage = localStorage.getItem("userName")
     const emailFromStorage = localStorage.getItem("userEmail")
     const gameStateStr = localStorage.getItem("gameState")
+    const npcId = localStorage.getItem("selectedNpcId")
 
     if (userNameFromStorage) {
       setUserName(userNameFromStorage)
@@ -26,6 +28,33 @@ export default function ResultPage() {
 
     if (emailFromStorage) {
       setEmail(emailFromStorage)
+    }
+
+    // 캐릭터별 커스텀 문구 우선 적용
+    if (npcId) {
+      const name = userNameFromStorage || "OO"
+      const byNpc: Record<string, { title: string; content: string }> = {
+        prince: {
+          title: `${name}님의 소중한 의뢰 받았습니다!`,
+          content: "신속하게 처리할테니 잠시만 기다려주세요.",
+        },
+        rose: {
+          title: "당신이 써준 의뢰 잘 받았어..",
+          content: "가장 먼저 해결 해줄게.\n 걱정하지말고 날 기다려 줘.",
+        },
+        fox: {
+          title: "이게 너의 의뢰구나!",
+          content: "엄청 궁금하니까 나만 보고 올게! 기다려!",
+        },
+        bob: {
+          title: "자네만한 사람이 어떤 의뢰를 맡겼을지 기대되는군.",
+          content: "잠시 기다리게.",
+        },
+      }
+      const mapped = byNpc[npcId]
+      if (mapped) {
+        setDialogueText(mapped)
+      }
     }
 
     // 게임 상태에서 대화 데이터 가져오기
@@ -49,46 +78,56 @@ export default function ResultPage() {
             const textParts = processedText.split("\n")
             console.log("대화 텍스트 분리:", textParts)
 
-            if (textParts.length >= 2) {
+            if (!npcId && textParts.length >= 2) {
               setDialogueText({
                 title: textParts[0],
                 content: textParts.slice(1).join("\n"),
               })
             } else {
               // 줄바꿈이 없는 경우 전체 텍스트를 content로 설정
-              setDialogueText({
-                title: "의뢰가 접수 되었습니다!",
-                content: processedText,
-              })
+              if (!npcId) {
+                setDialogueText({
+                  title: "의뢰가 접수되었습니다!",
+                  content: processedText,
+                })
+              }
             }
           } else {
             // 대화 텍스트가 없는 경우 기본값 설정
-            setDialogueText({
-              title: "의뢰가 접수 되었습니다!",
-              content: "작성 해 주신 주소로 의뢰주소 확인서를 보냈습니다.",
-            })
+            if (!npcId) {
+              setDialogueText({
+                title: "의뢰가 접수되었습니다!",
+                content: "작성해주신 주소로 의뢰 접수 확인서와 선물을 보냈습니다.",
+              })
+            }
           }
         } else {
           // 대화 데이터가 없는 경우 기본값 설정
-          setDialogueText({
-            title: "의뢰가 접수 되었습니다!",
-            content: "작성 해 주신 주소로 의뢰주소 확인서를 보냈습니다.",
-          })
+          if (!npcId) {
+            setDialogueText({
+              title: "의뢰가 접수되었습니다!",
+              content: "작성해주신 주소로 의뢰 접수 확인서와 선물을 보냈습니다.",
+            })
+          }
         }
       } catch (error) {
         console.error("게임 상태 파싱 오류:", error)
         // 오류 발생 시 기본값 설정
-        setDialogueText({
-          title: "의뢰가 접수 되었습니다!",
-          content: "작성 해 주신 주소로 의뢰주소 확인서를 보냈습니다.",
-        })
+        if (!npcId) {
+          setDialogueText({
+            title: "의뢰가 접수되었습니다!",
+            content: "작성해주신 주소로 의뢰 접수 확인서와 선물을 보냈습니다.",
+          })
+        }
       }
     } else {
       // 게임 상태가 없는 경우 기본값 설정
-      setDialogueText({
-        title: "의뢰가 접수 되었습니다!",
-        content: "작성 해 주신 주소로 의뢰주소 확인서를 보냈습니다.",
-      })
+      if (!npcId) {
+        setDialogueText({
+          title: "의뢰가 접수되었습니다!",
+          content: "작성해주신 주소로 의뢰 접수 확인서와 선물을 보냈습니다.",
+        })
+      }
     }
 
     // 페이드인 애니메이션 시작

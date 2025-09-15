@@ -28,7 +28,7 @@ export default function SelectPage() {
       id: "prince",
       name: "어린왕자",
       image: "/image/select_prince.png",
-      description: "머리가 노란 어린왕자",
+      description: "",
       width: 200,
       height: 300,
     },
@@ -36,7 +36,7 @@ export default function SelectPage() {
       id: "rose",
       name: "장미",
       image: "/image/select_rose.png",
-      description: "키가 작은 장미",
+      description: "",
       width: 160,
       height: 240,
     },
@@ -44,7 +44,7 @@ export default function SelectPage() {
       id: "fox",
       name: "여우",
       image: "/image/select_fox.png",
-      description: "꼬리가 있는 여우",
+      description: "",
       width: 200,
       height: 300,
     },
@@ -52,11 +52,19 @@ export default function SelectPage() {
       id: "bob",
       name: "바오밥",
       image: "/image/select_bob.png",
-      description: "나무인 바오밥",
+      description: "",
       width: 200,
       height: 300,
     },
   ]
+
+  // NPC 이름 매핑 (성공/실패 공통 사용)
+  const npcNameMap: Record<string, string> = {
+    prince: "어린왕자",
+    rose: "장미",
+    fox: "여우",
+    bob: "바오밥",
+  }
 
   // 컴포넌트 마운트 시 애니메이션 시작
   useEffect(() => {
@@ -102,14 +110,6 @@ export default function SelectPage() {
         return
       }
 
-      // NPC 이름 매핑
-      const npcNameMap: Record<string, string> = {
-        prince: "어린왕자",
-        rose: "장미",
-        fox: "여우",
-        bob: "바오밥",
-      }
-
       console.log("게임 완료 API 호출 준비:", {
         userId,
         email,
@@ -128,6 +128,9 @@ export default function SelectPage() {
 
       // 게임 상태 업데이트
       localStorage.setItem("gameState", JSON.stringify(response))
+      // 선택 캐릭터 정보를 저장하여 result 페이지에서 문구 분기
+      localStorage.setItem("selectedNpcId", npcId)
+      localStorage.setItem("selectedNpcName", npcNameMap[npcId] || npcId)
 
       // 결과 페이지로 이동
       window.location.href = "/result"
@@ -161,6 +164,9 @@ export default function SelectPage() {
 
         // 게임 상태 저장
         localStorage.setItem("gameState", JSON.stringify(fallbackGameState))
+        // 선택 캐릭터 정보도 함께 저장(실패 케이스)
+        localStorage.setItem("selectedNpcId", npcId)
+        localStorage.setItem("selectedNpcName", npcNameMap[npcId] || npcId)
 
         // 결과 페이지로 이동
         window.location.href = "/result"
