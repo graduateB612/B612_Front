@@ -64,6 +64,12 @@ export default function HeroSection({ noGradient = false, transparent = false, s
     }
     measure()
     window.addEventListener('resize', measure)
+    // 타이핑 등 레이아웃 변화에도 즉시 반응하도록 ResizeObserver 추가
+    let ro: ResizeObserver | null = null
+    if (containerRef.current && typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => measure())
+      ro.observe(containerRef.current)
+    }
     const tick = (ts: number) => {
       if (lastTsRef.current == null) {
         lastTsRef.current = ts
@@ -84,6 +90,7 @@ export default function HeroSection({ noGradient = false, transparent = false, s
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       window.removeEventListener('resize', measure)
+      if (ro) ro.disconnect()
     }
   }, [starItems.length])
 
@@ -140,6 +147,12 @@ export default function HeroSection({ noGradient = false, transparent = false, s
           0%, 100% { opacity: 0.35; }
           50% { opacity: 0.6; }
         }
+
+        @keyframes caret-blink {
+          0%, 100% { opacity: 0; }
+          50% { opacity: 1; }
+        }
+        .caret { animation: caret-blink 1s steps(1, end) infinite; }
       `}</style>
       <div className={`relative min-h-screen ${transparent ? 'bg-transparent' : (noGradient ? 'bg-gray-900' : 'bg-gradient-to-b from-gray-900 via-gray-800 to-black')} overflow-hidden`}>
       {/* 배경 패턴 (옵션) */}
@@ -258,30 +271,8 @@ export default function HeroSection({ noGradient = false, transparent = false, s
         {/* 좌우 네비게이션 인디케이터 제거 */}
       </div>
 
-      {/* 메인 텍스트 콘텐츠 */}
-      <div className="relative z-10 text-center px-4 mt-8">
-        {/* 상단 라벨 (배경 제거) */}
-        <div className="inline-block text-white text-lg md:text-xl px-6 py-3 animate-fade-in" style={{ textShadow: '0 0 8px rgba(0,0,0,0.45)' }}>
-          B612의 해결사들은 특별합니다.
-        </div>
-
-        {/* 메인 헤드라인 */}
-        <h2 className="mt-6 text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#00b0f0]">
-          강하고, 따뜻하며, 늘 당신 곁을 지키고 있습니다.
-        </h2>
-
-        {/* 설명 박스 (배경 제거) */}
-        <div className="mt-6 text-gray-200 max-w-3xl mx-auto px-8 py-6 leading-relaxed text-base md:text-lg" style={{ textShadow: '0 0 8px rgba(0,0,0,0.45)' }}>
-          그들은 우주를 유랑하고 감정들을 별로써 관리하며<br />
-          어른이 되어버린 사람들에게 선물합니다.<br />
-          당신의 고민을 이들에게 의뢰하세요.
-        </div>
-
-        {/* 텍스트 영역 - 마스크 없음 */}
-        {/* 텍스트 영역에서는 마스크 제거 */}
-      </div>
-
-      {/* CTA 버튼 제거 */}
+      {/* 메인 텍스트 콘텐츠 with typing */}
+      <HeroTextTyping />
 
       {/* 배경 별들 (장식용) - 고정된 위치로 수정 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -319,6 +310,58 @@ export default function HeroSection({ noGradient = false, transparent = false, s
           ></div>
         ))}
       </div>
+      </div>
+    </div>
+  )
+}
+
+function HeroTextTyping() {
+  const labelFull = "B612의 해결사들은 특별합니다."
+  const headlineFull = "강하고, 따뜻하며, 늘 당신 곁을 지키고 있습니다."
+  const [i1, setI1] = useState(0)
+  const [i2, setI2] = useState(0)
+  const [done, setDone] = useState(false)
+  const speed = 55
+
+  useEffect(() => {
+    if (i1 < labelFull.length) {
+      const t = setTimeout(() => setI1(i1 + 1), speed)
+      return () => clearTimeout(t)
+    }
+  }, [i1])
+
+  useEffect(() => {
+    if (i1 === labelFull.length) {
+      if (i2 < headlineFull.length) {
+        const t = setTimeout(() => setI2(i2 + 1), speed)
+        return () => clearTimeout(t)
+      } else {
+        setDone(true)
+      }
+    }
+  }, [i1, i2])
+
+  return (
+    <div className="relative z-10 text-center px-4 mt-8">
+      <div className="inline-block text-white text-lg md:text-xl px-6 py-3 animate-fade-in" style={{ textShadow: '0 0 8px rgba(0,0,0,0.45)' }}>
+        {labelFull.slice(0, i1)}
+        {i1 < labelFull.length && <span className="caret">|</span>}
+      </div>
+      <h2 className="mt-6 text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#00b0f0]">
+        <span className="relative inline-block">
+          {/* 레이아웃 고정용 팬텀 텍스트 (보이지 않지만 공간 확보) */}
+          <span aria-hidden className="invisible">{headlineFull}</span>
+          {/* 실제 타이핑 텍스트를 겹쳐서 표시 */}
+          <span className="absolute left-0 top-0">
+            {headlineFull.slice(0, i2)}
+            {i1 === labelFull.length && i2 < headlineFull.length && <span className="caret">|</span>}
+          </span>
+        </span>
+      </h2>
+      <div className={`mt-6 text-gray-200 max-w-3xl mx-auto px-8 py-6 leading-relaxed text-base md:text-lg transition-opacity duration-700 ${done ? 'opacity-100' : 'opacity-0'}`} style={{ textShadow: '0 0 8px rgba(0,0,0,0.45)' }}>
+        그들은 우주를 유랑하고 감정들을 별로써 관리하며<br />
+        어른이 되어버린 사람들에게 선물합니다.<br />
+        당신의 고민을 이들에게 의뢰하세요.
       </div>
     </div>
   )
