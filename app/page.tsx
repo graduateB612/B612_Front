@@ -25,6 +25,8 @@ export default function Home() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const sectionsRef = useRef<(HTMLElement | null)[]>([])
   const totalSections = 6 // 총 섹션 수
+  const [scrollLocked, setScrollLocked] = useState(false)
+  const containerRef = useRef<HTMLDivElement | null>(null)
 
   const texts = useMemo(() => [
     "여러분들은 B612 행성에 존재하는 해결단,",
@@ -54,6 +56,11 @@ export default function Home() {
     let isScrolling = false
 
     const handleWheel = (e: WheelEvent) => {
+      // 기차 섹션(4)에서는 아래로 스크롤을 항상 차단. (자동 이동만 허용)
+      if (scrollLocked || (currentSection === 4 && e.deltaY > 0)) {
+        e.preventDefault()
+        return
+      }
       if (isScrolling) return
 
       isScrolling = true
@@ -72,12 +79,25 @@ export default function Home() {
       }, 800) // 애니메이션 시간에 맞춰 조정
     }
 
-    window.addEventListener("wheel", handleWheel)
+    const handleTouchMove = (e: TouchEvent) => {
+      if (scrollLocked || currentSection === 4) e.preventDefault()
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const keys = ["ArrowDown", "PageDown", "Space", "End"]
+      const blocking = scrollLocked || currentSection === 4
+      if (blocking && keys.includes(e.code)) e.preventDefault()
+    }
+
+    window.addEventListener("wheel", handleWheel, { passive: false })
+    window.addEventListener("touchmove", handleTouchMove, { passive: false })
+    window.addEventListener("keydown", handleKeyDown)
 
     return () => {
       window.removeEventListener("wheel", handleWheel)
+      window.removeEventListener("touchmove", handleTouchMove)
+      window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [currentSection, totalSections])
+  }, [currentSection, totalSections, scrollLocked])
 
   // 현재 섹션으로 스크롤
   useEffect(() => {
@@ -161,11 +181,12 @@ export default function Home() {
 
   return (
     <div
+      ref={containerRef}
       className="snap-y snap-mandatory h-screen overflow-y-auto relative"
       style={{
-        scrollSnapType: "y mandatory",
+        scrollSnapType: scrollLocked ? "none" : "y mandatory",
         scrollBehavior: "smooth",
-        overflowY: "auto",
+        overflowY: scrollLocked ? "hidden" : "auto",
         height: "100vh",
       }}
     >
@@ -311,7 +332,17 @@ export default function Home() {
           <StarBackground />
         </div>
         <div className="relative z-[5] w-full h-full">
-          <TrainSection isActive={currentSection === 4} />
+          <TrainSection
+            isActive={currentSection === 4}
+            onTrainStart={() => setScrollLocked(true)}
+            onTrainEnd={() => {
+              // 기차 이동이 완전히 끝난 뒤 2초 후 섹션 이동
+              setTimeout(() => {
+                setScrollLocked(false)
+                setCurrentSection(5)
+              }, 2000)
+            }}
+          />
         </div>
       </section>
 
