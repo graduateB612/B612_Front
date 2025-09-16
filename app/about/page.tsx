@@ -1,13 +1,32 @@
 "use client"
 
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import HeroSection from "../components/hero-section"
 import Header from "../components/header"
 import SectionFrame from "../components/section-frame"
 import React from "react"
 
 export default function AboutPage() {
+  const [tableReveal, setTableReveal] = useState(false)
+  const tableRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const el = tableRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const e = entries[0]
+        if (e.isIntersecting) {
+          setTableReveal(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.2 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, []);
   return (
     <div
       className="snap-y snap-mandatory h-screen overflow-y-auto no-scrollbar relative"
@@ -38,7 +57,12 @@ export default function AboutPage() {
 
       {/* 섹션 1: 기존 히어로 */}
       <SectionFrame withPattern={false} transparent>
-        <HeroSection noGradient transparent showPattern={false} />
+        <div className="relative">
+          <HeroSection noGradient transparent showPattern={false} />
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
+            <p className="text-white/70 text-lg md:text-base">ⓒ 2025 Rose company, All rights reserved.</p>
+          </div>
+        </div>
       </SectionFrame>
 
       {/* 섹션 2: 레이아웃 + 우측 카드 이미지 배치 */}
@@ -66,79 +90,89 @@ export default function AboutPage() {
 
       {/* 섹션 3: 표 형식 섹션 */}
       <SectionFrame withPattern transparent>
-        <div className="w-[80%] max-w-none mx-auto px-6 md:px-8 text-gray-200">
-          {/* 헤더 */}
-          <div className="grid grid-cols-3 gap-x-10 items-center">
-            <div></div>
-            <div className="inline-block text-2xl md:text-3xl font-bold px-4 py-2">주요사항</div>
-            <div className="inline-block text-2xl md:text-3xl font-bold px-4 py-2">세부사항</div>
+        <div className="relative w-full min-h-screen flex flex-col justify-center">
+          <div
+            ref={tableRef}
+            className={`w-[80%] max-w-none mx-auto px-6 md:px-8 text-gray-200 transition-all duration-2000 delay-200 ease-out ${
+              tableReveal ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
+            }`}
+          >
+            {/* 헤더 */}
+            <div className="grid grid-cols-3 gap-x-10 items-center">
+              <div></div>
+              <div className="inline-block text-2xl md:text-3xl font-bold px-4 py-2">주요사항</div>
+              <div className="inline-block text-2xl md:text-3xl font-bold px-4 py-2">세부사항</div>
+            </div>
+
+            {/* 행들 */}
+            <div className="mt-8 border-t border-white">
+              {/* Row 1 */}
+              <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-white">
+                <div className="flex items-center gap-6">
+                  <Image src="/image/rose.png" alt="rose" width={64} height={64} />
+                  <div className="text-white text-xl md:text-2xl font-semibold">가격</div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
+                  <div className="text-cyan-400 font-semibold text-xl">당신의 부정적 감정</div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
+                  <div className="text-white text-xl">모든 감정은 중요함</div>
+                </div>
+              </div>
+
+              {/* Row 2 */}
+              <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-white">
+                <div className="flex items-center gap-6">
+                  <Image src="/image/rose.png" alt="rose" width={64} height={64} />
+                  <div className="text-white text-xl md:text-2xl font-semibold">운영 시간</div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
+                  <div className="text-cyan-400 font-semibold text-xl">24/7 항상</div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
+                  <div className="text-white text-xl">보이지 않는 곳에서 진행</div>
+                </div>
+              </div>
+
+              {/* Row 3 */}
+              <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-white">
+                <div className="flex items-center gap-6">
+                  <Image src="/image/rose.png" alt="rose" width={64} height={64} />
+                  <div className="text-white text-xl md:text-2xl font-semibold">업무 시간</div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
+                  <div className="text-cyan-400 font-semibold text-xl">‘장미’의 존재를 잊을 때까지</div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
+                  <div className="text-white text-xl">좋은 어른이 되었다!</div>
+                </div>
+              </div>
+
+              {/* Row 4 */}
+              <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-white ">
+                <div className="flex items-center gap-6">
+                  <Image src="/image/rose.png" alt="rose" width={64} height={64} />
+                  <div className="text-white text-xl md:text-2xl font-semibold">인원</div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
+                  <div className="text-cyan-400 font-semibold text-xl">4명의 해결사</div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
+                  <div className="text-white text-xl">원하는 해결사를 선택</div>
+                </div>
+              </div>
+            </div>
           </div>
-
-          {/* 행들 */}
-          <div className="mt-8 border-t border-white">
-            {/* Row 1 */}
-            <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-white">
-              <div className="flex items-center gap-6">
-                <Image src="/image/rose.png" alt="rose" width={64} height={64} />
-                <div className="text-white text-xl md:text-2xl font-semibold">가격</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                <div className="text-cyan-400 font-semibold text-xl">당신의 부정적 감정</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
-                <div className="text-white text-xl">모든 감정은 중요함</div>
-              </div>
-            </div>
-
-            {/* Row 2 */}
-            <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-white">
-              <div className="flex items-center gap-6">
-                <Image src="/image/rose.png" alt="rose" width={64} height={64} />
-                <div className="text-white text-xl md:text-2xl font-semibold">운영 시간</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                <div className="text-cyan-400 font-semibold text-xl">24/7 항상</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
-                <div className="text-white text-xl">보이지 않는 곳에서 진행</div>
-              </div>
-            </div>
-
-            {/* Row 3 */}
-            <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-white">
-              <div className="flex items-center gap-6">
-                <Image src="/image/rose.png" alt="rose" width={64} height={64} />
-                <div className="text-white text-xl md:text-2xl font-semibold">업무 시간</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                <div className="text-cyan-400 font-semibold text-xl">‘장미’의 존재를 잊을 때까지</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
-                <div className="text-white text-xl">좋은 어른이 되었다!</div>
-              </div>
-            </div>
-
-            {/* Row 4 */}
-            <div className="grid grid-cols-3 gap-x-10 items-center py-6 border-b border-white ">
-              <div className="flex items-center gap-6">
-                <Image src="/image/rose.png" alt="rose" width={64} height={64} />
-                <div className="text-white text-xl md:text-2xl font-semibold">인원</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                <div className="text-cyan-400 font-semibold text-xl">4명의 해결사</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
-                <div className="text-white text-xl">원하는 해결사를 선택</div>
-              </div>
-            </div>
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
+            <p className="text-white/70 text-lg md:text-base">ⓒ 2025 Rose company, All rights reserved.</p>
           </div>
         </div>
       </SectionFrame>

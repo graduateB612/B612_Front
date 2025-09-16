@@ -190,6 +190,12 @@ export default function Home() {
         height: "100vh",
       }}
     >
+      {/* 하단 카피라이트 - 장미 아이콘의 중앙선에 맞춰 중앙 정렬 */}
+      <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 z-[40]">
+        <p className="text-white text-xl flex items-center text-glow">
+          <span>ⓒ 2025 Rose company, All rights reserved.</span>
+        </p>
+      </div>
       <style jsx global>{`
         @keyframes twinkle {
           0%, 100% {

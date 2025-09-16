@@ -33,6 +33,18 @@ body {
   .no-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
   }
+  /* Match Project B612 subtle glow (pulse-line style) */
+  @keyframes text-glow {
+    0%, 100% {
+      opacity: 0.35;
+      text-shadow: none;
+    }
+    50% {
+      opacity: 0.6;
+      text-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
+    }
+  }
+  .text-glow { animation: text-glow 4s ease-in-out infinite; }
 }
 
 @layer base {
