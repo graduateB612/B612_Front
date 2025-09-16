@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import { type ImageCollisionMap, getCollisionMap } from "./image-collision"
-import { getNPCManager } from "./npc-manager" // NPC 매니저 import
+import { getNPCManager, NPCManager } from "./npc-manager" // NPC 매니저 import
 import { getItemManager } from "./item-manager" // 아이템 매니저 import
 import DialogueBox from "@/app/components/dialogue-box" // 대화창 컴포넌트 import
 import ConcernModal from "@/app/components/modal" // 모달 컴포넌트 import
@@ -43,12 +43,7 @@ export default function Game() {
   // 오류 메시지
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   // NPC 매니저 ref
-  const npcManagerRef = useRef<{
-    interactWithNPC: (npcId: string) => void
-    getInteractableNPC: (x: number, y: number) => { id: string } | null
-    renderNPCs: (ctx: CanvasRenderingContext2D, bgX: number, bgY: number, playerX: number, playerY: number) => void
-    handleFoxDialogue: (dialogues: unknown[]) => unknown[]
-  } | null>(null)
+  const npcManagerRef = useRef<NPCManager | null>(null)
   // 아이템 매니저 ref
   const itemManagerRef = useRef<{
     interactWithItem: (itemId: string) => void
