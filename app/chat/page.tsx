@@ -224,7 +224,6 @@ export default function Page() {
         setIsTyping(true)
 
       } catch (error) {
-        console.error("API 오류:", error)
         setApiError(error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.")
       } finally {
         setIsLoading(false)
@@ -331,8 +330,7 @@ export default function Page() {
               localStorage.setItem("gameState", JSON.stringify(gameState));
               window.location.href = "/play";
             })
-            .catch(error => {
-              console.error("게임 시작 API 오류:", error);
+            .catch(() => {
               window.location.href = "/play";
             });
         }

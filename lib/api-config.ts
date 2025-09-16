@@ -24,11 +24,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
     credentials: "omit",
   }
 
-  console.log("API 요청:", url, {
-    method: config.method,
-    headers: config.headers,
-    body: config.body ? JSON.stringify(JSON.parse(config.body as string)) : undefined,
-  })
+  
 
   try {
     // 실제 요청 전송
@@ -36,14 +32,11 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
 
     // 404 오류 처리 - 상세 로깅
     if (response.status === 404) {
-      console.error(`404 오류: 엔드포인트 ${endpoint}를 찾을 수 없습니다.`)
-      console.error(`전체 URL: ${url}`)
       throw new Error(`404 Not Found: ${endpoint}`)
     }
 
     // 405 Method Not Allowed 오류 처리 - GET 메서드로 재시도
     if (response.status === 405 && config.method === "POST") {
-      console.log("405 오류 발생, GET 메서드로 재시도합니다.")
 
       // POST 데이터를 쿼리 파라미터로 변환
       let getUrl = url
@@ -66,7 +59,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
         credentials: "omit",
       }
 
-      console.log("GET 요청:", getUrl)
+      
       const getResponse = await fetch(getUrl, getConfig)
 
       if (!getResponse.ok) {
@@ -82,10 +75,9 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
 
       try {
         const errorText = await response.text()
-        console.error("API 오류 응답:", errorText)
         errorMessage += ` - ${errorText}`
-      } catch (error) {
-        console.error("API 오류 응답 본문을 읽을 수 없음", error)
+      } catch {
+        
       }
 
       throw new Error(errorMessage)
@@ -94,13 +86,12 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
     // 성공 응답 처리
     const data = await response.json()
     return data as T
-  } catch (error) {
-    console.error("API 요청 중 오류 발생:", error)
+  } catch (err) {
 
     // 오류 발생 시 기본 응답 생성 (클라이언트 측 오류 처리를 위해)
     const fallbackResponse = {
       success: false,
-      error: error instanceof Error ? error.message : "알 수 없는 오류",
+      error: err instanceof Error ? err.message : "알 수 없는 오류",
     }
 
     throw fallbackResponse
@@ -197,7 +188,6 @@ export interface EmailRequest {
 
 // 게임 완료 함수 수정
 export async function completeGame(userId: string, data: EmailRequest): Promise<GameStateResponse> {
-  console.log("게임 완료 API 호출:", userId, data)
 
   try {
     // 정확한 엔드포인트 사용
@@ -205,8 +195,7 @@ export async function completeGame(userId: string, data: EmailRequest): Promise<
       method: "POST",
       body: JSON.stringify(data),
     })
-  } catch (error) {
-    console.error("게임 완료 API 오류:", error)
+  } catch {
 
     // 오류 발생 시 기본 게임 상태 반환
     return {
@@ -230,8 +219,7 @@ export async function startGame(userId: string) {
     return await apiRequest<GameStateResponse>(`game/progress/${userId}/start-game`, {
       method: "POST",
     })
-  } catch (error) {
-    console.error("게임 시작 API 오류:", error)
+  } catch {
     // 오류 발생 시 기본 게임 상태 반환
     return {
       userId,
@@ -256,8 +244,7 @@ export async function updateGameProgress(userId: string, data: GameProgressReque
       method: "POST",
       body: JSON.stringify(data),
     })
-  } catch (error) {
-    console.error("게임 진행 업데이트 API 오류:", error)
+  } catch {
     // 오류 발생 시 기본 게임 상태 반환
     return {
       userId,
@@ -277,15 +264,13 @@ export enum StarType {
 
 // 별 수집 API 호출 함수 수정
 export async function collectStar(userId: string, starType: StarType) {
-  console.log(`별 수집 API 호출: userId=${userId}, starType=${starType}`)
 
   try {
     return await apiRequest<GameStateResponse>(`game/progress/${userId}/collect`, {
       method: "POST",
       body: JSON.stringify({ starType }),
     })
-  } catch (error) {
-    console.error("별 수집 API 오류:", error)
+  } catch {
 
     // 다음 단계 계산
     const nextStage = getNextStageAfterCollect(starType)
@@ -313,15 +298,13 @@ export async function collectStar(userId: string, starType: StarType) {
 
 // 별 전달 API 호출 함수 추가
 export async function deliverStar(userId: string, starType: StarType) {
-  console.log(`별 전달 API 호출: userId=${userId}, starType=${starType}`)
 
   try {
     return await apiRequest<GameStateResponse>(`game/progress/${userId}/deliver`, {
       method: "POST",
       body: JSON.stringify({ starType }),
     })
-  } catch (error) {
-    console.error("별 전달 API 오류:", error)
+  } catch {
 
     // 다음 단계 계산
     const nextStage = getNextStageAfterDeliver(starType)

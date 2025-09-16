@@ -61,22 +61,18 @@ export default function ResultPage() {
     if (gameStateStr) {
       try {
         const gameState = JSON.parse(gameStateStr) as GameStateResponse
-        console.log("게임 상태 로드:", gameState)
 
         // dialogues 배열이 있고 비어있지 않은 경우
         if (gameState.dialogues && gameState.dialogues.length > 0) {
           // 마지막 대화 가져오기
           const lastDialogue = gameState.dialogues[gameState.dialogues.length - 1]
-          console.log("마지막 대화:", lastDialogue)
 
           if (lastDialogue && lastDialogue.dialogueText) {
             // $n을 줄바꿈 문자로 변환
             const processedText = lastDialogue.dialogueText.replace(/\$n/g, "\n")
-            console.log("처리된 대화 텍스트:", processedText)
 
             // 대화 텍스트에 줄바꿈이 있는 경우 분리
             const textParts = processedText.split("\n")
-            console.log("대화 텍스트 분리:", textParts)
 
             if (!npcId && textParts.length >= 2) {
               setDialogueText({
@@ -110,8 +106,7 @@ export default function ResultPage() {
             })
           }
         }
-      } catch (error) {
-        console.error("게임 상태 파싱 오류:", error)
+      } catch {
         // 오류 발생 시 기본값 설정
         if (!npcId) {
           setDialogueText({

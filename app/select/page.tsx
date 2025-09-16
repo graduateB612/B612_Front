@@ -97,25 +97,18 @@ export default function SelectPage() {
       const concern = localStorage.getItem("userConcern")
 
       if (!userId) {
-        console.error("사용자 ID를 찾을 수 없습니다.")
         setError("사용자 ID를 찾을 수 없습니다.")
         setIsSubmitting(false)
         return
       }
 
       if (!email) {
-        console.error("이메일 정보를 찾을 수 없습니다.")
         setError("이메일 정보를 찾을 수 없습니다.")
         setIsSubmitting(false)
         return
       }
 
-      console.log("게임 완료 API 호출 준비:", {
-        userId,
-        email,
-        concern: concern || "",
-        selectedNpc: npcNameMap[npcId] || npcId,
-      })
+      
 
       // 게임 완료 API 호출
       const response = await completeGame(userId, {
@@ -124,7 +117,7 @@ export default function SelectPage() {
         selectedNpc: npcNameMap[npcId] || npcId,
       })
 
-      console.log("게임 완료 API 호출 성공:", response)
+      
 
       // 게임 상태 업데이트
       localStorage.setItem("gameState", JSON.stringify(response))
@@ -135,7 +128,6 @@ export default function SelectPage() {
       // 결과 페이지로 이동
       window.location.href = "/result"
     } catch (error) {
-      console.error("게임 완료 API 호출 실패:", error)
 
       // 오류 메시지 표시
       let errorMessage = "요청 처리 중 오류가 발생했습니다. 다시 시도해주세요."

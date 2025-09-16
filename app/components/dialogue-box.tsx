@@ -109,7 +109,6 @@ export default function DialogueBox({
 
         // 여우 대화인지 확인하고 여우 대화 완료 이벤트 발생
         if (backgroundImage === "/image/fox_text.png") {
-          console.log("여우 대화 완료 이벤트 발생")
           window.dispatchEvent(new CustomEvent("foxDialogueFinished"))
         }
       }
