@@ -182,7 +182,7 @@ export default function Home() {
   return (
     <div
       ref={containerRef}
-      className="snap-y snap-mandatory h-screen overflow-y-auto relative"
+      className="snap-y snap-mandatory h-screen overflow-y-auto no-scrollbar relative"
       style={{
         scrollSnapType: scrollLocked ? "none" : "y mandatory",
         scrollBehavior: "smooth",

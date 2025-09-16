@@ -8,7 +8,7 @@ import SectionFrame from "../components/section-frame"
 export default function HowPage() {
   return (
     <div
-      className="snap-y snap-mandatory h-screen overflow-y-auto relative"
+      className="snap-y snap-mandatory h-screen overflow-y-auto no-scrollbar relative"
       data-scroll-root="how-scroll"
       style={{ scrollSnapType: "y mandatory", scrollBehavior: "smooth" }}
     >

@@ -10,7 +10,7 @@ import React from "react"
 export default function AboutPage() {
   return (
     <div
-      className="snap-y snap-mandatory h-screen overflow-y-auto relative"
+      className="snap-y snap-mandatory h-screen overflow-y-auto no-scrollbar relative"
       style={{ scrollSnapType: "y mandatory", scrollBehavior: "smooth" }}
     >
       <style jsx>{`
