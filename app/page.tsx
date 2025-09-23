@@ -342,11 +342,11 @@ export default function Home() {
             isActive={currentSection === 4}
             onTrainStart={() => setScrollLocked(true)}
             onTrainEnd={() => {
-              // 기차 이동이 완전히 끝난 뒤 2초 후 섹션 이동
+              // 기차 이동이 완전히 끝난 뒤 1초 후 섹션 이동
               setTimeout(() => {
                 setScrollLocked(false)
                 setCurrentSection(5)
-              }, 2000)
+              }, 1000)
             }}
           />
         </div>
