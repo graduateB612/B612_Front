@@ -39,6 +39,7 @@ export default function Page() {
   const [userId, setUserId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const storyTypingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const mainTypingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -209,23 +210,39 @@ export default function Page() {
     if (name.trim()) {
       setIsLoading(true)
       setApiError(null)
+      // 무한 재시도 모드
 
       try {
         localStorage.removeItem("userId")
         localStorage.removeItem("gameState")
 
-        const userData = await createUser(name.trim())
-        setUserId(userData.id)
-        localStorage.setItem("userId", userData.id)
-        localStorage.setItem("userName", name.trim())
+        // 성공 시까지 3초 간격으로 무한 재시도
+        // 실패 시에는 에러 문구를 표시하지 않고 대기만 유지
+        while (true) {
+          try {
+            const userData = await createUser(name.trim())
+            setUserId(userData.id)
+            localStorage.setItem("userId", userData.id)
+            localStorage.setItem("userName", name.trim())
 
-        setShowNameInput(false)
-        setDialogStep(DIALOGS.length)
-        setIsTyping(true)
-
-      } catch (error) {
-        setApiError(error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.")
+            setShowNameInput(false)
+            setDialogStep(DIALOGS.length)
+            setIsTyping(true)
+            break
+          } catch {
+            // 실패 시 3초 대기 후 재시도
+            await new Promise(resolve => {
+              retryTimeoutRef.current = setTimeout(() => {
+                resolve(undefined)
+              }, 3000)
+            })
+          }
+        }
       } finally {
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current)
+          retryTimeoutRef.current = null
+        }
         setIsLoading(false)
       }
     }
