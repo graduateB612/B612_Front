@@ -111,7 +111,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                  <div className="neon font-semibold text-xl">당신의 부정적 감정</div>
+                  <div className="font-semibold text-xl text-white">당신의 부정적 감정</div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
@@ -127,7 +127,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                  <div className="neon font-semibold text-xl">24/7 항상</div>
+                  <div className="font-semibold text-xl text-white">24/7 항상</div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
@@ -143,7 +143,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                  <div className="neon font-semibold text-xl">‘장미’의 존재를 잊을 때까지</div>
+                  <div className="font-semibold text-xl text-white">'장미'의 존재를 잊을 때까지</div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
@@ -159,7 +159,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                  <div className="neon font-semibold text-xl">4명의 해결사</div>
+                  <div className="font-semibold text-xl text-white">4명의 해결사</div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
