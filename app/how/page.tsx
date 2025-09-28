@@ -35,7 +35,7 @@ function SectionOne() {
   const sectionRefs = React.useRef<(HTMLDivElement | null)[]>([])
 
   // 스택 설정값
-  const HEADER_H = 68 // 접힌 카드 높이
+  const HEADER_H = 100 // 접힌 카드 높이
   const HEADER_OFFSET = 64 // 페이지 상단 고정 헤더 보정
   const EXPANDED_CSS = `calc(100vh - ${HEADER_OFFSET}px)` // 스크롤러와 카드가 공유하는 펼침 높이
 
@@ -94,12 +94,37 @@ function SectionOne() {
       const scrollY = root.scrollTop
       const clientHeight = root.clientHeight
       
-      // 각 카드는 100vh마다 전환
-      const viewportHeight = clientHeight
-      const currentSection = Math.floor(scrollY / viewportHeight)
-      const nextActive = Math.min(currentSection, CARDS.length - 1)
+      // 전체 스크롤을 균등하게 나누기: 인트로 + 4개 카드 = 5개 섹션
+      const sectionHeight = clientHeight * 0.5 // 50vh
+      const currentSection = Math.floor(scrollY / sectionHeight)
       
-      setActiveIndex(nextActive)
+      // 섹션 0: 인트로, 섹션 1~4: 카드 1~4
+      if (currentSection <= 0) {
+        // 인트로 영역
+        if (!showIntro) {
+          setShowIntro(true)
+          setActiveIndex(0)
+        }
+        return
+      } else {
+        // 카드 영역 (섹션 1~4 → 카드 인덱스 0~3)
+        if (showIntro) {
+          setShowIntro(false)
+        }
+        const cardIndex = Math.min(currentSection - 1, CARDS.length - 1)
+        if (cardIndex !== activeIndex) {
+          setActiveIndex(cardIndex)
+        }
+      }
+      
+      // 4번 카드 이후 스크롤 제한
+      const maxSection = CARDS.length // 마지막 카드는 섹션 4
+      if (currentSection >= maxSection) {
+        const maxAllowedScroll = maxSection * sectionHeight + clientHeight * 0.2
+        if (scrollY > maxAllowedScroll) {
+          root.scrollTop = maxAllowedScroll
+        }
+      }
     }
     
     // 초기 실행을 지연시켜 DOM이 완전히 로드된 후 실행
@@ -107,7 +132,7 @@ function SectionOne() {
       const root = scrollerRef.current
       if (root) {
         onScroll()
-        root.addEventListener('scroll', onScroll, { passive: true })
+        root.addEventListener('scroll', onScroll, { passive: false }) // passive를 false로 변경
         window.addEventListener('resize', onScroll)
       }
     }, 100)
@@ -119,69 +144,75 @@ function SectionOne() {
       }
       window.removeEventListener('resize', onScroll)
     }
-  }, [CARDS.length])
+  }, [CARDS.length, activeIndex, showIntro])
 
   useEffect(() => {
     if (!showIntro) return
     const dismiss = () => setShowIntro(false)
-    window.addEventListener('wheel', dismiss, { passive: true, once: true })
-    window.addEventListener('touchstart', dismiss, { passive: true, once: true })
     window.addEventListener('keydown', dismiss, { once: true })
     return () => {
-      window.removeEventListener('wheel', dismiss)
-      window.removeEventListener('touchstart', dismiss)
       window.removeEventListener('keydown', dismiss)
     }
   }, [showIntro])
 
   return (
-    <div className="w-full max-w-[1280px] mx-auto px-6 md:px-10 text-white">
-      <div className="grid grid-cols-1 gap-6 w-full">
-        <div className="relative w-full">
-          {/* 인트로 오버레이 */}
-          <div
-            className={`absolute inset-0 flex items-center justify-center select-none transition-opacity duration-700 ${showIntro ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-            onWheel={() => setShowIntro(false)}
-            onClick={() => setShowIntro(false)}
-            onTouchStart={() => setShowIntro(false)}
-          >
-            <h2 className="neon text-center font-extrabold text-5xl md:text-7xl leading-tight">
-              &lsquo;장미&rsquo; 사무실
-              <br />
-              안내 가이드
-            </h2>
-          </div>
+    <div className="fixed inset-0 text-white" style={{ top: `${HEADER_OFFSET}px` }}>
+      {/* 인트로 오버레이 */}
+      <div
+        className={`absolute inset-0 flex items-center justify-center select-none transition-opacity duration-700 ${showIntro ? 'opacity-100' : 'opacity-0 pointer-events-none'} z-50`}
+        style={{ pointerEvents: showIntro ? 'none' : 'none' }} // 스크롤을 위해 pointer-events 비활성화
+      >
+        <h2 
+          className="neon text-center font-extrabold text-5xl md:text-7xl leading-tight cursor-pointer"
+          style={{ pointerEvents: showIntro ? 'auto' : 'none' }} // 텍스트만 클릭 가능
+          onClick={() => {
+            setShowIntro(false)
+            if (scrollerRef.current && isClient) {
+              scrollerRef.current.scrollTop = window.innerHeight * 0.5 // 50vh로 스크롤 (섹션 1)
+            }
+            setActiveIndex(0)
+          }}
+          onTouchStart={() => {
+            setShowIntro(false)
+            if (scrollerRef.current && isClient) {
+              scrollerRef.current.scrollTop = window.innerHeight * 0.5 // 50vh로 스크롤 (섹션 1)
+            }
+            setActiveIndex(0)
+          }}
+        >
+          &lsquo;장미&rsquo; 사무실
+          <br />
+          안내 가이드
+        </h2>
+      </div>
 
-
-          {/* 스크롤러 */}
-          <div
-            ref={scrollerRef}
-            className={`overflow-y-auto no-scrollbar transition-opacity duration-700 ${!showIntro ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-            style={{ 
-              height: EXPANDED_CSS
-            }}
-          >
+      {/* 전체 화면 스크롤러 */}
+      <div
+        ref={scrollerRef}
+        className={`w-full h-full overflow-y-auto no-scrollbar transition-opacity duration-700 ${!showIntro ? 'opacity-100' : 'opacity-0'}`}
+      >
             {/* 스크롤 가능한 높이 확보 */}
-            <div style={{ height: `${CARDS.length * 100}vh` }}>
-              {/* 스크롤 트리거 영역들 */}
+            <div style={{ height: `${(CARDS.length + 1) * 50 + 50}vh` }}>
+              {/* 스크롤 트리거 영역들: 인트로(50vh) + 카드들(각 50vh) */}
+              <div style={{ height: `50vh` }} className="relative" /> {/* 인트로 영역 */}
               {CARDS.map((c, idx) => (
                 <div
                   key={c.title}
                   ref={(el) => setSectionRef(el as HTMLDivElement, idx)}
-                  style={{ height: `100vh` }}
+                  style={{ height: `50vh` }}
                   className="relative"
                 />
               ))}
             </div>
             
-            {/* 모든 카드를 항상 렌더링 - 하단에서 올라오는 효과 포함 */}
-            <div className="fixed inset-0" style={{ top: `${HEADER_OFFSET}px`, pointerEvents: 'none' }}>
-              <div className="relative w-full h-full">
+        {/* 모든 카드를 항상 렌더링 - 하단에서 올라오는 효과 포함 */}
+        <div className="fixed inset-0" style={{ top: `${HEADER_OFFSET + 80}px`, pointerEvents: 'none' }}>
+          <div className="relative w-full h-full max-w-[1280px] mx-auto px-6 md:px-10" style={{ pointerEvents: 'none' }}>
                 {CARDS.map((c, idx) => {
                   const isActive = activeIndex === idx
-                  const isVisible = idx <= activeIndex
+                  const isVisible = true // 모든 카드를 항상 표시 가능하도록 변경
                   
-                  // 카드 위치 계산: 활성화된 카드들은 스택, 비활성화된 카드는 화면 하단 대기
+                  // 카드 위치 계산: 양방향 스크롤 지원
                   let cardTop
                   if (idx < activeIndex) {
                     // 이전 카드들: 상단에 스택
@@ -192,7 +223,8 @@ function SectionOne() {
                   } else {
                     // 아직 나오지 않은 카드들: 화면 하단에서 대기 (클라이언트에서만 동적 계산)
                     if (isClient) {
-                      cardTop = window.innerHeight - HEADER_OFFSET + (idx - activeIndex - 1) * 20
+                      const basePosition = window.innerHeight - HEADER_OFFSET - 80
+                      cardTop = basePosition + (idx - activeIndex - 1) * 20
                     } else {
                       // 서버 사이드에서는 화면 밖으로 숨김
                       cardTop = 2000
@@ -209,7 +241,7 @@ function SectionOne() {
                         zIndex: isActive ? 1000 : (idx < activeIndex ? 900 + idx : 100 + idx),
                         transition: 'top 550ms ease-in-out, opacity 550ms ease-in-out',
                         opacity: isVisible ? 1 : 0.8,
-                        pointerEvents: 'auto'
+                        pointerEvents: 'none'
                       }}
                     >
                       <div
@@ -231,8 +263,6 @@ function SectionOne() {
                     </div>
                   )
                 })}
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -242,19 +272,19 @@ function SectionOne() {
 
 function StackCard({ index, title, icons, children, active }: { index: number; title: string; icons: { src: string; alt: string; style?: React.CSSProperties }[]; children: React.ReactNode; active: boolean }) {
   return (
-    <div className={`relative w-full px-6 md:px-8 ${active ? 'py-6 md:py-7' : 'py-4 md:py-4'} text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)]`}>
+    <div className={`relative w-full px-6 md:px-8 ${active ? 'py-6 md:py-7' : 'py-6 md:py-6'} text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)]`}>
       <div className="absolute top-3 right-4 text-white/60 text-sm md:text-base">{index}</div>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-4 items-start">
         <div>
-          <div className="neon text-3xl md:text-4xl font-extrabold">{title}</div>
-          <div className="w-full overflow-hidden">
+          <div className="neon text-3xl md:text-4xl font-extrabold mt-3">{title}</div>
+          <div className={`w-full overflow-hidden ${!active ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}>
             <div className="mt-3 h-16 w-full flex items-center gap-5 md:gap-6">
               {icons.map((it) => (
                 <Image key={it.src} src={it.src} alt={it.alt} width={56} height={56} style={it.style} />
               ))}
             </div>
           </div>
-          <div className="mt-3 md:mt-4 text-white/90 text-sm md:text-base leading-relaxed">
+          <div className={`mt-3 md:mt-4 text-white/90 text-sm md:text-base leading-relaxed ${!active ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}>
             {children}
           </div>
         </div>
