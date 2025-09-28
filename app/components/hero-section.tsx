@@ -274,7 +274,8 @@ export default function HeroSection({ noGradient = false, transparent = false, s
       {/* 메인 텍스트 콘텐츠 with typing */}
       <HeroTextTyping />
 
-      {/* 배경 별들 (장식용) - 고정된 위치로 수정 */}
+      {/* 배경 별들 (장식용) - 패턴 표시 옵션에 따름 */}
+      {showPattern && (
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[
           { left: 10, top: 20, delay: 0.5, duration: 2.5 },
@@ -310,6 +311,7 @@ export default function HeroSection({ noGradient = false, transparent = false, s
           ></div>
         ))}
       </div>
+      )}
       </div>
     </div>
   )
@@ -347,7 +349,7 @@ function HeroTextTyping() {
         {labelFull.slice(0, i1)}
         {i1 < labelFull.length && <span className="caret">|</span>}
       </div>
-      <h2 className="mt-6 text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#00b0f0]">
+      <h2 className="mt-6 text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight neon">
         <span className="relative inline-block">
           {/* 레이아웃 고정용 팬텀 텍스트 (보이지 않지만 공간 확보) */}
           <span aria-hidden className="invisible">{headlineFull}</span>

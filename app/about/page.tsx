@@ -48,11 +48,8 @@ export default function AboutPage() {
         .perspective { perspective: 1000px; }
         .card-face { backface-visibility: hidden; }
       `}</style>
-      {/* About 전용 전체 화면 배경 (모든 섹션 공통) */}
-      <div
-        className="fixed inset-0 -z-10 bg-cover bg-center pointer-events-none"
-        style={{ backgroundImage: 'url("/image/space-bg2.png")' }}
-      ></div>
+      {/* About 전용 전체 화면 배경: 단색 검정 */}
+      <div className="fixed inset-0 -z-10 bg-black pointer-events-none"></div>
       <Header />
 
       {/* 섹션 1: 기존 히어로 */}
@@ -66,8 +63,8 @@ export default function AboutPage() {
       </SectionFrame>
 
       {/* 섹션 2: 레이아웃 + 우측 카드 이미지 배치 */}
-      <SectionFrame withPattern transparent className="items-start justify-start">
-        <div className="max-w-7xl w-full px-6 pt-10 md:pt-16 grid grid-cols-1 md:grid-cols-2 gap-10 items-start text-gray-200">
+      <SectionFrame withPattern={false} transparent className="items-start justify-start">
+        <div className="max-w-7xl w-full px-6 pt-10 md:pt-16 grid grid-cols-1 md:grid-cols-2 gap-10 items-start text-white">
           {/* 좌측 텍스트 영역 - 시안 레이아웃 (헤드라인 박스 + 본문 박스) */}
           <AboutSectionTwoTyping />
 
@@ -89,11 +86,11 @@ export default function AboutPage() {
       </SectionFrame>
 
       {/* 섹션 3: 표 형식 섹션 */}
-      <SectionFrame withPattern transparent>
+      <SectionFrame withPattern={false} transparent>
         <div className="relative w-full min-h-screen flex flex-col justify-center">
           <div
             ref={tableRef}
-            className={`w-[80%] max-w-none mx-auto px-6 md:px-8 text-gray-200 transition-all duration-2000 delay-200 ease-out ${
+            className={`w-[80%] max-w-none mx-auto px-6 md:px-8 text-white transition-all duration-2000 delay-200 ease-out ${
               tableReveal ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
             }`}
           >
@@ -114,7 +111,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                  <div className="text-cyan-400 font-semibold text-xl">당신의 부정적 감정</div>
+                  <div className="neon font-semibold text-xl">당신의 부정적 감정</div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
@@ -130,7 +127,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                  <div className="text-cyan-400 font-semibold text-xl">24/7 항상</div>
+                  <div className="neon font-semibold text-xl">24/7 항상</div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
@@ -146,7 +143,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                  <div className="text-cyan-400 font-semibold text-xl">‘장미’의 존재를 잊을 때까지</div>
+                  <div className="neon font-semibold text-xl">‘장미’의 존재를 잊을 때까지</div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
@@ -162,7 +159,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-emerald-400 text-emerald-300 items-center justify-center text-base">✓</span>
-                  <div className="text-cyan-400 font-semibold text-xl">4명의 해결사</div>
+                  <div className="neon font-semibold text-xl">4명의 해결사</div>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="inline-flex w-9 aspect-square rounded-full border-2 border-red-400 text-red-300 items-center justify-center text-base">✓</span>
@@ -264,8 +261,8 @@ function AboutSectionTwoTyping() {
               <span className="absolute left-0 top-0">{started ? line1.slice(0, i1) : ''}</span>
             </span>
           </h3>
-          {/* 두 번째 묶음 (두 줄, 시안 색상) */}
-          <div className="text-[#00b0f0] text-4xl md:text-6xl font-extrabold mt-3 leading-tight">
+          {/* 두 번째 묶음 (기존 파란 텍스트 → 시안 네온) */}
+          <div className="neon text-4xl md:text-6xl font-extrabold mt-3 leading-tight">
             <span className="block relative">
               <span aria-hidden className="invisible">{line2a}</span>
               <span className="absolute left-0 top-0">{started ? line2a.slice(0, i2a) : ''}</span>
@@ -285,9 +282,9 @@ function AboutSectionTwoTyping() {
         </div>
       </div>
 
-      <div className={`mt-16 md:mt-24 lg:mt-28 text-gray-200 text-base md:text-lg leading-relaxed transition-opacity duration-700 ${done ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`mt-16 md:mt-24 lg:mt-28 text-white text-base md:text-lg leading-relaxed transition-opacity duration-700 ${done ? 'opacity-100' : 'opacity-0'}`}>
         <p>더 이상 쓰임이 많지 않은 감정과, 단단히 굳어버린 걱정.</p>
-        <p className="mt-1"><span className="text-[#00b0f0]">해결단 ‘장미’</span>에서 관리하겠습니다.</p>
+        <p className="mt-1"><span className="neon">해결단 ‘장미’</span>에서 관리하겠습니다.</p>
         <p className="mt-1">그들은 어디에나 있으니까요.</p>
       </div>
     </div>

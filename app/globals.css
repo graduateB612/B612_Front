@@ -45,6 +45,27 @@ body {
     }
   }
   .text-glow { animation: text-glow 4s ease-in-out infinite; }
+
+  /* Neon glow used on main landing heading (cyan light) */
+  @keyframes neonGlow {
+    0%, 100% {
+      text-shadow:
+        0 0 10px rgba(173, 216, 230, 0.4),
+        0 0 20px rgba(173, 216, 230, 0.3),
+        0 0 30px rgba(173, 216, 230, 0.2);
+    }
+    50% {
+      text-shadow:
+        0 0 20px rgba(173, 216, 230, 0.7),
+        0 0 30px rgba(173, 216, 230, 0.5),
+        0 0 40px rgba(173, 216, 230, 0.3);
+    }
+  }
+  @keyframes neonFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+  .neon { color: #ffffff; animation: neonGlow 3s ease-in-out infinite, neonFloat 4s ease-in-out infinite; }
 }
 
 @layer base {
