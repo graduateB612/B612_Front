@@ -294,11 +294,17 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     })
   }
 
+  // 모자이크 인터벌 참조 추가
+  const mosaicIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
   // 모자이크 페이드 효과 시작 함수
   const startMosaicFadeEffect = useCallback(() => {
-    // 이전 타이머 정리
+    // 이전 타이머들 정리
     if (mosaicTimerRef.current) {
       clearTimeout(mosaicTimerRef.current)
+    }
+    if (mosaicIntervalRef.current) {
+      clearInterval(mosaicIntervalRef.current)
     }
 
     // 15x10 = 150개의 타일로 구성 (더 세밀한 모자이크 효과)
@@ -325,7 +331,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       const currentTiles = [...tiles] // 로컬 상태로 관리
 
       // setInterval을 사용해서 더 안전하게 처리
-      const intervalId = setInterval(() => {
+      mosaicIntervalRef.current = setInterval(() => {
         if (currentTileIndex < totalTiles) {
           const tileIndex = indices[currentTileIndex]
           currentTiles[tileIndex] = true
@@ -333,7 +339,10 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
           currentTileIndex++
         } else {
           // 모든 타일이 완료되면 인터벌 정리
-          clearInterval(intervalId)
+          if (mosaicIntervalRef.current) {
+            clearInterval(mosaicIntervalRef.current)
+            mosaicIntervalRef.current = null
+          }
         }
       }, 8) // 8ms 간격
       
@@ -548,6 +557,9 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       }
       if (mosaicTimerRef.current) {
         clearTimeout(mosaicTimerRef.current)
+      }
+      if (mosaicIntervalRef.current) {
+        clearInterval(mosaicIntervalRef.current)
       }
       if (glitchTimerRef.current) {
         clearTimeout(glitchTimerRef.current)

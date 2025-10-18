@@ -26,6 +26,9 @@ export default function TrainSection({ isActive = true, onTrainStart, onTrainEnd
 
   // 부드러운 전환을 위한 상태
   const [isTransitioning, setIsTransitioning] = useState(false)
+  
+  // 스크롤 완전 차단을 위한 상태
+  const [scrollCompletelyLocked, setScrollCompletelyLocked] = useState(false)
 
   // 열차가 완전히 보이는 기준 오프셋
   const FULL_TRAIN_OFFSET = 750
@@ -72,7 +75,11 @@ export default function TrainSection({ isActive = true, onTrainStart, onTrainEnd
         // 애니메이션 완료 후 상태 업데이트
         const passed = newOffset >= TRAIN_PASSED_OFFSET
         setTrainPassedScreen(passed)
-        if (passed) onTrainEnd?.()
+        if (passed) {
+          onTrainEnd?.()
+          // 기차가 완전히 지나간 후 스크롤 완전 차단
+          setScrollCompletelyLocked(true)
+        }
       }
     }
 
@@ -82,6 +89,7 @@ export default function TrainSection({ isActive = true, onTrainStart, onTrainEnd
   // 기관차 클릭 핸들러
   const handleTrainClick = () => {
     if (isTransitioning || trainOffset >= TRAIN_PASSED_OFFSET) return
+    
     onTrainStart?.()
     setShowOverlay(false)
     smoothTransition(TRAIN_PASSED_OFFSET)
@@ -128,6 +136,47 @@ export default function TrainSection({ isActive = true, onTrainStart, onTrainEnd
     }
   }, [trainOffset, trainStartedMoving, isSectionVisible, backgroundDone, onBackgroundShown])
 
+  // 스크롤 완전 차단 효과
+  useEffect(() => {
+    if (!scrollCompletelyLocked) return
+
+    const handleScroll = (e: Event) => {
+      e.preventDefault()
+    }
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault()
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 모든 스크롤 관련 키를 차단
+      if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', 'Space'].includes(e.key)) {
+        e.preventDefault()
+      }
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault()
+    }
+
+    // 모든 스크롤 관련 이벤트를 차단
+    window.addEventListener('scroll', handleScroll, { passive: false })
+    window.addEventListener('wheel', handleWheel, { passive: false })
+    window.addEventListener('keydown', handleKeyDown, { passive: false })
+    window.addEventListener('touchmove', handleTouchMove, { passive: false })
+
+    // body 스크롤도 차단
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('wheel', handleWheel)
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('touchmove', handleTouchMove)
+      document.body.style.overflow = 'auto'
+    }
+  }, [scrollCompletelyLocked])
+
   return (
     <div ref={sectionRef} className="relative w-full h-full flex items-center justify-center overflow-hidden">
       {/* train_background.png 배경 - 열차 움직임에 따라 점차 나타남 */}
@@ -153,8 +202,8 @@ export default function TrainSection({ isActive = true, onTrainStart, onTrainEnd
         {showOverlay && !trainStartedMoving && (
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
             <div className="flex flex-col items-center">
-              <div className="mb-6 text-2xl md:text-3xl text-white/90 bg-black/30 backdrop-blur-sm border border-white/30 rounded-full px-6 py-3">
-                {'\u0027장미\u0027로 향하는 별빛기차를 부르는 중입니다..'}
+              <div className="mb-60 text-2xl md:text-3xl text-white/90 rounded-full px-6 py-3">
+                <span className="neon">{'\u0027장미\u0027로 향하는 별빛기차를 부르는 중입니다..'}</span>
               </div>
               <div className="flex flex-col items-center pointer-events-none">
                 <div

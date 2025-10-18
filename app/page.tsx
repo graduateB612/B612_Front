@@ -344,7 +344,7 @@ export default function Home() {
             onTrainEnd={() => {
               // 기차 이동이 완전히 끝난 뒤 1초 후 섹션 이동
               setTimeout(() => {
-                setScrollLocked(false)
+                // 스크롤은 해제하지 않고 섹션만 이동 (TrainSection에서 스크롤 완전 차단)
                 setCurrentSection(5)
               }, 1000)
             }}

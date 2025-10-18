@@ -253,21 +253,31 @@ export default function Page() {
     if (!text) return null
 
     const formattedText = text.split('\n').map((line, index, array) => (
-      <span key={index}>
+      <span 
+        key={index} 
+        className="select-none" 
+        style={{ userSelect: 'none' }}
+        onDragStart={(e) => e.preventDefault()}
+      >
         {line}
         {index < array.length - 1 && <br />}
       </span>
     ))
 
     return (
-      <span>
+      <span 
+        className="select-none" 
+        style={{ userSelect: 'none' }}
+        onDragStart={(e) => e.preventDefault()}
+      >
         {formattedText}
-        {showTypingCursor && <span className="inline-block w-0.5 h-8 bg-white ml-1 animate-pulse"></span>}
+        {showTypingCursor && <span className="inline-block w-0.5 h-8 bg-white ml-1 animate-pulse select-none" style={{ userSelect: 'none' }}></span>}
         {!showTypingCursor && !isTyping && (
           <span 
-            className="ml-8 transition-opacity duration-200 opacity-100"
+            className="ml-8 transition-opacity duration-200 opacity-100 select-none"
             style={{
-              animation: 'blink 2s infinite'
+              animation: 'blink 2s infinite',
+              userSelect: 'none'
             }}
           >
             ▼
@@ -355,19 +365,33 @@ export default function Page() {
     };
 
     return (
-      <main className="flex min-h-screen bg-black text-white relative overflow-hidden" onClick={handleStoryClick}>
-        <div className="container mx-auto flex items-center justify-center min-h-screen">
-          <div className="text-center text-2xl cursor-pointer relative z-10">
+      <main 
+        className="flex min-h-screen bg-black text-white relative overflow-hidden select-none" 
+        onClick={handleStoryClick}
+        style={{ 
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          KhtmlUserSelect: 'none'
+        } as React.CSSProperties}
+        onDragStart={(e) => e.preventDefault()}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <div className="container mx-auto flex items-center justify-center min-h-screen select-none">
+          <div className="text-center text-2xl cursor-pointer relative z-10 select-none" style={{ userSelect: 'none' }}>
             {/* 현재 단계에 맞는 텍스트 표시 */}
             {storyTextIndex < STORY_TEXTS.length && (
-              <div className="mb-8 whitespace-pre-line">
-                {storyText}
-                {storyTyping && <span className="inline-block w-0.5 h-8 bg-white ml-1 animate-pulse"></span>}
+              <div className="mb-8 whitespace-pre-line select-none" style={{ userSelect: 'none' }} onDragStart={(e) => e.preventDefault()}>
+                <span className="select-none" style={{ userSelect: 'none' }}>{storyText}</span>
+                {storyTyping && <span className="inline-block w-0.5 h-8 bg-white ml-1 animate-pulse select-none"></span>}
                 {!storyTyping && storyText && (
                   <span 
-                    className="ml-8 transition-opacity duration-200 opacity-100"
+                    className="ml-8 transition-opacity duration-200 opacity-100 select-none"
                     style={{
-                      animation: 'blink 2s infinite'
+                      animation: 'blink 2s infinite',
+                      userSelect: 'none'
                     }}
                   >
                     ▼
@@ -413,19 +437,39 @@ export default function Page() {
   }
 
   return (
-    <main 
-      className="relative min-h-screen w-full overflow-hidden bg-black select-none"
-      style={{ 
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        MozUserSelect: 'none',
-        msUserSelect: 'none',
-        WebkitTouchCallout: 'none',
-        KhtmlUserSelect: 'none'
-      } as React.CSSProperties}
-      onDragStart={(e) => e.preventDefault()}
-      onContextMenu={(e) => e.preventDefault()}
-    >
+    <>
+      {/* 전역 드래그 방지 스타일 */}
+      <style jsx global>{`
+        * {
+          user-select: none !important;
+          -webkit-user-select: none !important;
+          -moz-user-select: none !important;
+          -ms-user-select: none !important;
+          -webkit-touch-callout: none !important;
+          -khtml-user-select: none !important;
+        }
+        
+        input, textarea {
+          user-select: text !important;
+          -webkit-user-select: text !important;
+          -moz-user-select: text !important;
+          -ms-user-select: text !important;
+        }
+      `}</style>
+      
+      <main 
+        className="relative min-h-screen w-full overflow-hidden bg-black select-none"
+        style={{ 
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          KhtmlUserSelect: 'none'
+        } as React.CSSProperties}
+        onDragStart={(e) => e.preventDefault()}
+        onContextMenu={(e) => e.preventDefault()}
+      >
       {/* prince_text.png 배경 이미지 */}
       <div className="relative w-full min-h-screen flex items-center justify-center select-none" style={{ userSelect: 'none' }}>
         <Image
@@ -512,6 +556,7 @@ export default function Page() {
         )}
       </div>
     </main>
+    </>
   )
 }
 
