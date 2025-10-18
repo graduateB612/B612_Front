@@ -50,9 +50,10 @@ function SectionOne() {
       ],
       body: (
         <>
-          어린 왕자와, 다른 해결사들의 대화를 잘 들어보면<br/> 맵 곳곳에 있는 ‘별’을 발견할 수 있습니다.
+          어린 왕자와, 다른 해결사들의 대화를 잘 들어보면<br/> 맵 곳곳에 있는 &lsquo;별&rsquo;을 발견할 수 있습니다.
         </>
-      )
+      ),
+      bottomImage: "/image/play-1.png"
     },
     {
       title: '해결사들과의 대화',
@@ -64,17 +65,20 @@ function SectionOne() {
       ],
       body: (
         <>별을 발견 후, 해결사들에게 건네줄 수 있습니다.<br/>차례차례 모든 해결사들에게 도움을 주세요.</>
-      )
+      ),
+      bottomImage: "/image/play-2.png"
     },
     {
       title: '특정 오브젝트 상호작용',
       icons: [ { src: "/image/exclamation_mark.png", alt: "exclamation" } ],
-      body: (<>느낌표가 있는 오브젝트는 꼭!<br/> 상호작용을 진행해 보세요.</>)
+      body: (<>느낌표가 있는 오브젝트는 꼭!<br/> 상호작용을 진행해 보세요.</>),
+      bottomImage: "/image/play-3.png"
     },
     {
       title: '의뢰 접수',
       icons: [ { src: "/image/write.png", alt: "write" }, { src: "/image/pen.png", alt: "pen" } ],
-      body: (<>모든 진행 상황이 끝난 뒤,<br/> 해결사들에게 의뢰(고민)를 작성해 보세요.<br/> 입력한 메일로 그들이 정성껏 답신을 보낼 거예요.</>)
+      body: (<>모든 진행 상황이 끝난 뒤,<br/> 해결사들에게 의뢰(고민)를 작성해 보세요.<br/> 입력한 메일로 그들이 정성껏 답신을 보낼 거예요.</>),
+      bottomImage: "/image/play-4.png"
     }
   ]
 
@@ -139,8 +143,9 @@ function SectionOne() {
     
     return () => {
       clearTimeout(timer)
-      if (scrollerRef.current) {
-        scrollerRef.current.removeEventListener('scroll', onScroll)
+      const currentScroller = scrollerRef.current
+      if (currentScroller) {
+        currentScroller.removeEventListener('scroll', onScroll)
       }
       window.removeEventListener('resize', onScroll)
     }
@@ -265,6 +270,91 @@ function SectionOne() {
                 })}
           </div>
         </div>
+
+        {/* 하단 이미지 영역 - 각 카드별로 다른 위치에 배치 */}
+        {!showIntro && (
+          <>
+            {/* 첫 번째 카드일 때는 play-1~4 모두 표시 */}
+            <div 
+              className="fixed left-0 right-0 flex justify-center" 
+              style={{ 
+                top: `${HEADER_OFFSET + 460}px`, 
+                pointerEvents: 'none',
+                opacity: activeIndex === 0 ? 1 : 0,
+                transition: 'opacity 550ms ease-in-out',
+                zIndex: 50
+              }}
+            >
+              <div className="flex gap-4">
+                {[1, 2, 3, 4].map((num) => (
+                  <div key={`play-${num}`} className="w-[300px] h-[235px] flex items-center justify-center">
+                    <Image
+                      src={`/image/play-${num}.png`}
+                      alt={`플레이 이미지 ${num}`}
+                      width={300}
+                      height={235}
+                      className="object-contain max-w-full max-h-full"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* 두 번째 카드일 때는 play-5, 6 두 개 표시 */}
+            <div 
+              className="fixed left-0 right-0 flex justify-center" 
+              style={{ 
+                top: `${HEADER_OFFSET + 480}px`, 
+                pointerEvents: 'none',
+                opacity: activeIndex === 1 ? 1 : 0,
+                transition: 'opacity 550ms ease-in-out',
+                zIndex: 50
+              }}
+            >
+              <div className="flex gap-6">
+                {[5, 6].map((num) => (
+                  <div key={`play-${num}`} className="w-[450px] h-[320px] flex items-center justify-center">
+                    <Image
+                      src={`/image/play-${num}.png`}
+                      alt={`플레이 이미지 ${num}`}
+                      width={450}
+                      height={320}
+                      className="object-contain max-w-full max-h-full"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 세 번째 카드일 때는 play-7, 8, 9 세 개 표시 */}
+            <div 
+              className="fixed left-0 right-0 flex justify-center" 
+              style={{ 
+                top: `${HEADER_OFFSET + 560}px`, 
+                pointerEvents: 'none',
+                opacity: activeIndex === 2 ? 1 : 0,
+                transition: 'opacity 550ms ease-in-out',
+                zIndex: 50
+              }}
+            >
+              <div className="flex gap-4">
+                {[7, 8, 9].map((num) => (
+                  <div key={`play-${num}`} className="w-[300px] h-[235px] flex items-center justify-center">
+                    <Image
+                      src={`/image/play-${num}.png`}
+                      alt={`플레이 이미지 ${num}`}
+                      width={300}
+                      height={235}
+                      className="object-contain max-w-full max-h-full"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 네 번째 카드는 이미지 없음 */}
+          </>
+        )}
       </div>
     </div>
   )
