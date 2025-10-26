@@ -330,25 +330,35 @@ function SectionOne() {
             <div 
               className="fixed left-0 right-0 flex justify-center" 
               style={{ 
-                top: `${HEADER_OFFSET + 560}px`, 
+                top: `${HEADER_OFFSET + 500}px`, 
                 pointerEvents: 'none',
                 opacity: activeIndex === 2 ? 1 : 0,
                 transition: 'opacity 550ms ease-in-out',
                 zIndex: 50
               }}
             >
-              <div className="flex gap-4">
-                {[7, 8, 9].map((num) => (
-                  <div key={`play-${num}`} className="w-[300px] h-[235px] flex items-center justify-center">
-                    <Image
-                      src={`/image/play-${num}.png`}
-                      alt={`플레이 이미지 ${num}`}
-                      width={300}
-                      height={235}
-                      className="object-contain max-w-full max-h-full"
-                    />
-                  </div>
-                ))}
+              <div className="flex gap-4 items-center">
+                {[7, 8, 9].map((num) => {
+                  const isMiddle = num === 8
+                  return (
+                    <div 
+                      key={`play-${num}`} 
+                      className="flex items-center justify-center"
+                      style={{
+                        width: isMiddle ? '530px' : '300px',
+                        height: isMiddle ? '410px' : '235px'
+                      }}
+                    >
+                      <Image
+                        src={`/image/play-${num}.png`}
+                        alt={`플레이 이미지 ${num}`}
+                        width={isMiddle ? 530 : 300}
+                        height={isMiddle ? 410 : 235}
+                        className="object-contain max-w-full max-h-full"
+                      />
+                    </div>
+                  )
+                })}
               </div>
             </div>
 
