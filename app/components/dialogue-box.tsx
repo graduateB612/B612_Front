@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
 
 interface DialogueBoxProps {
@@ -79,8 +79,8 @@ export default function DialogueBox({
     typeCharacter()
   }
 
-  // 대화창 닫기 함수 수정
-  const handleClick = () => {
+  // 대화 진행 함수 (클릭 및 스페이스바 공통 로직)
+  const handleAdvanceDialogue = useCallback(() => {
     // 타이핑 중이면 타이핑을 완료하고, 아니면 다음 대화로 진행
     if (isTyping) {
       // 타이핑 중이면 모든 텍스트를 즉시 표시
@@ -113,6 +113,27 @@ export default function DialogueBox({
         }
       }
     }
+  }, [isTyping, currentPartIndex, textParts, backgroundImage, onClose])
+
+  // 스페이스바 키 이벤트 리스너
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault() // 스페이스바의 기본 동작(스크롤) 방지
+        handleAdvanceDialogue()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [handleAdvanceDialogue])
+
+  // 클릭 핸들러
+  const handleClick = () => {
+    handleAdvanceDialogue()
   }
 
   // 줄바꿈 처리를 위한 함수 - 타이핑 효과와 함께 사용
