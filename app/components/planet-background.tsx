@@ -39,10 +39,7 @@ const Planet = ({ src, alt, size, center, orbitRadius, speed, initialAngle = 0, 
     }
   }, [isActive, speed])
 
-  // 상태 변화 확인용 로그
-  useEffect(() => {
-    console.log(`${alt} angle:`, angle)
-  }, [angle, alt])
+  
 
   // 중심점 기준 원형 궤도 계산 (px 단위)
   const rad = angle

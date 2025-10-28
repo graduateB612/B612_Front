@@ -95,8 +95,8 @@ export class NPCManager {
 
           // 게임 상태에서 수집한 별과 전달한 별 정보 추출
           this.updateStarStatus()
-        } catch (error) {
-          console.error("게임 상태 파싱 오류:", error)
+        } catch {
+          
         }
       }
     }
@@ -179,19 +179,16 @@ export class NPCManager {
 
       // 여우 대화가 진행 중이면 이벤트 발생 중지
       if (this.foxDialogueInProgress) {
-        console.log("여우 대화가 진행 중이므로 모든 별 전달 이벤트를 발생시키지 않습니다.")
         return
       }
 
       // 로컬 스토리지에서 userId 가져오기
       const userId = localStorage.getItem("userId")
       if (!userId) {
-        console.error("사용자 ID를 찾을 수 없습니다.")
         return
       }
 
       // API 호출 대신 로컬 상태만 업데이트
-      console.log("모든 별 전달 완료 - 로컬 상태 업데이트")
 
       // 현재 게임 상태 가져오기
       const currentGameStateStr = localStorage.getItem("gameState")
@@ -200,8 +197,8 @@ export class NPCManager {
       if (currentGameStateStr) {
         try {
           currentGameState = JSON.parse(currentGameStateStr)
-        } catch (error) {
-          console.error("게임 상태 파싱 오류:", error)
+        } catch {
+          
         }
       }
 
@@ -231,8 +228,8 @@ export class NPCManager {
         },
       })
       window.dispatchEvent(allStarsDeliveredEvent)
-    } catch (error) {
-      console.error("모든 별 전달 이벤트 처리 중 오류:", error)
+    } catch {
+      
     }
   }
 
@@ -309,9 +306,10 @@ export class NPCManager {
   }
 
   // 안전한 로그 출력 함수 - 디버그 모드에서만 출력
-  private safeLog(message: string, ...args: any[]): void {
+  private safeLog(...args: unknown[]): void {
     if (this.isDebugMode) {
-      console.log(message, ...args)
+      // 디버그 모드에서만 로그 (실제 출력은 비활성화)
+      void args
     }
   }
 
@@ -320,7 +318,7 @@ export class NPCManager {
     this.safeLog("NPC 이미지 프리로드 시작...")
 
     const promises = this.npcs.map((npc) => {
-      return new Promise<void>((resolve, reject) => {
+      return new Promise<void>((resolve) => {
         const img = new Image()
 
         img.onload = () => {
@@ -329,8 +327,7 @@ export class NPCManager {
           resolve()
         }
 
-        img.onerror = (error) => {
-          console.error(`NPC 이미지 로드 실패: ${npc.imagePath}`, error)
+        img.onerror = () => {
           // 이미지 로드 실패 시에도 resolve 처리하여 전체 프로세스가 중단되지 않도록 함
           resolve()
         }
@@ -345,8 +342,8 @@ export class NPCManager {
       .then(() => {
         this.safeLog("모든 NPC 이미지 로드 프로세스 완료")
       })
-      .catch((error) => {
-        console.error("NPC 이미지 로드 중 오류 발생:", error)
+      .catch(() => {
+        
       })
   }
 
@@ -442,12 +439,10 @@ export class NPCManager {
   }
 
   // 여우 NPC 대화 처리를 위한 특별 함수
-  public handleFoxDialogue(dialogues: any[]): { text: string; background: string }[] {
-    console.log("여우 NPC 대화 처리 함수 호출됨")
+  public handleFoxDialogue(dialogues: { npcName?: string; dialogueText?: string }[]): { text: string; background: string }[] {
 
     // 대화 데이터가 없으면 기본 대화 반환
     if (!dialogues || dialogues.length === 0) {
-      console.log("대화 데이터가 없어 기본 대화를 사용합니다.")
       return [
         {
           text: "어린왕자: 바로 '여우'입니다.",
@@ -467,8 +462,7 @@ export class NPCManager {
       (d) => d.npcName === "어린왕자" || d.npcName === "prince" || d.npcName === "Prince",
     )
 
-    console.log("여우 대화:", foxDialogues)
-    console.log("어린왕자 대화:", princeDialogues)
+    
 
     // 대화 큐 생성
     const dialogueQueue: { text: string; background: string }[] = []
@@ -516,7 +510,6 @@ export class NPCManager {
 
     // 대화 큐가 비어있으면 기본 대화 추가
     if (dialogueQueue.length === 0) {
-      console.log("대화 큐가 비어있어 기본 대화를 추가합니다.")
       dialogueQueue.push({
         text: "어린왕자: 바로 '여우'입니다.",
         background: "/image/prince_text.png",
@@ -527,7 +520,7 @@ export class NPCManager {
       })
     }
 
-    console.log("생성된 여우 대화 큐:", dialogueQueue)
+    
 
     // 여우 대화 큐 저장
     this.foxDialogueQueue = [...dialogueQueue]
@@ -546,22 +539,12 @@ export class NPCManager {
 
       // userId가 없으면 오류 발생
       if (!userId) {
-        console.error("사용자 ID를 찾을 수 없습니다.")
-        console.log("localStorage 내용:", {
-          userId: localStorage.getItem("userId"),
-          gameState: localStorage.getItem("gameState"),
-          userName: localStorage.getItem("userName"),
-        })
-
-        if (typeof window !== "undefined") {
-          alert("사용자 ID를 찾을 수 없습니다. 게임을 다시 시작해주세요.")
-        }
         return
       }
 
       // 이미 수집한 별이 있고, 아직 전달하지 않은 경우에만 처리
       if (this.collectedStars.has(npc.acceptsStarType) && !this.deliveredStars.has(npc.acceptsStarType)) {
-        console.log(`${npc.id} NPC에게 ${npc.acceptsStarType} 별 전달 API 호출 중... userId: ${userId}`)
+        
 
         // 여우 NPC인 경우 대화 진행 중 상태로 설정
         if (npc.id === "fox" && npc.acceptsStarType === StarType.SAD) {
@@ -570,20 +553,10 @@ export class NPCManager {
         }
 
         const response = await deliverStar(userId, npc.acceptsStarType)
-        console.log("별 전달 성공:", response)
 
         // 응답 데이터 상세 로깅
         if (response.dialogues && response.dialogues.length > 0) {
-          console.log("API 응답 대화 데이터:", response.dialogues)
-
-          // 어린왕자와 현재 NPC의 대화 찾기
-          const npcDialogues = response.dialogues.filter(
-            (d) => d.npcName === NPCInfoMap[npc.id]?.name || d.npcName === npc.id,
-          )
-          const princeDialogues = response.dialogues.filter((d) => d.npcName === "어린왕자")
-
-          console.log("NPC 대화:", npcDialogues)
-          console.log("어린왕자 대화:", princeDialogues)
+          // 대화 데이터 존재 여부만 확인 (사용 안 함)
         }
 
         // 게임 상태 업데이트
@@ -608,7 +581,7 @@ export class NPCManager {
         window.dispatchEvent(deliverEvent)
       } else {
         // 별을 수집하지 않았거나 이미 전달한 경우 안내 메시지 표시
-        console.log(`${npc.id} NPC에게 전달할 별이 없습니다.`)
+        
 
         // 별을 수집하지 않은 경우 안내 메시지 표시
         if (!this.collectedStars.has(npc.acceptsStarType)) {
@@ -644,7 +617,6 @@ export class NPCManager {
         }
       }
     } catch (error) {
-      console.error(`별 전달 API 오류:`, error)
       if (typeof window !== "undefined") {
         alert(`별 전달 중 오류가 발생했습니다: ${error}`)
       }

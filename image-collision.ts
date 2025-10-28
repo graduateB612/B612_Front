@@ -18,7 +18,6 @@ export class ImageCollisionMap {
         const ctx = canvas.getContext("2d")
 
         if (!ctx) {
-          console.error("Canvas context could not be created")
           this.loaded = false
           resolve(false)
           return
@@ -42,9 +41,7 @@ export class ImageCollisionMap {
           .fill(0)
           .map(() => Array(this.width).fill(false))
 
-        // 첫 몇 개 픽셀의 색상 값 로깅 (디버깅용)
-        console.log("이미지 크기:", this.width, "x", this.height)
-        console.log("첫 10x10 픽셀의 색상 값:")
+        // 디버깅 로그 제거
         let foundColorPixels = 0
 
         // 파란색 픽셀(이동 가능 영역)만 true로 설정
@@ -53,12 +50,7 @@ export class ImageCollisionMap {
           for (let x = 0; x < this.width; x++) {
             const idx = (y * this.width + x) * 4
 
-            // 첫 10x10 픽셀의 색상 값 로깅
-            if (y < 10 && x < 10) {
-              console.log(
-                `픽셀(${x},${y}): R=${pixelData[idx]}, G=${pixelData[idx + 1]}, B=${pixelData[idx + 2]}, A=${pixelData[idx + 3]}`,
-              )
-            }
+            
 
             // #1870B9 (RGB: 24, 112, 185) 색상 감지 - 넓은 범위 적용
             const r = pixelData[idx]
@@ -73,10 +65,7 @@ export class ImageCollisionMap {
                 this.collisionData[y][x] = true
                 foundColorPixels++
 
-                // 처음 발견된 몇 개의 픽셀 위치 로깅
-                if (foundColorPixels <= 5) {
-                  console.log(`발견된 #1870B9 픽셀: (${x}, ${y}), 정확한 색상: R=${r}, G=${g}, B=${b}`)
-                }
+                
               }
             }
           }
@@ -91,15 +80,11 @@ export class ImageCollisionMap {
             }
           }
         }
-        console.log(`이동 가능한 픽셀 수: ${bluePixelCount} / ${this.width * this.height}`)
-        console.log(`#1870B9 색상 픽셀 발견 수: ${foundColorPixels}`)
+        
 
         // 이동 가능한 픽셀이 없으면 경고
         if (bluePixelCount === 0) {
-          console.warn("경고: 이동 가능한 픽셀이 발견되지 않았습니다! 색상 감지 로직을 확인하세요.")
-
-          // 대안으로 다른 파란색 계열 감지 시도
-          console.log("대안 색상 감지 시도 중...")
+          
           let alternativeFound = 0
 
           for (let y = 0; y < this.height; y++) {
@@ -116,17 +101,12 @@ export class ImageCollisionMap {
                 this.collisionData[y][x] = true
                 alternativeFound++
 
-                // 처음 발견된 몇 개의 픽셀 위치 로깅
-                if (alternativeFound <= 5) {
-                  console.log(
-                    `대안 파란색 픽셀: (${x}, ${y}), 색상: R=${pixelData[idx]}, G=${pixelData[idx + 1]}, B=${pixelData[idx + 2]}`,
-                  )
-                }
+                
               }
             }
           }
 
-          console.log(`대안 파란색 픽셀 발견 수: ${alternativeFound}`)
+          
         }
 
         this.loaded = true
@@ -134,7 +114,6 @@ export class ImageCollisionMap {
       }
 
       img.onerror = (error) => {
-        console.error(`Failed to load collision map from URL: ${imageUrl}`, error)
         this.loaded = false
         resolve(false)
       }
@@ -320,7 +299,7 @@ export async function getCollisionMap(): Promise<ImageCollisionMap> {
     // 파일 이름이 대소문자를 구분할 수 있으므로 정확한 파일 이름 사용
     // 파일 경로를 콘솔에 출력하여 디버깅에 도움이 되도록 함
     const imagePath = "/image/collision.png"
-    console.log("Loading collision map from:", imagePath)
+    
     await collisionMapInstance.loadFromImage(imagePath)
   }
   return collisionMapInstance

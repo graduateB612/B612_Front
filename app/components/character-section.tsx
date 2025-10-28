@@ -31,11 +31,11 @@ const characters: CharacterInfo[] = [
     image: "/image/select_fox.png",
     nameTag: "/image/fox-nametag.png",
     description: [
-      "지구에서 지내는 해결단원. 천진난만하게만 보이는 행동과는 달리, 진실을 꿰뚫어 보는 능력을 지녔다. ",
-      "어린 왕자에게 마음으로 보는 것의 중요성을 ㅤㅤㅤㅤ알려줬으며, 그건 결국 '노을'의 이상 현상을 ㅤㅤㅤ눈치채게 만들었다.",
+      "지구에서 지내는 해결단원. 천진난만하게만 보이는 행동과는 달리, 진실을 꿰뚫어 보는 능력을 지녔다.",
+      "어린 왕자에게 마음으로 보는 것의 중요성을 알려줬으며, 그건 결국 '노을'의 이상 현상을 눈치채게 만들었다.",
       "",
       "자신의 개성을 잘 아는 소녀는 이번 여행에서,",
-      " 어떤 진실을 보게 될지 열차에 올라탄 후 곰곰이 ㅤ생각하고 있다."
+      " 어떤 진실을 보게 될지 열차에 올라탄 후 곰곰이 생각하고 있다."
     ],
     starTypes: ["/image/fox-star1.png", "/image/fox-star2.png", "/image/fox-star3.png"],
     size: {
@@ -55,7 +55,7 @@ const characters: CharacterInfo[] = [
       " 이내 자신의 소행성 B612 주변 행성들이 이상 현상을 겪고 있다는 것을 눈치챈다.",
       "",
       "각 행성의 주인들이 부정하게 변해 간다는 것.",
-      "자신이 해야 할 일을 깨달은 어린 왕자는 단원을 ㅤ소집 해 여행을 시작하게 된다."
+      "자신이 해야 할 일을 깨달은 어린 왕자는 단원을 소집 해 여행을 시작하게 된다."
     ],
     starTypes: ["/image/prince-star1.png", "/image/prince-star2.png", "/image/prince-star3.png"],
     size: {
@@ -71,11 +71,11 @@ const characters: CharacterInfo[] = [
     nameTag: "/image/rose-nametag.png",
     description: [
       "과거, 어린 왕자에게 유일하게 상처를 준 인물.",
-      "때문에 그 이후로 입을 가린 옷을 입으며, 말수도 ㅤ굉장히 적은 편이다.",
-      "사람들에게 가장 영향력이 강한 개성을 가진 만큼 ㅤ걸맞는 위력을 가지고 있다.",
+      "때문에 그 이후로 입을 가린 옷을 입으며, 말수도 굉장히 적은 편이다.",
+      "사람들에게 가장 영향력이 강한 개성을 가진 만큼 걸맞는 위력을 가지고 있다.",
       "자신의 이름을 딴 '장미' 해결단을 못마땅하게 생각한다.",
       "",
-      "타인을 잘 대하지 못하는 장미이지만, 일이 더 ㅤㅤㅤ귀찮아 지기 전에 나서게 됐다."
+      "타인을 잘 대하지 못하는 장미이지만, 일이 더 귀찮아 지기 전에 나서게 됐다."
     ],
     starTypes: ["/image/rose-star1.png", "/image/rose-star2.png", "/image/rose-star3.png"],
     size: {
@@ -90,9 +90,9 @@ const characters: CharacterInfo[] = [
     image: "/image/select_bob.png",
     nameTag: "/image/bob-nametag.png",
     description: [
-      "해결단 '장미'의 부단장. 나무는 뿌리가 깊어 질 ㅤ수록 견고해지지만",
+      "해결단 '장미'의 부단장. 나무는 뿌리가 깊어 질 수록 견고해지지만",
       "어린 왕자의 B612를 망치게 될까 미안해 항상 씨앗을 화산에 버려둔다.",
-      "어린 왕자에게 가장 먼저 '노을'의 이상 현상을 전해 들었고, 그의 결심에 망설임 없이 열차를 손보러 ㅤ정거장으로 향했다.",
+      "어린 왕자에게 가장 먼저 '노을'의 이상 현상을 전해 들었고, 그의 결심에 망설임 없이 열차를 손보러 정거장으로 향했다.",
       "",
       "언제나 그렇듯 이번 운행도 멋진 여행일 것이란 걸 확신하기 때문에."
     ],
@@ -400,36 +400,32 @@ export default function CharacterSection({ isActive = true }: CharacterSectionPr
       {/* 캐릭터 설명 (선택 시에만 표시) */}
       {selectedCharacter && (
         <div
-          className="absolute top-1/2 w-1/2 pl-16 pr-16"
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/2"
           style={{
             pointerEvents: animationInProgress ? "none" : "auto",
-            left: "35%", // 화면의 35% 위치에서 시작
-            transform: "translateY(-50%)", // 수직 중앙 정렬 유지
             zIndex: 15,
           }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* 캐릭터 이름 */}
-          <h2 className={`${selectedCharacter === 'bob' ? 'text-black' : 'text-white'} text-5xl mb-8`}>{getSelectedCharacterInfo()?.name}</h2>
+          <h2 className={`${selectedCharacter === 'bob' ? 'text-black' : 'text-white'} text-5xl mb-8 text-center`}>{getSelectedCharacterInfo()?.name}</h2>
 
           {/* 캐릭터 설명 - 한 줄씩 애니메이션 */}
-          <div className="max-w-xl">
-            <div className="bg-gray-900 bg-opacity-70 p-8 rounded-md">
-              {getSelectedCharacterInfo()?.description.map((line, index) => (
-                <p
-                  key={index}
-                  className={`text-white text-lg leading-relaxed transition-all duration-500 ${
-                    index < visibleLines ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                  }`}
-                  style={{
-                    marginBottom: line === "" ? "1em" : "0.5em",
-                    minHeight: line === "" ? "1em" : "auto",
-                  }}
-                >
-                  {line}
-                </p>
-              ))}
-            </div>
+          <div className="max-w-2xl mx-auto bg-black/50 p-5 rounded-lg">
+            {getSelectedCharacterInfo()?.description.map((line, index) => (
+              <p
+                key={index}
+                className={`'text-white text-lg leading-relaxed transition-all duration-500 text-center ${
+                  index < visibleLines ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                }`}
+                style={{
+                  marginBottom: line === "" ? "1em" : "0.5em",
+                  minHeight: line === "" ? "1em" : "auto",
+                }}
+              >
+                {line}
+              </p>
+            ))}
           </div>
         </div>
       )}

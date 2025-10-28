@@ -9,11 +9,16 @@ import Image from "next/image"
 // 컴포넌트 인터페이스 추가
 interface TrainSectionProps {
   isActive?: boolean
+  onTrainStart?: () => void
+  onTrainEnd?: () => void
+  onBackgroundShown?: () => void
 }
 
-export default function TrainSection({ isActive = true }: TrainSectionProps) {
+export default function TrainSection({ isActive = true, onTrainStart, onTrainEnd, onBackgroundShown }: TrainSectionProps) {
   // 슬라이드 텍스트 깜빡임 상태
   const [slideTextVisible, setSlideTextVisible] = useState(true)
+  // 오버레이(안내+클릭 텍스트)
+  const [showOverlay, setShowOverlay] = useState(true)
 
   // 기차 이동 관련 상태
   const [trainOffset, setTrainOffset] = useState(0)
@@ -21,6 +26,9 @@ export default function TrainSection({ isActive = true }: TrainSectionProps) {
 
   // 부드러운 전환을 위한 상태
   const [isTransitioning, setIsTransitioning] = useState(false)
+  
+  // 스크롤 완전 차단을 위한 상태
+  const [scrollCompletelyLocked, setScrollCompletelyLocked] = useState(false)
 
   // 열차가 완전히 보이는 기준 오프셋
   const FULL_TRAIN_OFFSET = 750
@@ -65,7 +73,13 @@ export default function TrainSection({ isActive = true }: TrainSectionProps) {
       } else {
         setIsTransitioning(false)
         // 애니메이션 완료 후 상태 업데이트
-        setTrainPassedScreen(newOffset >= TRAIN_PASSED_OFFSET)
+        const passed = newOffset >= TRAIN_PASSED_OFFSET
+        setTrainPassedScreen(passed)
+        if (passed) {
+          onTrainEnd?.()
+          // 기차가 완전히 지나간 후 스크롤 완전 차단
+          setScrollCompletelyLocked(true)
+        }
       }
     }
 
@@ -75,36 +89,140 @@ export default function TrainSection({ isActive = true }: TrainSectionProps) {
   // 기관차 클릭 핸들러
   const handleTrainClick = () => {
     if (isTransitioning || trainOffset >= TRAIN_PASSED_OFFSET) return
+    
+    onTrainStart?.()
+    setShowOverlay(false)
     smoothTransition(TRAIN_PASSED_OFFSET)
   }
 
   // 열차가 화면에 나타나기 시작했는지 확인
   const trainStartedMoving = trainOffset > 0
+  
+  // 배경 전환 상태
+  const [backgroundOpacity, setBackgroundOpacity] = useState(0)
+  const [backgroundDone, setBackgroundDone] = useState(false)
+  const [isSectionVisible, setIsSectionVisible] = useState(false)
+  const sectionRef = useRef<HTMLDivElement>(null)
+  
+  // 섹션 가시성 추적
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsSectionVisible(entry.isIntersecting)
+      },
+      { threshold: 0.1 }
+    )
+    
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current)
+    }
+    
+    return () => observer.disconnect()
+  }, [])
+  
+  // 열차 움직임에 따른 배경 전환 효과
+  useEffect(() => {
+    if (trainStartedMoving && isSectionVisible) {
+      // 열차가 움직이기 시작하면 배경을 더 빠르게 나타나게 함
+      const maxOffset = TRAIN_PASSED_OFFSET
+      const progress = Math.min(trainOffset / (maxOffset * 0.3), 1) // 30% 지점에서 완전히 전환
+      setBackgroundOpacity(progress)
+      if (!backgroundDone && progress >= 1) {
+        setBackgroundDone(true)
+        onBackgroundShown?.()
+      }
+    } else {
+      setBackgroundOpacity(0)
+    }
+  }, [trainOffset, trainStartedMoving, isSectionVisible, backgroundDone, onBackgroundShown])
+
+  // 스크롤 완전 차단 효과
+  useEffect(() => {
+    if (!scrollCompletelyLocked) return
+
+    const handleScroll = (e: Event) => {
+      e.preventDefault()
+    }
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault()
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 모든 스크롤 관련 키를 차단
+      if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', 'Space'].includes(e.key)) {
+        e.preventDefault()
+      }
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault()
+    }
+
+    // 모든 스크롤 관련 이벤트를 차단
+    window.addEventListener('scroll', handleScroll, { passive: false })
+    window.addEventListener('wheel', handleWheel, { passive: false })
+    window.addEventListener('keydown', handleKeyDown, { passive: false })
+    window.addEventListener('touchmove', handleTouchMove, { passive: false })
+
+    // body 스크롤도 차단
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('wheel', handleWheel)
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('touchmove', handleTouchMove)
+      document.body.style.overflow = 'auto'
+    }
+  }, [scrollCompletelyLocked])
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+    <div ref={sectionRef} className="relative w-full h-full flex items-center justify-center overflow-hidden">
+      {/* train_background.png 배경 - 열차 움직임에 따라 점차 나타남 */}
+      <div 
+        className="fixed top-0 left-0 w-screen h-screen z-[2] transition-opacity duration-500 ease-in-out"
+        style={{ opacity: backgroundOpacity }}
+      >
+        <Image
+          src="/image/train_background.png"
+          alt="Train background"
+          fill
+          style={{ 
+            objectPosition: 'center',
+            objectFit: 'cover',
+          }}
+          priority
+        />
+      </div>
+      
       {/* 메인 컨테이너 */}
-      <div className="relative w-full h-full flex flex-col items-center justify-center select-none">
-        {/* 슬라이드 텍스트 - 열차가 움직이기 전까지만 표시 */}
-        {!trainStartedMoving && (
+      <div className="relative w-full h-full flex flex-col items-center justify-center select-none z-10">
+        {/* 안내 문구 및 클릭 힌트 */}
+        {showOverlay && !trainStartedMoving && (
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
-            <div
-              className="text-4xl text-white transition-opacity duration-600"
-              style={{ opacity: slideTextVisible ? 1 : 0 }}
-            >
-              Click !
-            </div>
-
-            {/* 진행 상태 표시 바 - 단순 이미지 */}
-            <div className="mt-4 relative">
-              <div className="w-64 h-0.5 bg-white"></div>
-              <div className="absolute w-3 h-3 bg-white rounded-full" style={{ left: "0", top: "-4px" }}></div>
+            <div className="flex flex-col items-center">
+              <div className="mb-60 text-2xl md:text-3xl text-white/90 rounded-full px-6 py-3">
+                <span className="neon">{'\u0027장미\u0027로 향하는 별빛기차를 부르는 중입니다..'}</span>
+              </div>
+              <div className="flex flex-col items-center pointer-events-none">
+                <div
+                  className="text-4xl text-white transition-opacity duration-600"
+                  style={{ opacity: slideTextVisible ? 1 : 0 }}
+                >
+                  Click !
+                </div>
+                <div className="mt-4 relative">
+                  <div className="w-64 h-0.5 bg-white"></div>
+                  <div className="absolute w-3 h-3 bg-white rounded-full" style={{ left: "0", top: "-4px" }}></div>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {/* 열차 컨테이너 */}
-        <div className="relative w-full flex flex-col items-center justify-center">
+        <div className="relative w-full flex flex-col items-center justify-center" style={{ marginTop: '260px' }}>
           {/* 열차 이미지 컨테이너 */}
           <div
             className="relative cursor-pointer hover:brightness-110 transition-all duration-200"
@@ -128,27 +246,6 @@ export default function TrainSection({ isActive = true }: TrainSectionProps) {
             />
           </div>
         </div>
-
-        {/* 하단 텍스트 영역 - 열차가 화면을 통과했을 때만 표시 */}
-        {trainPassedScreen && isActive && (
-          <div
-            className="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500 pointer-events-none"
-            style={{
-              opacity: trainPassedScreen ? 1 : 0,
-              zIndex: 20,
-            }}
-          >
-            <div className="flex flex-col items-center max-w-3xl px-4">
-              <h2 className="text-4xl font-bold text-white mb-4">별빛 기차</h2>
-              <div className="bg-gray-200 bg-opacity-80 p-6 rounded-lg w-full">
-                <p className="text-black text-xl text-center">
-                  우주의 별들 사이를 여행하는 신비로운 기차입니다. 이 기차는 꿈과 희망을 실어 나르며, 승객들을 다양한
-                  행성과 별들로 안내합니다. 어린 왕자와 그의 친구들이 자주 이용하는 특별한 교통수단입니다.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

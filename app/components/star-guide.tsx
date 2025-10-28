@@ -59,7 +59,7 @@ export default function StarGuide({ onClose }: StarGuideProps) {
       // API 호출 시 페이지 번호는 그대로 사용 (API는 0부터 시작)
       const apiUrl = `${API_CONFIG.baseUrl}/interactions/${userId}/star-guide?page=${page}&includeDialogues=${includeDialogues}`
 
-      console.log("별 도감 데이터 요청 시작:", apiUrl, "API 페이지:", page)
+      
 
       // API 호출
       const response = await fetch(apiUrl)
@@ -69,7 +69,6 @@ export default function StarGuide({ onClose }: StarGuideProps) {
       }
 
       const data: StarGuideResponse = await response.json()
-      console.log("별 도감 데이터 로드 성공:", data)
 
       setGuideData(data)
       setApiPage(data.currentPage) // API 응답의 currentPage 저장
@@ -80,8 +79,7 @@ export default function StarGuide({ onClose }: StarGuideProps) {
         setDialoguesCompleted(false)
         setCurrentDialogueIndex(0)
       }
-    } catch (err) {
-      console.error("별 도감 데이터 로드 실패:", err)
+    } catch {
       setError("별 도감 데이터를 불러오는 중 오류가 발생했습니다.")
     } finally {
       setLoading(false)
