@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
 
 // 행성 인터페이스 정의
@@ -75,7 +75,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       englishName: "Aqua Planet",
       image: "/image/planets/planet_1.png",
       description:
-        "얄-디루스 행성에 오신 것을 환영합니다. 행성의 절반 이상이 물로 이루어져있으며, 수중 가옥부터 수면 위 작은 도시들이 구성되어 있습니다. 북쪽에 위치한 빙하 지대는 얄-디루스 주민들의 단단한 신념을 상징합니다. 독설가의 행성인 얄-디루스 행성은 인생의 옳은 길을 안내해주는 길잡이 행성입니다. 당신의 삶에서 가장 중요한 것이 무엇인지 잊었을 때, 한 번 쯤 하늘을 바라보며 정답을 찾아 낼 수 있겠지요.",
+        "얄-디루스 행성에 오신 것을 환영합니다. 행성의 절반 이상이 물로 이루어져있으며,\n 수중 가옥부터 수면 위 작은 도시들이 구성되어 있습니다. 북쪽에 위치한 빙하 지대는 얄-디루스 주민들의 단단한 신념을 상징합니다. 독설가의 행성인 얄-디루스 행성은 인생의 옳은 길을 안내해주는 길잡이 행성입니다. 당신의 삶에서 가장 중요한 것이 무엇인지 잊었을 때,\n 한 번 쯤 하늘을 바라보며 정답을 찾아 낼 수 있겠지요.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -87,7 +87,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       englishName: "Terracotta Planet",
       image: "/image/planets/planet_2.png",
       description:
-        "에르리온 행성에 오신 것을 환영합니다. 꽃과, 화산의 조화라는 엉터리스러운 특징을 가지고 있습니다. 지구의 주기로 1년 365일 내내 꽃이 피어있어 꽃잎으로 덮여 있습니다. 행성 주민들은 비교적 꽃이 피지 않은땅 위에서 생활하며, 꽃밭을 '행복의 근원' 이라는 이름 아래에 신성시 하고 있습니다. 행성의 주인인 지질학자는 변화하는 것에 대한 혐오감을 가지고 있으나, 꽃이 그를 행복하게 하는 데에는 변명의 여지가 없습니다.",
+        "에르리온 행성에 오신 것을 환영합니다. 꽃과, 화산의 조화라는 엉터리스러운 특징을 가지고 있습니다. 지구의 주기로 1년 365일 내내 꽃이 피어있어 꽃잎으로 덮여 있습니다. 행성 주민들은 비교적 꽃이 피지 않은땅 위에서 생활하며,\n 꽃밭을 '행복의 근원' 이라는 이름 아래에 신성시 하고 있습니다. 행성의 주인인 지질학자는 변화하는 것에 대한 혐오감을 가지고 있으나,\n 꽃이 그를 행복하게 하는 데에는 변명의 여지가 없습니다.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -99,7 +99,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       englishName: "Lavender Planet",
       image: "/image/planets/planet_3.png",
       description:
-        "루티아 행성에 오신 것을 환영합니다. 루티아 행성은 늦은 밤까지 꺼지지않는 야광 불빛이 유명합니다. 도시는 술과 축제로 항상 시끌벅적하며 잡스러운 생각을 술, 그리고 맛있는 음식으로 치유합니다.당신의 과거 또는 미래가 스스로를 곤란하게 만들 때, 의외로 특별하지 않은 무언가가 해답이 될 수도 있습니다.",
+        "루티아 행성에 오신 것을 환영합니다. 루티아 행성은 늦은 밤까지 꺼지지않는 야광 불빛이 유명합니다. 도시는 술과 축제로 항상 시끌벅적하며 잡스러운 생각을 술,\n 그리고 맛있는 음식으로 치유합니다.당신의 과거 또는 미래가 스스로를 곤란하게 만들 때,\n 의외로 특별하지 않은 무언가가 해답이 될 수도 있습니다.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -111,7 +111,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       englishName: "Gaia Planet",
       image: "/image/planets/planet_4.png",
       description:
-        "벨로르나 행성에 오신 것을 환영합니다. 벨로르나 행성은 '자유' 라는 단어를 우주에서 가장 잘 표현하는 행성입니다. 그들 자신만의 깨달음과 목표를 위해 우주를 유랑하고, 질서를 넘나듭니다.이러한 여행에서 발견되는 것은 긍정적일 수도, 부정적일 수도 있지만 스스로가 책임지는 '경험'을 만들어냅니다. 우리는 무엇이 우릴 붙잡아놓고 있을까요?",
+        "벨로르나 행성에 오신 것을 환영합니다. 벨로르나 행성은 '자유' 라는 단어를 우주에서 가장 잘 표현하는 행성입니다. 그들 자신만의 깨달음과 목표를 위해 우주를 유랑하고, 질서를 넘나듭니다.이러한 여행에서 발견되는 것은 긍정적일 수도, 부정적일 수도 있지만\n 스스로가 책임지는 '경험'을 만들어냅니다. 우리는 무엇이 우릴 붙잡아놓고 있을까요?",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -123,7 +123,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       englishName: "Emerald Planet",
       image: "/image/planets/planet_6.png",
       description:
-        "루미르 행성에 오신 것을 환영합니다. 루미르 행성은 단 한 명의 행성 주민만이 살고있습니다. 단지 가로등을 켜고 끄는 소리만이 들리지만, 어린 왕자의 마음을 빼앗았던 행성이죠. 자신에게 닥친 외로움과 부정적인 것들이 상황을 안 좋게 만들 순 있어도, 결코 자신을 좀 먹지는 못합니다. 당신은 지금처럼 계속해서 우리의 빛을 잃지 말길 바랍니다.",
+        "루미르 행성에 오신 것을 환영합니다. 루미르 행성은 단 한 명의 행성 주민만이 살고있습니다. 단지 가로등을 켜고 끄는 소리만이 들리지만, 어린 왕자의 마음을 빼앗았던 행성이죠. 자신에게 닥친 외로움과 부정적인 것들이 상황을 안 좋게 만들 순 있어도,\n 결코 자신을 좀 먹지는 못합니다. 당신은 지금처럼 계속해서 우리의 빛을 잃지 말길 바랍니다.",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -147,7 +147,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       englishName: "Solar Planet",
       image: "/image/planets/planet_7.png",
       description:
-        "솔라스나르 행성에 오신 것을 환영합니다. 뜨겁고, 용암이 흘러내리는 모습처럼 이 곳 주민들도 정열적이고 활발한 모습을 가지고 있습니다. 불같은 성격은 그들을 쉽게 좌절감이나 무력감에 빠지지 않도록 도와줍니다. 두 개의 위성을 가지고 있으며 이 곳에서는 주기적으로 행성의 표면 온도를 식혀주는 중요한 설비가 존재합니다. 우리들의 침착함이라는 감정처럼요.",
+        "솔라스나르 행성에 오신 것을 환영합니다. 뜨겁고, 용암이 흘러내리는 모습처럼\n 이 곳 주민들도 정열적이고 활발한 모습을 가지고 있습니다. 불같은 성격은 그들을 쉽게 좌절감이나 무력감에 빠지지 않도록 도와줍니다. 두 개의 위성을 가지고 있으며 이 곳에서는 주기적으로 행성의 표면 온도를 식혀주는\n 중요한 설비가 존재합니다. 우리들의 침착함이라는 감정처럼요.",
       width: 64,
       height: 64,
       centerScale: 3.5, // 작은 행성이므로 더 크게 스케일링
@@ -159,7 +159,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       englishName: "Desert Planet",
       image: "/image/planets/planet_8.png",
       description:
-        "카르미르 행성에 오신 것을 환영합니다. 카르미르는 우주에서 가장 번성한 행성입니다. 여러 개의 우주 정거장과, 우주적 자원을 이용한 산업 단지가 분포 해 있습니다. 번영한 남쪽과는 다르게 북쪽은 황폐화된 지대로 뚜렷하게 구분되어 있습니다. 점점 본인들의 여유공간이 없어지고 있다는 것을 알고있을까요?.",
+        "카르미르 행성에 오신 것을 환영합니다. 카르미르는 우주에서 가장 번성한 행성입니다. 여러 개의 우주 정거장과, 우주적 자원을 이용한 산업 단지가 분포 해 있습니다. 번영한 남쪽과는 다르게 북쪽은 황폐화된 지대로 뚜렷하게 구분되어 있습니다. 점점 본인들의 여유공간이 없어지고 있다는 것을 알고있을까요?",
       width: 128,
       height: 128,
       centerScale: 2.5,
@@ -250,7 +250,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       clearTimeout(descriptionTimerRef.current)
     }
 
-    // 설명을 문장 단위로 분할 (마침표, 물음표, 느낌표 기준)
+    // 설명을 문장 단위로 분할 (마침표, 물음표, 느낌표, 줄바꿈 기준)
     const sentences: string[] = []
     let currentSentence = ""
     
@@ -258,14 +258,14 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       const char = description[i]
       currentSentence += char
       
-      // 문장 끝 문자를 만났을 때
-      if (char === '.' || char === '!' || char === '?') {
+      // 문장 끝 문자를 만났을 때 (마침표, 물음표, 느낌표, 줄바꿈)
+      if (char === '.' || char === '!' || char === '?' || char === '\n') {
         // 문장 완료
         sentences.push(currentSentence.trim())
         currentSentence = ""
         
-        // 다음 문자가 공백이면 건너뛰기
-        if (i < description.length - 1 && description[i + 1] === ' ') {
+        // 다음 문자가 공백이면 건너뛰기 (줄바꿈 제외)
+        if (char !== '\n' && i < description.length - 1 && description[i + 1] === ' ') {
           i++
         }
       }
@@ -294,11 +294,17 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     })
   }
 
+  // 모자이크 인터벌 참조 추가
+  const mosaicIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
   // 모자이크 페이드 효과 시작 함수
-  const startMosaicFadeEffect = () => {
-    // 이전 타이머 정리
+  const startMosaicFadeEffect = useCallback(() => {
+    // 이전 타이머들 정리
     if (mosaicTimerRef.current) {
       clearTimeout(mosaicTimerRef.current)
+    }
+    if (mosaicIntervalRef.current) {
+      clearInterval(mosaicIntervalRef.current)
     }
 
     // 15x10 = 150개의 타일로 구성 (더 세밀한 모자이크 효과)
@@ -310,7 +316,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     setMosaicTiles(tiles)
 
     // 약간의 지연 후 모자이크 효과 시작
-    setTimeout(() => {
+    mosaicTimerRef.current = setTimeout(() => {
       setShowPlanetImage(true)
       
       // 타일들을 랜덤 순서로 나타나게 하기
@@ -322,32 +328,26 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       }
 
       let currentTileIndex = 0
-      let lastTime = 0
-      const targetInterval = 8 // 8ms 목표 간격
+      const currentTiles = [...tiles] // 로컬 상태로 관리
 
-      // 타일별 나타나는 효과 (requestAnimationFrame 사용)
-      const showNextTile = (currentTime: number) => {
-        if (currentTime - lastTime >= targetInterval) {
-          if (currentTileIndex < totalTiles) {
-            const tileIndex = indices[currentTileIndex]
-            setMosaicTiles(prev => {
-              const newTiles = [...prev]
-              newTiles[tileIndex] = true
-              return newTiles
-            })
-            currentTileIndex++
-            lastTime = currentTime
+      // setInterval을 사용해서 더 안전하게 처리
+      mosaicIntervalRef.current = setInterval(() => {
+        if (currentTileIndex < totalTiles) {
+          const tileIndex = indices[currentTileIndex]
+          currentTiles[tileIndex] = true
+          setMosaicTiles([...currentTiles]) // 복사본으로 업데이트
+          currentTileIndex++
+        } else {
+          // 모든 타일이 완료되면 인터벌 정리
+          if (mosaicIntervalRef.current) {
+            clearInterval(mosaicIntervalRef.current)
+            mosaicIntervalRef.current = null
           }
         }
-        
-        if (currentTileIndex < totalTiles) {
-          requestAnimationFrame(showNextTile)
-        }
-      }
-
-      requestAnimationFrame(showNextTile)
+      }, 8) // 8ms 간격
+      
     }, 500) // 설명 슬라이드 효과 후 0.5초 지연
-  }
+  }, [])
 
   // 글리치 효과 시작 함수
   const startGlitchEffect = () => {
@@ -558,6 +558,9 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       if (mosaicTimerRef.current) {
         clearTimeout(mosaicTimerRef.current)
       }
+      if (mosaicIntervalRef.current) {
+        clearInterval(mosaicIntervalRef.current)
+      }
       if (glitchTimerRef.current) {
         clearTimeout(glitchTimerRef.current)
       }
@@ -607,7 +610,6 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
 
   // 마우스 이벤트
   const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault() // 기본 드래그 동작 방지
     handleDragStart(e.clientX)
   }
 
@@ -616,8 +618,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     handleDragMove(e.clientX)
   }
 
-  const handleMouseUp = (e: React.MouseEvent) => {
-    e.preventDefault() // 기본 드래그 동작 방지
+  const handleMouseUp = () => {
     handleDragEnd()
   }
 
@@ -630,7 +631,6 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
 
   // 터치 이벤트
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault() // 기본 드래그 동작 방지
     handleDragStart(e.touches[0].clientX)
   }
 
@@ -639,10 +639,10 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
     handleDragMove(e.touches[0].clientX)
   }
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    e.preventDefault() // 기본 드래그 동작 방지
+  const handleTouchEnd = () => {
     handleDragEnd()
   }
+
 
   // 키보드 이벤트 핸들러
   useEffect(() => {
@@ -723,7 +723,6 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       animation: getPlanetAnimationStyle(distance),
       objectFit: "contain" as const,
       userSelect: "none" as const, // 이미지 선택 방지
-      pointerEvents: "none" as const, // 이미지에 대한 포인터 이벤트 방지
       WebkitUserSelect: "none" as const, // Safari용
       WebkitTouchCallout: "none" as const, // iOS Safari용
       MozUserSelect: "none" as const, // Firefox용
@@ -1248,7 +1247,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
       {/* 행성 갤러리 */}
       <div
         ref={containerRef}
-        className="relative w-full max-w-5xl h-[90vh] flex items-center justify-center select-none"
+        className="relative w-full max-w-5xl h-[90vh] flex items-center justify-center"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -1257,11 +1256,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         style={{
-          userSelect: "none",
-          WebkitUserSelect: "none",
-          MozUserSelect: "none",
-          msUserSelect: "none",
-          touchAction: "none",
+          zIndex: 10,
         }}
       >
         {/* 행성들 */}
@@ -1290,7 +1285,7 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
             return (
               <div
                 key={planet.id}
-                className="absolute cursor-pointer select-none"
+                className="absolute cursor-pointer"
                 style={{
                   transform: `translateX(${positionX + dragOffset}px) scale(${scale})`,
                   opacity,
@@ -1298,27 +1293,18 @@ export default function PlanetSection({ isActive = true }: PlanetSectionProps) {
                   transition: isAnimating
                     ? "none"
                     : "transform 1200ms cubic-bezier(0.4, 0, 0.2, 1), opacity 1200ms cubic-bezier(0.4, 0, 0.2, 1)",
-                  userSelect: "none",
-                  WebkitUserSelect: "none",
-                  MozUserSelect: "none",
-                  msUserSelect: "none",
                 }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  goToPlanet(index)
-                }}
-                onDragStart={(e) => e.preventDefault()} // 드래그 시작 방지
+                onClick={() => goToPlanet(index)}
               >
                 <div className="relative select-none" style={getPlanetContainerStyle(planet, distance)}>
                   <Image
                     src={planet.image || "/placeholder.svg"}
                     alt={planet.name}
                     fill
-                    className="pixelated object-contain select-none"
+                    className="pixelated object-contain"
                     style={getPlanetImageStyle(planet, distance)}
                     priority={distance === 0} // 중앙 행성은 우선 로딩
                     draggable={false} // 이미지 드래그 방지
-                    onDragStart={(e) => e.preventDefault()} // 이미지 드래그 시작 방지
                   />
                 </div>
               </div>

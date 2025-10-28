@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { type ImageCollisionMap, getCollisionMap } from "./image-collision"
-import { getNPCManager } from "./npc-manager" // NPC 매니저 import
+import { getNPCManager, NPCManager } from "./npc-manager" // NPC 매니저 import
 import { getItemManager } from "./item-manager" // 아이템 매니저 import
 import DialogueBox from "@/app/components/dialogue-box" // 대화창 컴포넌트 import
 import ConcernModal from "@/app/components/modal" // 모달 컴포넌트 import
@@ -43,9 +43,13 @@ export default function Game() {
   // 오류 메시지
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   // NPC 매니저 ref
-  const npcManagerRef = useRef<any>(null)
+  const npcManagerRef = useRef<NPCManager | null>(null)
   // 아이템 매니저 ref
-  const itemManagerRef = useRef<any>(null)
+  const itemManagerRef = useRef<{
+    interactWithItem: (itemId: string) => void
+    getInteractableItem: (x: number, y: number) => { id: string } | null
+    renderItems: (ctx: CanvasRenderingContext2D, bgX: number, bgY: number, playerX: number, playerY: number) => void
+  } | null>(null)
   // NPC 이미지 로딩 상태
   const [npcImagesLoaded, setNpcImagesLoaded] = useState(false)
   // 아이템 이미지 로딩 상태
@@ -66,8 +70,6 @@ export default function Game() {
 
   // 모든 별이 전달되었는지 여부
   const [allStarsDelivered, setAllStarsDelivered] = useState(false)
-  // 현재 게임 단계
-  const [currentGameStage, setCurrentGameStage] = useState<GameStage | null>(null)
 
   // 대화 큐 상태 - 컴포넌트 내부에서 관리하도록 변경
   const [dialogueQueue, setDialogueQueue] = useState<{ text: string; background: string }[]>([])
@@ -110,13 +112,10 @@ export default function Game() {
   // 여우 대화 완료 이벤트 리스너 수정
   useEffect(() => {
     const handleFoxDialogueCompleted = () => {
-      console.log("여우 대화 완료 이벤트 수신")
       setFoxDialogueCompleted(true)
-      console.log("여우 대화 완료 상태로 설정됨")
 
       // 마지막 별 처리 중이면 즉시 대화 큐 처리
       if (processingLastStar && dialogueQueue.length === 0) {
-        console.log("마지막 별 처리 중이고 대화 큐가 비어있음, 화면 전환 처리")
 
         // 화면 전환 처리
         setAllStarsDelivered(true)
@@ -149,7 +148,6 @@ export default function Game() {
 
     // foxDialogueFinished 이벤트 리스너 추가
     const handleFoxDialogueFinished = () => {
-      console.log("여우 대화 완전히 종료 이벤트 수신")
 
       // 여우 대화 완료 이벤트 발생
       window.dispatchEvent(new CustomEvent("foxDialogueCompleted"))
@@ -182,12 +180,10 @@ export default function Game() {
   }
 
   // 대화 큐 처리 함수 수정
-  const processDialogueQueue = () => {
-    console.log("대화 큐 처리 중:", dialogueQueue.length, "개 남음")
+  const processDialogueQueue = useCallback(() => {
 
     if (dialogueQueue.length > 0) {
       const nextDialogue = dialogueQueue[0]
-      console.log("다음 대화 표시:", nextDialogue)
 
       setDialogueText(nextDialogue.text)
       setDialogueBackground(nextDialogue.background)
@@ -197,7 +193,6 @@ export default function Game() {
       // 여우 대화인지 확인하고 텍스트 저장
       if (nextDialogue.background === "/image/fox_text.png") {
         setFoxDialogueText(nextDialogue.text)
-        console.log("여우 대화 텍스트 저장:", nextDialogue.text)
       }
 
       // 큐에서 현재 대화 제거
@@ -209,7 +204,6 @@ export default function Game() {
       }
     } else if (processingLastStar && foxDialogueCompleted) {
       // 마지막 별 전달 후 대화가 모두 끝났을 때
-      console.log("마지막 별 처리 완료, 최종 메시지 표시")
 
       // 화면 전환 처리
       setProcessingLastStar(false)
@@ -238,11 +232,10 @@ export default function Game() {
       setShowDialogue(true)
       setShowFinalDialogue(false) // 마지막 대화가 아님을 표시
     }
-  }
+  }, [dialogueQueue, allStarsDelivered, foxDialogueCompleted, processingLastStar, setPlayerDirection, setDialogueQueue, setDialogueText, setDialoguePosition, setDialogueBackground, setShowDialogue, setShowFinalDialogue])
 
   // 마지막 대화 후 모달 표시
   const handleFinalDialogueClosed = () => {
-    console.log("마지막 대화 닫힘, 이제 종이와 펜 오브젝트와 상호작용하세요")
     // 모달을 바로 표시하지 않고, 종이와 펜 오브젝트와 상호작용하도록 안내
     setShowFinalDialogue(false)
     // 모달 표시 코드 제거
@@ -251,7 +244,6 @@ export default function Game() {
 
   // 모달 제출 처리
   const handleConcernSubmit = async (email: string, concern: string) => {
-    console.log("모달 제출:", email, concern)
 
     try {
       // 로컬 스토리지에 이메일과 고민 저장 (select 페이지에서 사용하기 위해)
@@ -263,8 +255,7 @@ export default function Game() {
 
       // select 페이지로 이동
       window.location.href = "/select"
-    } catch (error) {
-      console.error("고민 제출 실패:", error)
+    } catch {
       alert("고민 제출 중 오류가 발생했습니다. 다시 시도해주세요.")
     }
   }
@@ -279,22 +270,14 @@ export default function Game() {
     const userNameStr = localStorage.getItem("userName")
     if (userNameStr) {
       setUserName(userNameStr)
-      console.log("localStorage에서 userName 로드:", userNameStr)
     }
 
-    console.log("현재 localStorage 상태:", {
-      userId: userIdStr,
-      userName: userNameStr,
-      gameState: gameStateStr ? "있음" : "없음",
-    })
+    
 
     if (gameStateStr) {
       try {
         const gameState = JSON.parse(gameStateStr)
-        console.log("게임 상태 로드:", gameState)
 
-        // 현재 게임 단계 설정
-        setCurrentGameStage(gameState.currentStage)
 
         // 모든 별이 전달되었는지 확인
         if (
@@ -308,14 +291,14 @@ export default function Game() {
         // 대화 데이터 설정
         if (gameState.dialogues && gameState.dialogues.length > 0) {
           // quest_tutorial 대화 찾기
-          const tutorialDialogue = gameState.dialogues.find((d: any) => d.quest_tutorial)
+          const tutorialDialogue = gameState.dialogues.find((d: unknown) => (d as Record<string, unknown>).quest_tutorial)
 
           if (tutorialDialogue) {
             setDialogueText(tutorialDialogue.quest_tutorial || tutorialDialogue.dialogueText)
             setDialoguePosition("bottom") // 튜토리얼을 하단에 표시하도록 변경
           } else {
             // 어린왕자의 대화 찾기
-            const princeDialogue = gameState.dialogues.find((d: any) => d.npcName === "어린왕자")
+            const princeDialogue = gameState.dialogues.find((d: unknown) => (d as Record<string, unknown>).npcName === "어린왕자")
 
             if (princeDialogue) {
               setDialogueText(
@@ -341,8 +324,7 @@ export default function Game() {
 
         // 대화창 표시
         setShowDialogue(true)
-      } catch (error) {
-        console.error("게임 상태 파싱 오류:", error)
+      } catch {
 
         // 오류 발생 시 기본 텍스트 설정
         setDialogueText(
@@ -356,12 +338,9 @@ export default function Game() {
       const fetchGameState = async () => {
         try {
           const userId = userIdStr
-          console.log("게임 시작 API 호출 중... userId:", userId)
           const gameState = await startGame(userId)
-          console.log("게임 시작 성공:", gameState)
 
-          // 현재 게임 단계 설정
-          setCurrentGameStage(gameState.currentStage)
+          // 현재 게임 단계 설정 (변수 제거됨)
 
           // 모든 별이 전달되었는지 확인
           if (
@@ -414,8 +393,7 @@ export default function Game() {
 
           // 대화창 표시
           setShowDialogue(true)
-        } catch (error) {
-          console.error("게임 시작 API 오류:", error)
+        } catch {
 
           // 오류 발생 시 기본 텍스트 설정
           setDialogueText(
@@ -435,7 +413,7 @@ export default function Game() {
       setDialoguePosition("center")
       setShowDialogue(true)
     }
-  }, [])
+  }, [userName])
 
   // 대화창이 닫힐 때 다음 대화 표시
   useEffect(() => {
@@ -449,26 +427,21 @@ export default function Game() {
         processDialogueQueue()
       }
     }
-  }, [showDialogue, dialogueQueue, showFinalDialogue])
+  }, [showDialogue, dialogueQueue, showFinalDialogue, processDialogueQueue])
 
   // 별 수집 이벤트 리스너
   useEffect(() => {
     const handleStarCollected = (event: CustomEvent) => {
-      const { starType, gameState } = event.detail
-      console.log(`별 수집 이벤트 발생: ${starType}`, gameState)
+      const { gameState } = event.detail
 
-      // 현재 게임 단계 설정
-      setCurrentGameStage(gameState.currentStage)
 
       // 대화 데이터 설정
       if (gameState.dialogues && gameState.dialogues.length > 0) {
-        console.log("수집 후 대화 데이터:", gameState.dialogues)
 
         // 가장 최근 대화를 사용 (API 응답의 마지막 대화)
         const latestDialogue = gameState.dialogues[gameState.dialogues.length - 1]
 
         if (latestDialogue && latestDialogue.dialogueText) {
-          console.log("표시할 대화:", latestDialogue.dialogueText)
           setDialogueText(latestDialogue.dialogueText)
           setDialoguePosition("bottom") // 별 수집 후 대화는 하단에 표시
 
@@ -477,28 +450,21 @@ export default function Game() {
 
           // 대화 큐 초기화 (새로운 별 수집 시 이전 대화 큐는 무시)
           setDialogueQueue([])
-          console.log("별 수집으로 대화 큐 초기화")
 
           setShowDialogue(true)
-        } else {
-          console.log("대화 텍스트가 없습니다.")
         }
       }
     }
 
     const handleStarDelivered = (event: CustomEvent) => {
       const { npcId, starType, gameState, npcInfo } = event.detail
-      console.log(`별 전달 이벤트 발생: ${npcId}, ${starType}`, gameState)
 
-      // 현재 게임 단계 설정
-      setCurrentGameStage(gameState.currentStage)
 
       // 마지막 별인지 확인 (슬픔 별)
       const isLastStar = starType === StarType.SAD
 
       // 마지막 별이면 처리 중 상태로 설정
       if (isLastStar && gameState.currentStage === GameStage.DELIVER_SAD) {
-        console.log("마지막 별(슬픔) 전달 감지, 처리 중 상태로 설정")
         setProcessingLastStar(true)
         // 여우 대화 완료 상태 초기화
         setFoxDialogueCompleted(false)
@@ -506,18 +472,16 @@ export default function Game() {
 
       // 대화 데이터 설정
       if (gameState.dialogues) {
-        console.log("전달 후 대화 데이터:", gameState.dialogues)
 
         // 여우 NPC인 경우 특별 처리
         if (npcId === "fox") {
-          console.log("여우 NPC 대화 특별 처리")
 
           // NPC 매니저의 여우 대화 처리 함수 사용
-          const foxDialogueQueue = npcManagerRef.current.handleFoxDialogue(gameState.dialogues)
+          const foxDialogueQueue = npcManagerRef.current?.handleFoxDialogue(gameState.dialogues) || []
 
           // 첫 번째 대화 표시하고 나머지는 큐에 저장
           if (foxDialogueQueue.length > 0) {
-            const firstDialogue = foxDialogueQueue[0]
+            const firstDialogue = foxDialogueQueue[0] as { text: string; background: string }
             setDialogueText(firstDialogue.text)
             setDialoguePosition("bottom")
             setDialogueBackground(firstDialogue.background)
@@ -525,13 +489,13 @@ export default function Game() {
 
             // 나머지 대화 큐에 저장
             if (foxDialogueQueue.length > 1) {
-              setDialogueQueue(foxDialogueQueue.slice(1))
-              console.log("여우 대화 큐 저장:", foxDialogueQueue.slice(1))
+              setDialogueQueue(foxDialogueQueue.slice(1) as { text: string; background: string }[])
 
               // 여우 대화 텍스트 저장 - 모든 대화 텍스트를 저장
-              foxDialogueQueue.forEach((dialogue: any) => {
-                if (dialogue.background === "/image/fox_text.png") {
-                  setFoxDialogueText(dialogue.text)
+              foxDialogueQueue.forEach((dialogue: unknown) => {
+                const dialogueObj = dialogue as Record<string, unknown>
+                if (dialogueObj.background === "/image/fox_text.png") {
+                  setFoxDialogueText(dialogueObj.text as string)
                 }
               })
             } else {
@@ -550,7 +514,6 @@ export default function Game() {
 
         // 대화 ID 기준으로 정렬 (오름차순)
         const sortedDialogues = [...gameState.dialogues].sort((a, b) => a.dialogueId - b.dialogueId)
-        console.log("정렬된 대화:", sortedDialogues)
 
         // 모든 대화를 순서대로 큐에 추가
         sortedDialogues.forEach((dialogue) => {
@@ -577,7 +540,7 @@ export default function Game() {
           }
         })
 
-        console.log("생성된 대화 큐:", newDialogueQueue)
+        
 
         // 첫 번째 대화 표시하고 나머지는 큐에 저장
         if (newDialogueQueue.length > 0) {
@@ -590,7 +553,6 @@ export default function Game() {
           // 나머지 대화 큐에 저장
           if (newDialogueQueue.length > 1) {
             setDialogueQueue(newDialogueQueue.slice(1))
-            console.log("대화 큐 저장:", newDialogueQueue.slice(1))
           } else {
             setDialogueQueue([])
           }
@@ -600,10 +562,9 @@ export default function Game() {
 
     // 별이 없는 경우 이벤트 리스너 추가
     const handleNoStarToDeliver = (event: CustomEvent) => {
-      const { npcId, message, npcInfo } = event.detail
-      console.log(`별 없음 이벤트 발생: ${npcId}`, message)
+      const { npcInfo } = event.detail
 
-      setDialogueText(message)
+      setDialogueText("별이 없습니다.")
       setDialoguePosition("bottom")
 
       // NPC에 맞는 대화창 배경 설정
@@ -621,10 +582,9 @@ export default function Game() {
 
     // 이미 전달한 경우 이벤트 리스너 추가
     const handleStarAlreadyDelivered = (event: CustomEvent) => {
-      const { npcId, message, npcInfo } = event.detail
-      console.log(`이미 전달 이벤트 발생: ${npcId}`, message)
+      const { npcInfo } = event.detail
 
-      setDialogueText(message)
+      setDialogueText("이미 전달했습니다.")
       setDialoguePosition("bottom")
 
       // NPC에 맞는 대화창 배경 설정
@@ -641,12 +601,8 @@ export default function Game() {
     }
 
     // 모든 별이 전달된 경우 이벤트 리스너 수정
-    const handleAllStarsDelivered = (event: CustomEvent) => {
-      const { gameState, message } = event.detail
-      console.log("모든 별 전달 완료 이벤트 발생:", gameState)
+    const handleAllStarsDelivered = () => {
 
-      // 현재 게임 단계 설정
-      setCurrentGameStage(gameState.currentStage)
 
       // 모든 별이 전달되었음을 표시
       setAllStarsDelivered(true)
@@ -674,7 +630,7 @@ export default function Game() {
       setShowDialogue(true)
       setShowFinalDialogue(false) // 마지막 대화가 아님을 표시
 
-      console.log("모든 별 전달 완료로 대화 큐 초기화 및 새 대화 설정")
+      
     }
 
     // 이벤트 리스너 등록
@@ -697,25 +653,22 @@ export default function Game() {
   // 오브젝트 상호작용 이벤트 리스너 추가 (useEffect 내부에 추가)
   useEffect(() => {
     const handleObjectInteraction = (event: CustomEvent) => {
-      const { itemType, itemId } = event.detail
-      console.log(`오브젝트 상호작용: ${itemType}, ${itemId}`)
+      const { itemType } = event.detail
 
       // 오브젝트 타입에 따른 처리
       switch (itemType) {
         case "book":
-          console.log("별 도감 오브젝트와 상호작용")
           // 나중에 별 도감 UI 표시 기능 구현
           break
         case "write":
         case "pen":
-          console.log("의뢰 작성 오브젝트와 상호작용")
           // 모든 별이 전달된 상태에서만 모달 표시
           if (allStarsDelivered) {
             setShowConcernModal(true)
           }
           break
         default:
-          console.log("알 수 없는 오브젝트 타입")
+          
       }
     }
 
@@ -751,11 +704,10 @@ export default function Game() {
   useEffect(() => {
     const loadCollisionMap = async () => {
       try {
-        console.log("충돌 맵 로드 시작")
         // 이미지 파일이 존재하는지 확인
         const testImg = new Image()
-        testImg.onload = () => console.log("충돌 맵 이미지가 존재합니다!")
-        testImg.onerror = () => console.error("충돌 맵 이미지를 찾을 수 없습니다!")
+        testImg.onload = () => {}
+        testImg.onerror = () => {}
         testImg.src = "/image/collision.png"
 
         const collisionMap = await getCollisionMap()
@@ -767,9 +719,7 @@ export default function Game() {
 
         collisionMapRef.current = collisionMap
         setCollisionMapLoaded(true)
-        console.log("충돌 맵 로드 완료")
       } catch (error) {
-        console.error("충돌 맵 로드 실패:", error)
         setErrorMessage(`충돌 맵 로드 실패: ${error}`)
       }
     }
@@ -781,20 +731,17 @@ export default function Game() {
   useEffect(() => {
     const initNPCs = async () => {
       try {
-        console.log("NPC 관리자 초기화 시작")
         // NPC 관리자 가져오기
         const npcManager = getNPCManager()
         npcManagerRef.current = npcManager
 
         // NPC 이미지 로드
-        console.log("NPC 이미지 로드 시작")
         await npcManager.preloadImages()
-        console.log("NPC 이미지 로드 완료")
+        
 
         // 이미지 로드 상태 업데이트
         setNpcImagesLoaded(true)
-      } catch (error) {
-        console.error("NPC 초기화 실패:", error)
+      } catch {
         // 오류가 발생해도 게임은 계속 진행
         setNpcImagesLoaded(true)
       }
@@ -807,20 +754,17 @@ export default function Game() {
   useEffect(() => {
     const initItems = async () => {
       try {
-        console.log("아이템 관리자 초기화 시작")
         // 아이템 관리자 가져오기
         const itemManager = getItemManager()
         itemManagerRef.current = itemManager
 
         // 아이템 이미지 로드
-        console.log("아이템 이미지 로드 시작")
         await itemManager.preloadImages()
-        console.log("아이템 이미지 로드 완료")
+        
 
         // 이미지 로드 상태 업데이트
         setItemImagesLoaded(true)
-      } catch (error) {
-        console.error("아이템 초기화 실패:", error)
+      } catch {
         // 오류가 발생해도 게임은 계속 진행
         setItemImagesLoaded(true)
       }
@@ -848,14 +792,12 @@ export default function Game() {
           }
         }
         img.onerror = () => {
-          console.error(`Failed to load image: ${imagePath}`)
           loadedCount++
           if (loadedCount === imagesToLoad) {
             setImagesLoaded(true)
           }
         }
         img.onerror = () => {
-          console.error(`Failed to load image: ${imagePath}`)
           loadedCount++
           if (loadedCount === imagesToLoad) {
             setImagesLoaded(true)
@@ -967,9 +909,9 @@ export default function Game() {
       typeof window !== "undefined" && new URLSearchParams(window.location.search).get("debug") === "true"
 
     // 안전한 로그 출력 함수
-    const safeLog = (message: string, ...args: any[]) => {
+    const safeLog = (...args: unknown[]) => {
       if (isDebugMode) {
-        console.log(message, ...args)
+        void args
       }
     }
 
@@ -1230,7 +1172,15 @@ export default function Game() {
         height: "100vh",
         overflow: "hidden",
         backgroundColor: "#000",
-      }}
+        userSelect: "none",
+        WebkitUserSelect: "none",
+        MozUserSelect: "none",
+        msUserSelect: "none",
+        WebkitTouchCallout: "none",
+        KhtmlUserSelect: "none"
+      } as React.CSSProperties}
+      onDragStart={(e) => e.preventDefault()}
+      onContextMenu={(e) => e.preventDefault()}
     >
       <div
         style={{
@@ -1239,7 +1189,12 @@ export default function Game() {
           width: `${viewportWidth}px`,
           height: `${viewportHeight}px`,
           backgroundColor: "transparent", // 항상 투명 배경 사용
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          MozUserSelect: "none",
+          msUserSelect: "none"
         }}
+        onDragStart={(e) => e.preventDefault()}
       >
         {/* 배경 - 항상 표시 */}
         <div
@@ -1251,7 +1206,13 @@ export default function Game() {
             backgroundRepeat: "no-repeat",
             backgroundSize: `${backgroundWidth}px ${backgroundHeight}px`,
             transform: `translate(${backgroundPosition.x}px, ${backgroundPosition.y}px)`,
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            MozUserSelect: "none",
+            msUserSelect: "none",
+            pointerEvents: "none"
           }}
+          onDragStart={(e) => e.preventDefault()}
         />
 
         {/* 캔버스 오버레이 (NPC 및 아이템 렌더링용) - 항상 표시 */}
@@ -1263,7 +1224,12 @@ export default function Game() {
             position: "absolute",
             pointerEvents: "none",
             zIndex: 5,
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            MozUserSelect: "none",
+            msUserSelect: "none"
           }}
+          onDragStart={(e) => e.preventDefault()}
         />
 
         {/* 플레이어 */}

@@ -39,6 +39,7 @@ export default function Page() {
   const [userId, setUserId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const storyTypingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const mainTypingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -209,24 +210,39 @@ export default function Page() {
     if (name.trim()) {
       setIsLoading(true)
       setApiError(null)
+      // 무한 재시도 모드
 
       try {
         localStorage.removeItem("userId")
         localStorage.removeItem("gameState")
 
-        const userData = await createUser(name.trim())
-        setUserId(userData.id)
-        localStorage.setItem("userId", userData.id)
-        localStorage.setItem("userName", name.trim())
+        // 성공 시까지 3초 간격으로 무한 재시도
+        // 실패 시에는 에러 문구를 표시하지 않고 대기만 유지
+        while (true) {
+          try {
+            const userData = await createUser(name.trim())
+            setUserId(userData.id)
+            localStorage.setItem("userId", userData.id)
+            localStorage.setItem("userName", name.trim())
 
-        setShowNameInput(false)
-        setDialogStep(DIALOGS.length)
-        setIsTyping(true)
-
-      } catch (error) {
-        console.error("API 오류:", error)
-        setApiError(error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다.")
+            setShowNameInput(false)
+            setDialogStep(DIALOGS.length)
+            setIsTyping(true)
+            break
+          } catch {
+            // 실패 시 3초 대기 후 재시도
+            await new Promise(resolve => {
+              retryTimeoutRef.current = setTimeout(() => {
+                resolve(undefined)
+              }, 3000)
+            })
+          }
+        }
       } finally {
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current)
+          retryTimeoutRef.current = null
+        }
         setIsLoading(false)
       }
     }
@@ -237,21 +253,31 @@ export default function Page() {
     if (!text) return null
 
     const formattedText = text.split('\n').map((line, index, array) => (
-      <span key={index}>
+      <span 
+        key={index} 
+        className="select-none" 
+        style={{ userSelect: 'none' }}
+        onDragStart={(e) => e.preventDefault()}
+      >
         {line}
         {index < array.length - 1 && <br />}
       </span>
     ))
 
     return (
-      <span>
+      <span 
+        className="select-none" 
+        style={{ userSelect: 'none' }}
+        onDragStart={(e) => e.preventDefault()}
+      >
         {formattedText}
-        {showTypingCursor && <span className="inline-block w-0.5 h-8 bg-white ml-1 animate-pulse"></span>}
+        {showTypingCursor && <span className="inline-block w-0.5 h-8 bg-white ml-1 animate-pulse select-none" style={{ userSelect: 'none' }}></span>}
         {!showTypingCursor && !isTyping && (
           <span 
-            className="ml-8 transition-opacity duration-200 opacity-100"
+            className="ml-8 transition-opacity duration-200 opacity-100 select-none"
             style={{
-              animation: 'blink 2s infinite'
+              animation: 'blink 2s infinite',
+              userSelect: 'none'
             }}
           >
             ▼
@@ -331,8 +357,7 @@ export default function Page() {
               localStorage.setItem("gameState", JSON.stringify(gameState));
               window.location.href = "/play";
             })
-            .catch(error => {
-              console.error("게임 시작 API 오류:", error);
+            .catch(() => {
               window.location.href = "/play";
             });
         }
@@ -340,19 +365,33 @@ export default function Page() {
     };
 
     return (
-      <main className="flex min-h-screen bg-black text-white relative overflow-hidden" onClick={handleStoryClick}>
-        <div className="container mx-auto flex items-center justify-center min-h-screen">
-          <div className="text-center text-2xl cursor-pointer relative z-10">
+      <main 
+        className="flex min-h-screen bg-black text-white relative overflow-hidden select-none" 
+        onClick={handleStoryClick}
+        style={{ 
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          KhtmlUserSelect: 'none'
+        } as React.CSSProperties}
+        onDragStart={(e) => e.preventDefault()}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <div className="container mx-auto flex items-center justify-center min-h-screen select-none">
+          <div className="text-center text-2xl cursor-pointer relative z-10 select-none" style={{ userSelect: 'none' }}>
             {/* 현재 단계에 맞는 텍스트 표시 */}
             {storyTextIndex < STORY_TEXTS.length && (
-              <div className="mb-8 whitespace-pre-line">
-                {storyText}
-                {storyTyping && <span className="inline-block w-0.5 h-8 bg-white ml-1 animate-pulse"></span>}
+              <div className="mb-8 whitespace-pre-line select-none" style={{ userSelect: 'none' }} onDragStart={(e) => e.preventDefault()}>
+                <span className="select-none" style={{ userSelect: 'none' }}>{storyText}</span>
+                {storyTyping && <span className="inline-block w-0.5 h-8 bg-white ml-1 animate-pulse select-none"></span>}
                 {!storyTyping && storyText && (
                   <span 
-                    className="ml-8 transition-opacity duration-200 opacity-100"
+                    className="ml-8 transition-opacity duration-200 opacity-100 select-none"
                     style={{
-                      animation: 'blink 2s infinite'
+                      animation: 'blink 2s infinite',
+                      userSelect: 'none'
                     }}
                   >
                     ▼
@@ -398,26 +437,71 @@ export default function Page() {
   }
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-black">
+    <>
+      {/* 전역 드래그 방지 스타일 */}
+      <style jsx global>{`
+        * {
+          user-select: none !important;
+          -webkit-user-select: none !important;
+          -moz-user-select: none !important;
+          -ms-user-select: none !important;
+          -webkit-touch-callout: none !important;
+          -khtml-user-select: none !important;
+        }
+        
+        input, textarea {
+          user-select: text !important;
+          -webkit-user-select: text !important;
+          -moz-user-select: text !important;
+          -ms-user-select: text !important;
+        }
+      `}</style>
+      
+      <main 
+        className="relative min-h-screen w-full overflow-hidden bg-black select-none"
+        style={{ 
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          KhtmlUserSelect: 'none'
+        } as React.CSSProperties}
+        onDragStart={(e) => e.preventDefault()}
+        onContextMenu={(e) => e.preventDefault()}
+      >
       {/* prince_text.png 배경 이미지 */}
-      <div className="relative w-full min-h-screen flex items-center justify-center">
+      <div className="relative w-full min-h-screen flex items-center justify-center select-none" style={{ userSelect: 'none' }}>
         <Image
           src="/image/prince_text.png"
           alt="Prince background"
           width={1920}
           height={1080}
-          className="w-4/5 h-auto max-w-4xl"
-          style={{ maxWidth: '80%', height: 'auto' }}
+          className="w-4/5 h-auto max-w-4xl select-none"
+          style={{ 
+            maxWidth: '80%', 
+            height: 'auto',
+            userSelect: 'none',
+            pointerEvents: 'none'
+          }}
           priority
+          draggable={false}
         />
         
         {/* 대화 텍스트 오버레이 */}
-        <div className="absolute inset-0 flex flex-col justify-center items-center px-8">
-          <div className="text-white max-w-5xl text-left ml-96 w-full">
+        <div className="absolute inset-0 flex flex-col justify-center items-center px-8 select-none" style={{ userSelect: 'none' }}>
+          <div className="text-white max-w-5xl text-left ml-96 w-full select-none" style={{ userSelect: 'none' }}>
             <div 
-              className="text-3xl cursor-pointer leading-loose"
+              className="text-3xl cursor-pointer leading-loose select-none"
               onClick={!showChoices && !showNameInput ? handleClick : undefined}
-              style={{ lineHeight: '1.8' }}
+              style={{ 
+                lineHeight: '1.8',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none'
+              }}
+              onDragStart={(e) => e.preventDefault()}
             >
               {formatTextWithCursor(currentText, isTyping)}
             </div>
@@ -425,19 +509,23 @@ export default function Page() {
 
           {/* 선택지 영역 - prince_text.png 우하단에 위치 */}
           {showChoices && (
-            <div className="absolute bottom-40 right-56 text-white text-2xl">
-              <span className="mx-3">▶</span>
+            <div className="absolute bottom-40 right-56 text-white text-2xl select-none" style={{ userSelect: 'none' }}>
+              <span className="mx-3 select-none" style={{ userSelect: 'none' }}>▶</span>
               <span 
                 onClick={() => handleChoice("help")}
-                className="cursor-pointer hover:opacity-80 transition"
+                className="cursor-pointer hover:opacity-80 transition select-none"
+                style={{ userSelect: 'none' }}
+                onDragStart={(e) => e.preventDefault()}
               >
                 무슨 일 인지 묻는다.
               </span>
-              <span className="mx-3"></span>
-              <span className="mx-3">▶</span>
+              <span className="mx-3 select-none" style={{ userSelect: 'none' }}></span>
+              <span className="mx-3 select-none" style={{ userSelect: 'none' }}>▶</span>
               <span 
                 onClick={() => handleChoice("noHelp")}
-                className="cursor-pointer hover:opacity-80 transition"
+                className="cursor-pointer hover:opacity-80 transition select-none"
+                style={{ userSelect: 'none' }}
+                onDragStart={(e) => e.preventDefault()}
               >
                 기다린다.
               </span>
@@ -468,6 +556,7 @@ export default function Page() {
         )}
       </div>
     </main>
+    </>
   )
 }
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import ShootingStar from "./components/shooting-star"
 import TrainSection from "./components/train-section"
@@ -8,6 +8,7 @@ import PlanetSection from "./components/planet-section"
 import PlanetBackground from "./components/planet-background"
 import CharacterSection from "./components/character-section"
 import StarBackground from "./components/star-background"
+import Header from "./components/header"
 import IntroSection from "./components/intro-section"
 import Image from "next/image"
 
@@ -24,12 +25,14 @@ export default function Home() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const sectionsRef = useRef<(HTMLElement | null)[]>([])
   const totalSections = 6 // 총 섹션 수
+  const [scrollLocked, setScrollLocked] = useState(false)
+  const containerRef = useRef<HTMLDivElement | null>(null)
 
-  const texts = [
+  const texts = useMemo(() => [
     "여러분들은 B612 행성에 존재하는 해결단,",
     "'장미'의 고객이 되어 고민을 해결하고자 그들의 사무실로 향합니다.",
     "하지만 어째선지, 사무실 안은 어수선하기만 합니다."
-  ]
+  ], [])
 
   // 페이지 로드 시 targetSection 확인하여 해당 섹션으로 이동
   useEffect(() => {
@@ -53,6 +56,11 @@ export default function Home() {
     let isScrolling = false
 
     const handleWheel = (e: WheelEvent) => {
+      // 기차 섹션(4)에서는 아래로 스크롤을 항상 차단. (자동 이동만 허용)
+      if (scrollLocked || (currentSection === 4 && e.deltaY > 0)) {
+        e.preventDefault()
+        return
+      }
       if (isScrolling) return
 
       isScrolling = true
@@ -71,12 +79,25 @@ export default function Home() {
       }, 800) // 애니메이션 시간에 맞춰 조정
     }
 
-    window.addEventListener("wheel", handleWheel)
+    const handleTouchMove = (e: TouchEvent) => {
+      if (scrollLocked || currentSection === 4) e.preventDefault()
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const keys = ["ArrowDown", "PageDown", "Space", "End"]
+      const blocking = scrollLocked || currentSection === 4
+      if (blocking && keys.includes(e.code)) e.preventDefault()
+    }
+
+    window.addEventListener("wheel", handleWheel, { passive: false })
+    window.addEventListener("touchmove", handleTouchMove, { passive: false })
+    window.addEventListener("keydown", handleKeyDown)
 
     return () => {
       window.removeEventListener("wheel", handleWheel)
+      window.removeEventListener("touchmove", handleTouchMove)
+      window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [currentSection, totalSections])
+  }, [currentSection, totalSections, scrollLocked])
 
   // 현재 섹션으로 스크롤
   useEffect(() => {
@@ -135,7 +156,7 @@ export default function Home() {
         }
       }
     }
-  }, [currentTextIndex, currentSection])
+  }, [currentTextIndex, currentSection, texts])
 
   // 마지막 섹션 클릭 핸들러
   const handleLastSectionClick = () => {
@@ -160,14 +181,21 @@ export default function Home() {
 
   return (
     <div
-      className="snap-y snap-mandatory h-screen overflow-y-auto relative"
+      ref={containerRef}
+      className="snap-y snap-mandatory h-screen overflow-y-auto no-scrollbar relative"
       style={{
-        scrollSnapType: "y mandatory",
+        scrollSnapType: scrollLocked ? "none" : "y mandatory",
         scrollBehavior: "smooth",
-        overflowY: "auto",
+        overflowY: scrollLocked ? "hidden" : "auto",
         height: "100vh",
       }}
     >
+      {/* 하단 카피라이트 - 장미 아이콘의 중앙선에 맞춰 중앙 정렬 */}
+      <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 z-[40]">
+        <p className="text-white text-xl flex items-center text-glow">
+          <span>ⓒ 2025 Rose company, All rights reserved.</span>
+        </p>
+      </div>
       <style jsx global>{`
         @keyframes twinkle {
           0%, 100% {
@@ -238,6 +266,8 @@ export default function Home() {
           backgroundPosition: "center",
         }}
       >
+        {/* 헤더 - 첫 번째 섹션에만 표시 */}
+        {currentSection === 0 && <Header />}
         <div className="absolute inset-0 z-[1]">
           <StarBackground />
         </div>
@@ -291,7 +321,7 @@ export default function Home() {
         <div className="absolute inset-0 z-[1]">
           <StarBackground />
         </div>
-        <PlanetSection isActive={currentSection === 3} />
+        <PlanetSection isActive={currentSection === 2} />
       </section>
 
       {/* 다섯 번째 섹션 - 열차 페이지 */}
@@ -308,19 +338,39 @@ export default function Home() {
           <StarBackground />
         </div>
         <div className="relative z-[5] w-full h-full">
-          <TrainSection isActive={currentSection === 4} />
+          <TrainSection
+            isActive={currentSection === 4}
+            onTrainStart={() => setScrollLocked(true)}
+            onTrainEnd={() => {
+              // 기차 이동이 완전히 끝난 뒤 1초 후 섹션 이동
+              setTimeout(() => {
+                // 스크롤은 해제하지 않고 섹션만 이동 (TrainSection에서 스크롤 완전 차단)
+                setCurrentSection(5)
+              }, 1000)
+            }}
+          />
         </div>
       </section>
 
       {/* 여섯 번째 섹션 - 새로운 섹션 */}
       <section
         ref={(el) => addSectionRef(el, 5)}
-        className="flex min-h-screen flex-col items-center justify-center snap-start relative bg-black"
+        className="flex min-h-screen flex-col items-center justify-center snap-start relative bg-black select-none"
         onClick={handleLastSectionClick}
-        style={{ cursor: 'default' }}
+        style={{ 
+          cursor: 'default',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          KhtmlUserSelect: 'none'
+        } as React.CSSProperties}
+        onDragStart={(e) => e.preventDefault()}
+        onContextMenu={(e) => e.preventDefault()}
       >
-        <div className="relative z-[5] w-full h-full flex items-center justify-center">
-          <div className="text-white text-center text-2xl leading-relaxed">
+        <div className="relative z-[5] w-full h-full flex items-center justify-center select-none" style={{ userSelect: 'none' }}>
+          <div className="text-white text-center text-2xl leading-relaxed select-none" style={{ userSelect: 'none' }}>
             <div className={`mb-4 transition-opacity duration-500 ${showText ? 'opacity-100' : 'opacity-0'}`}>
               {displayText}
               {isTyping && <span className="inline-block w-0.5 h-6 bg-white ml-1 animate-pulse"></span>}
@@ -329,18 +379,30 @@ export default function Home() {
               </span>
             </div>
             {showDoor && (
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-2000 opacity-0 animate-fadeIn">
-                <div className="relative">
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-2000 opacity-0 animate-fadeIn select-none" style={{ userSelect: 'none' }}>
+                <div className="relative select-none" style={{ userSelect: 'none' }}>
                   <Image
                     src="/image/door.png"
                     alt="Wooden door with vines"
                     width={400}
                     height={533}
                     priority
+                    draggable={false}
+                    style={{ userSelect: 'none', pointerEvents: 'none' }}
                   />
                   <div 
-                    className="absolute" 
-                    style={{ top: '47%', left: '60%', transform: 'translate(-50%, -50%)', cursor: 'pointer' }}
+                    className="absolute select-none" 
+                    style={{ 
+                      top: '47%', 
+                      left: '60%', 
+                      transform: 'translate(-50%, -50%)', 
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none'
+                    }}
+                    onDragStart={(e) => e.preventDefault()}
                     onClick={() => {
                       if (!isNavigating) {
                         setIsNavigating(true)

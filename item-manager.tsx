@@ -50,7 +50,7 @@ export class ItemManager {
           // 게임 상태에 따라 아이템 활성화 상태 업데이트
           this.updateItemsVisibility()
         } catch (error) {
-          console.error("게임 상태 파싱 오류:", error)
+          
         }
       }
     }
@@ -315,7 +315,7 @@ export class ItemManager {
   // 안전한 로그 출력 함수 - 디버그 모드에서만 출력
   private safeLog(message: string, ...args: any[]): void {
     if (this.isDebugMode) {
-      console.log(message, ...args)
+      // 디버그 모드에서만 로그
     }
   }
 
@@ -339,7 +339,6 @@ export class ItemManager {
         }
 
         img.onerror = (error) => {
-          console.error(`아이템 이미지 로드 실패: ${item.imagePath}`, error)
           // 이미지 로드 실패 시에도 resolve 처리하여 전체 프로세스가 중단되지 않도록 함
           resolve()
         }
@@ -355,7 +354,7 @@ export class ItemManager {
         this.safeLog("모든 아이템 이미지 로드 프로세스 완료")
       })
       .catch((error) => {
-        console.error("아이템 이미지 로드 중 오류 발생:", error)
+        
       })
   }
 
@@ -499,28 +498,18 @@ export class ItemManager {
 
         // userId가 없으면 오류 발생
         if (!userId) {
-          console.error("사용자 ID를 찾을 수 없습니다.")
-          console.log("localStorage 내용:", {
-            userId: localStorage.getItem("userId"),
-            gameState: localStorage.getItem("gameState"),
-            userName: localStorage.getItem("userName"),
-          })
-
           if (typeof window !== "undefined") {
             alert("사용자 ID를 찾을 수 없습니다. 게임을 다시 시작해주세요.")
           }
           return
         }
 
-        console.log(`${item.id} 별 수집 API 호출 중... userId: ${userId}, starType: ${item.starType}`)
-        const response = await collectStar(userId, item.starType)
-        console.log("별 수집 성공:", response)
+        const response = await collectStar(userId, item.starType as StarType)
+        
 
         // 응답 데이터 상세 로깅
         if (response.dialogues && response.dialogues.length > 0) {
-          console.log("API 응답 대화 데이터:", response.dialogues)
           const latestDialogue = response.dialogues[response.dialogues.length - 1]
-          console.log("최신 대화:", latestDialogue)
         }
 
         // ��임 상태 업데이트
@@ -543,7 +532,6 @@ export class ItemManager {
         })
         window.dispatchEvent(collectEvent)
       } catch (error) {
-        console.error(`별 수집 API 오류:`, error)
         if (typeof window !== "undefined") {
           alert(`별 수집 중 오류가 발생했습니다: ${error}`)
         }
@@ -551,14 +539,12 @@ export class ItemManager {
     }
     // 별 도감(book) 오브젝트와 상호작용
     else if (item.itemType === "book") {
-      console.log("별 도감 오브젝트와 상호작용")
       // 별 도감 열기 이벤트 발생
       const openStarGuideEvent = new CustomEvent("openStarGuide")
       window.dispatchEvent(openStarGuideEvent)
     }
     // 의뢰 작성(write, pen) 오브젝트와 상호작용
     else if (item.itemType === "write" || item.itemType === "pen") {
-      console.log("의뢰 작성 오브젝트와 상호작용")
       // 의뢰 작성 UI 표시 이벤트 발생
       const openWriteRequestEvent = new CustomEvent("openWriteRequest")
       window.dispatchEvent(openWriteRequestEvent)
