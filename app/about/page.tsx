@@ -72,6 +72,18 @@ export default function AboutPage() {
           to { opacity: 1; }
         }
         .animate-fadeIn { animation: fadeIn 3s ease-in-out forwards; }
+
+        .card-glow {
+          filter: drop-shadow(0 0 10px rgba(210, 180, 140, 0.7))
+                  drop-shadow(0 0 20px rgba(210, 180, 140, 0.5))
+                  drop-shadow(0 0 30px rgba(210, 180, 140, 0.3));
+        }
+
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        .blink { animation: blink 1.5s ease-in-out infinite; }
       `}</style>
       {/* About 전용 전체 화면 배경: 단색 검정 */}
       <div className="fixed inset-0 -z-10 bg-black pointer-events-none"></div>
@@ -102,17 +114,17 @@ export default function AboutPage() {
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '480px',
-                height: '640px',
+                width: '576px',
+                height: '768px',
                 zIndex: 50,
                 transition: 'all 1800ms ease-in-out'
               } : {
                 position: 'absolute',
-                top: '50%',
+                top: '40%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '320px',
-                height: '420px'
+                width: '384px',
+                height: '504px'
               }}
               onClick={() => {
                 if (!cardClicked) {
@@ -124,7 +136,15 @@ export default function AboutPage() {
               }}
             >
               <div className={`relative w-full h-full transition-opacity ${showMapBg ? 'duration-[2000ms] opacity-0' : 'opacity-100'} float-y perspective`}>
-                <div className={`relative w-full h-full spin-y`}>
+                {/* 위쪽 역삼각형 */}
+                {!cardClicked && (
+                  <div className="absolute -top-20 left-1/2 -translate-x-1/2 z-20 blink">
+                    <div className="w-0 h-0 border-l-[24px] border-l-transparent border-r-[24px] border-r-transparent border-t-[36px] border-t-[#D2B48C]" 
+                         style={{ filter: 'drop-shadow(0 0 8px rgba(210, 180, 140, 0.8))' }}></div>
+                  </div>
+                )}
+                
+                <div className={`relative w-full h-full spin-y card-glow`}>
                   <Image
                     src="/image/card.png"
                     alt="rose card"
@@ -133,6 +153,14 @@ export default function AboutPage() {
                     priority
                   />
                 </div>
+
+                {/* 아래쪽 삼각형 */}
+                {!cardClicked && (
+                  <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 z-20 blink" style={{ animationDelay: '0.75s' }}>
+                    <div className="w-0 h-0 border-l-[24px] border-l-transparent border-r-[24px] border-r-transparent border-b-[36px] border-b-[#D2B48C]"
+                         style={{ filter: 'drop-shadow(0 0 8px rgba(210, 180, 140, 0.8))' }}></div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -181,7 +209,7 @@ export default function AboutPage() {
             </div>
           )}
         </div>
-        <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 transition-all duration-[1200ms] delay-[2500ms] ease-in-out ${cardClicked ? 'opacity-0 -translate-x-[150%]' : 'opacity-100'}`}>
+        <div className={`fixed bottom-2 left-1/2 -translate-x-1/2 transition-all duration-[1200ms] delay-[2500ms] ease-in-out ${cardClicked ? 'opacity-0 -translate-x-[150%]' : 'opacity-100'} z-10`}>
           <p className="text-white/70 text-lg md:text-base">ⓒ 2025 Rose company, All rights reserved.</p>
         </div>
       </SectionFrame>

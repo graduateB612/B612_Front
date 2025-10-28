@@ -261,7 +261,7 @@ function SectionOne() {
                           paddingRight: '1.5rem'
                         }}
                       >
-                        <StackCard index={idx + 1} title={c.title} icons={c.icons} active={isActive}>
+                        <StackCard title={c.title} icons={c.icons} active={isActive}>
                           {c.body}
                         </StackCard>
                       </div>
@@ -370,10 +370,9 @@ function SectionOne() {
   )
 }
 
-function StackCard({ index, title, icons, children, active }: { index: number; title: string; icons: { src: string; alt: string; style?: React.CSSProperties }[]; children: React.ReactNode; active: boolean }) {
+function StackCard({ title, icons, children, active }: { title: string; icons: { src: string; alt: string; style?: React.CSSProperties }[]; children: React.ReactNode; active: boolean }) {
   return (
     <div className={`relative w-full px-6 md:px-8 ${active ? 'py-6 md:py-7' : 'py-6 md:py-6'} text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)]`}>
-      <div className="absolute top-3 right-4 text-white/60 text-sm md:text-base">{index}</div>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-4 items-start">
         <div>
           <div className="neon text-3xl md:text-4xl font-extrabold mt-3">{title}</div>
