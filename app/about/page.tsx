@@ -49,8 +49,9 @@ export default function AboutPage() {
   return (
     <div
       ref={containerRef}
-      className="snap-y snap-mandatory h-screen overflow-y-auto no-scrollbar relative"
-      style={{ scrollSnapType: "y mandatory", scrollBehavior: "smooth" }}
+      className="snap-y snap-mandatory h-screen overflow-y-auto no-scrollbar relative select-none"
+      style={{ scrollSnapType: "y mandatory", scrollBehavior: "smooth", userSelect: "none", WebkitUserSelect: "none" }}
+      onDragStart={(e) => e.preventDefault()}
     >
       <style jsx>{`
         @keyframes float-y {
@@ -93,9 +94,6 @@ export default function AboutPage() {
       <SectionFrame withPattern={false} transparent>
         <div className="relative">
           <HeroSection noGradient transparent showPattern={false} />
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
-            <p className="text-white/70 text-lg md:text-base">ⓒ 2025 Rose company, All rights reserved.</p>
-          </div>
         </div>
       </SectionFrame>
 
