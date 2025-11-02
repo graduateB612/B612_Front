@@ -49,8 +49,9 @@ export default function AboutPage() {
   return (
     <div
       ref={containerRef}
-      className="snap-y snap-mandatory h-screen overflow-y-auto no-scrollbar relative"
-      style={{ scrollSnapType: "y mandatory", scrollBehavior: "smooth" }}
+      className="snap-y snap-mandatory h-screen overflow-y-auto no-scrollbar relative select-none"
+      style={{ scrollSnapType: "y mandatory", scrollBehavior: "smooth", userSelect: "none", WebkitUserSelect: "none" }}
+      onDragStart={(e) => e.preventDefault()}
     >
       <style jsx>{`
         @keyframes float-y {
@@ -93,9 +94,6 @@ export default function AboutPage() {
       <SectionFrame withPattern={false} transparent>
         <div className="relative">
           <HeroSection noGradient transparent showPattern={false} />
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
-            <p className="text-white/70 text-lg md:text-base">ⓒ 2025 Rose company, All rights reserved.</p>
-          </div>
         </div>
       </SectionFrame>
 
@@ -601,11 +599,11 @@ function AboutSectionTwoTyping({ cardClicked }: { cardClicked: boolean }) {
       </div>
 
       <div className="mt-16 md:mt-24 lg:mt-28 text-white text-base md:text-lg leading-relaxed">
-        <p className={`transition-all duration-[1200ms] delay-[2000ms] ease-in-out ${cardClicked ? 'opacity-0 -translate-x-[150%]' : done ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-0'}`}>더 이상 쓰임이 많지 않은 감정과, 단단히 굳어버린 걱정.</p>
-        <p className={`mt-1 transition-all duration-[1200ms] delay-[2300ms] ease-in-out ${cardClicked ? 'opacity-0 -translate-x-[150%]' : done ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-0'}`}>
-          <span className={`neon transition-all duration-[1200ms] delay-[2300ms] ease-in-out ${cardClicked ? 'opacity-0 -translate-x-[150%]' : 'opacity-100 translate-x-0'}`}>해결단 &apos;장미&apos;</span>에서 관리하겠습니다.
+        <p className={`transition-all duration-[1200ms] delay-[1000ms] ease-in-out ${cardClicked ? 'opacity-0 -translate-x-[150%]' : done ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-0'}`}>더 이상 쓰임이 많지 않은 감정과, 단단히 굳어버린 걱정.</p>
+        <p className={`mt-1 transition-all duration-[1200ms] delay-[1300ms] ease-in-out ${cardClicked ? 'opacity-0 -translate-x-[150%]' : done ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-0'}`}>
+          <span className={`neon transition-all duration-[1200ms] delay-[1300ms] ease-in-out ${cardClicked ? 'opacity-0 -translate-x-[150%]' : 'opacity-100 translate-x-0'}`}>해결단 &apos;장미&apos;</span>에서 관리하겠습니다.
         </p>
-        <p className={`mt-1 transition-all duration-[1200ms] delay-[2600ms] ease-in-out ${cardClicked ? 'opacity-0 -translate-x-[150%]' : done ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-0'}`}>그들은 어디에나 있으니까요.</p>
+        <p className={`mt-1 transition-all duration-[1200ms] delay-[1600ms] ease-in-out ${cardClicked ? 'opacity-0 -translate-x-[150%]' : done ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-0'}`}>그들은 어디에나 있으니까요.</p>
       </div>
     </div>
   )
