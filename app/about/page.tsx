@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import HeroSection from "../components/hero-section"
 import Header from "../components/header"
 import SectionFrame from "../components/section-frame"
+import ScrollIndicator from "../components/scroll-indicator"
 import React from "react"
 
 export default function AboutPage() {
@@ -89,6 +90,9 @@ export default function AboutPage() {
       {/* About 전용 전체 화면 배경: 단색 검정 */}
       <div className="fixed inset-0 -z-10 bg-black pointer-events-none"></div>
       <Header />
+
+      {/* 스크롤 인디케이터 - 첫 번째 섹션에만 표시 */}
+      {currentSection === 0 && <ScrollIndicator />}
 
       {/* 섹션 1: 기존 히어로 */}
       <SectionFrame withPattern={false} transparent>

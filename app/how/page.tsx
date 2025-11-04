@@ -167,28 +167,61 @@ function SectionOne() {
         className={`absolute inset-0 flex items-center justify-center select-none transition-opacity duration-700 ${showIntro ? 'opacity-100' : 'opacity-0 pointer-events-none'} z-50`}
         style={{ pointerEvents: showIntro ? 'none' : 'none' }} // 스크롤을 위해 pointer-events 비활성화
       >
-        <h2 
-          className="neon text-center font-extrabold text-5xl md:text-7xl leading-tight cursor-pointer"
-          style={{ pointerEvents: showIntro ? 'auto' : 'none' }} // 텍스트만 클릭 가능
-          onClick={() => {
-            setShowIntro(false)
-            if (scrollerRef.current && isClient) {
-              scrollerRef.current.scrollTop = window.innerHeight * 0.5 // 50vh로 스크롤 (섹션 1)
-            }
-            setActiveIndex(0)
-          }}
-          onTouchStart={() => {
-            setShowIntro(false)
-            if (scrollerRef.current && isClient) {
-              scrollerRef.current.scrollTop = window.innerHeight * 0.5 // 50vh로 스크롤 (섹션 1)
-            }
-            setActiveIndex(0)
-          }}
-        >
-          &lsquo;장미&rsquo; 사무실
-          <br />
-          안내 가이드
-        </h2>
+        <div className="text-center">
+          <h2 
+            className="neon font-extrabold text-5xl md:text-7xl leading-tight cursor-pointer"
+            style={{ pointerEvents: showIntro ? 'auto' : 'none' }} // 텍스트만 클릭 가능
+            onClick={() => {
+              setShowIntro(false)
+              if (scrollerRef.current && isClient) {
+                scrollerRef.current.scrollTop = window.innerHeight * 0.5 // 50vh로 스크롤 (섹션 1)
+              }
+              setActiveIndex(0)
+            }}
+            onTouchStart={() => {
+              setShowIntro(false)
+              if (scrollerRef.current && isClient) {
+                scrollerRef.current.scrollTop = window.innerHeight * 0.5 // 50vh로 스크롤 (섹션 1)
+              }
+              setActiveIndex(0)
+            }}
+          >
+            &lsquo;장미&rsquo; 사무실
+            <br />
+            안내 가이드
+          </h2>
+          
+          {/* 삼각형 (위를 가리킴) */}
+          <div className="mt-8 flex justify-center">
+            <div 
+              className="w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-b-[30px] border-b-white/70"
+              style={{ 
+                filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))'
+              }}
+            />
+          </div>
+          
+          <p 
+            className="text-white/70 text-xl md:text-2xl font-semibold mt-4 cursor-pointer"
+            style={{ pointerEvents: showIntro ? 'auto' : 'none' }}
+            onClick={() => {
+              setShowIntro(false)
+              if (scrollerRef.current && isClient) {
+                scrollerRef.current.scrollTop = window.innerHeight * 0.5
+              }
+              setActiveIndex(0)
+            }}
+            onTouchStart={() => {
+              setShowIntro(false)
+              if (scrollerRef.current && isClient) {
+                scrollerRef.current.scrollTop = window.innerHeight * 0.5
+              }
+              setActiveIndex(0)
+            }}
+          >
+            CLICK
+          </p>
+        </div>
       </div>
 
       {/* 전체 화면 스크롤러 */}

@@ -10,6 +10,7 @@ import CharacterSection from "./components/character-section"
 import StarBackground from "./components/star-background"
 import Header from "./components/header"
 import IntroSection from "./components/intro-section"
+import ScrollIndicator from "./components/scroll-indicator"
 import Image from "next/image"
 
 export default function Home() {
@@ -255,6 +256,9 @@ export default function Home() {
       <div className="fixed inset-0 z-[2] pointer-events-none">
         <ShootingStar />
       </div>
+
+      {/* 스크롤 인디케이터 - 첫 번째 섹션에만 표시 */}
+      {currentSection === 0 && <ScrollIndicator />}
 
       {/* 첫 번째 섹션: 기존 내용 */}
       <section
