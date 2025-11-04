@@ -91,6 +91,23 @@ export default function StarGuide({ onClose }: StarGuideProps) {
     fetchStarGuideData(0)
   }, [])
 
+  // 스페이스바 키 이벤트 리스너 추가
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 대화창이 표시 중일 때만 스페이스바로 진행
+      if (showDialogue && (e.code === "Space" || e.key === " ")) {
+        e.preventDefault() // 스페이스바의 기본 동작(스크롤) 방지
+        handleDialogueNext()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [showDialogue, currentDialogueIndex, guideData])
+
   // 대화 진행
   const handleDialogueNext = () => {
     if (!guideData || !guideData.dialogues) return

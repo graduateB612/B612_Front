@@ -435,16 +435,14 @@ export class ItemManager {
     } else {
       // 이미지가 없으면 텍스트로 표시
       ctx.fillStyle = "white"
-      ctx.font = "bold 16px Arial"
+      ctx.font = "bold 14px Arial"
       ctx.textAlign = "center"
-      ctx.fillText("E", x + 15, y + 20)
+      ctx.fillText("줍기", x + 25, y + 18)
 
-      // 원형 배경
-      ctx.beginPath()
-      ctx.arc(x + 15, y + 15, 15, 0, Math.PI * 2)
+      // 사각형 배경
       ctx.strokeStyle = "white"
       ctx.lineWidth = 2
-      ctx.stroke()
+      ctx.strokeRect(x, y, 50, 25)
     }
   }
 
