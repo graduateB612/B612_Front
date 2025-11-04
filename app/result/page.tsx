@@ -164,6 +164,7 @@ export default function ResultPage() {
 
         <div className="text-white text-lg mb-8">
           <p>입력하신 이메일: {email || "이메일 정보가 없습니다."}</p>
+          <p>1~5분내로 메일이 도착합니다.</p>
         </div>
 
         <Link

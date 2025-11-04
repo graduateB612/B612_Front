@@ -21,8 +21,12 @@ export class ItemManager {
   private imageCache: Record<string, HTMLImageElement> = {}
   private interactionIndicator: HTMLImageElement | null = null
   private exclamationMark: HTMLImageElement | null = null // 느낌표 이미지 추가
+  private arrowImage: HTMLImageElement | null = null // 일반 화살표 이미지 추가
+  private blueArrowImage: HTMLImageElement | null = null // 파란 화살표 이미지 추가
   private isDebugMode = false // 디버그 모드 플래그
   private currentGameState: GameStateResponse | null = null
+  private animationOffset = 0 // 화살표 애니메이션용 오프셋
+  private lastAnimationTime = 0 // 마지막 애니메이션 시간
 
   constructor() {
     // 아이템 초기화
@@ -31,6 +35,10 @@ export class ItemManager {
     this.loadInteractionIndicator()
     // 느낌표 이미지 로드
     this.loadExclamationMark()
+    // 화살표 이미지 로드
+    this.loadArrowImage()
+    // 파란 화살표 이미지 로드
+    this.loadBlueArrowImage()
     // 현재 게임 상태 로드
     this.loadGameState()
 
@@ -150,6 +158,32 @@ export class ItemManager {
         itemType: "pen", // 의뢰 작성 펜 타입
         hasInteracted: false, // 초기값은 false
       },
+      // 계단 안내 화살표 - 아래로 (밥과 대화 후 표시)
+      {
+        id: "stairs_arrow_down",
+        x: 525,
+        y: 2050,
+        width: 120,
+        height: 120,
+        imagePath: "/image/arrow.png",
+        isActive: false, // 초기에는 비활성
+        interactionDistance: 0, // 상호작용 불가
+        itemType: "stairs_guide_down", // 계단 안내 타입 (아래)
+        hasInteracted: false,
+      },
+      // 계단 안내 화살표 - 위로 (여우와 대화 후 표시)
+      {
+        id: "stairs_arrow_up",
+        x: 525,
+        y: 1300,
+        width: 120,
+        height: 120,
+        imagePath: "/image/arrow.png",
+        isActive: false, // 초기에는 비활성
+        interactionDistance: 0, // 상호작용 불가
+        itemType: "stairs_guide_up", // 계단 안내 타입 (위)
+        hasInteracted: false,
+      },
     ]
   }
 
@@ -196,6 +230,32 @@ export class ItemManager {
           if (allStarsDelivered) {
             item.hasInteracted = false
           }
+        }
+        // 계단 안내 화살표 - 아래로 (밥과 대화 후 표시)
+        else if (item.itemType === "stairs_guide_down") {
+          // 밥과 대화 완료(DELIVER_LONELY) 이후이면서
+          // 슬픔 별 수집(COLLECT_SAD) 전까지만 표시
+          item.isActive =
+            (currentStage === GameStage.DELIVER_LONELY ||
+              this.isLaterStage(currentStage, GameStage.DELIVER_LONELY)) &&
+            currentStage !== GameStage.COLLECT_SAD &&
+            !this.isLaterStage(currentStage, GameStage.COLLECT_SAD)
+          
+          this.safeLog(`계단 화살표(아래) 상태: ${item.isActive}, 현재 단계: ${currentStage}`)
+        }
+        // 계단 안내 화살표 - 위로 (여우와 대화 후 표시)
+        else if (item.itemType === "stairs_guide_up") {
+          // 여우와 대화 완료(DELIVER_SAD) 이후이면서
+          // pen이나 write와 상호작용하기 전까지 표시
+          const penItem = this.items.find((i) => i.itemType === "pen")
+          const writeItem = this.items.find((i) => i.itemType === "write")
+          const hasInteractedWithPenOrWrite = (penItem?.hasInteracted || writeItem?.hasInteracted) ?? false
+          
+          item.isActive =
+            allStarsDelivered &&
+            !hasInteractedWithPenOrWrite
+          
+          this.safeLog(`계단 화살표(위) 상태: ${item.isActive}, 현재 단계: ${currentStage}, pen/write 상호작용: ${hasInteractedWithPenOrWrite}`)
         }
         return
       }
@@ -312,6 +372,24 @@ export class ItemManager {
     img.src = "/image/exclamation_mark.png"
   }
 
+  private loadArrowImage(): void {
+    // 일반 화살표 이미지 로드
+    const img = new Image()
+    img.onload = () => {
+      this.arrowImage = img
+    }
+    img.src = "/image/arrow.png"
+  }
+
+  private loadBlueArrowImage(): void {
+    // 파란 화살표 이미지 로드
+    const img = new Image()
+    img.onload = () => {
+      this.blueArrowImage = img
+    }
+    img.src = "/image/arrow-blue.png"
+  }
+
   // 안전한 로그 출력 함수 - 디버그 모드에서만 출력
   private safeLog(message: string, ...args: any[]): void {
     if (this.isDebugMode) {
@@ -327,6 +405,16 @@ export class ItemManager {
     const exclamationImg = new Image()
     exclamationImg.src = "/image/exclamation_mark.png"
     this.imageCache["/image/exclamation_mark.png"] = exclamationImg
+
+    // 화살표 이미지 프리로드
+    const arrowImg = new Image()
+    arrowImg.src = "/image/arrow.png"
+    this.imageCache["/image/arrow.png"] = arrowImg
+
+    // 파란 화살표 이미지 프리로드
+    const blueArrowImg = new Image()
+    blueArrowImg.src = "/image/arrow-blue.png"
+    this.imageCache["/image/arrow-blue.png"] = blueArrowImg
 
     const promises = this.items.map((item) => {
       return new Promise<void>((resolve, reject) => {
@@ -366,7 +454,12 @@ export class ItemManager {
     playerX: number,
     playerY: number,
   ): void {
-    // 로그 출력 완전히 제거
+    // 애니메이션 오프셋 업데이트 (위아래 움직임)
+    const now = Date.now()
+    if (now - this.lastAnimationTime > 50) {
+      this.animationOffset = Math.sin(now / 300) * 10 // -10 ~ 10 픽셀 범위로 움직임
+      this.lastAnimationTime = now
+    }
 
     // 활성화된 아이템만 렌더링
     this.items
@@ -375,48 +468,98 @@ export class ItemManager {
         const img = this.imageCache[item.imagePath]
 
         if (img) {
-          // 이미지가 로드된 경우 렌더링
-          ctx.drawImage(img, item.x + offsetX, item.y + offsetY, item.width, item.height)
+          // 계단 안내 화살표는 기본 이미지 렌더링 건너뛰기 (회전된 버전만 그림)
+          if (item.itemType !== "stairs_guide_down" && item.itemType !== "stairs_guide_up") {
+            // 이미지가 로드된 경우 렌더링
+            ctx.drawImage(img, item.x + offsetX, item.y + offsetY, item.width, item.height)
+          }
 
           // 플레이어가 상호작용 가능한 거리에 있는지 확인
           if (this.isPlayerNearItem(playerX, playerY, item)) {
             // 상호작용 가능 표시 (E키)
             this.renderInteractionIndicator(ctx, item.x + offsetX, item.y + offsetY - 30)
           }
-          // 상호작용하지 않은 오브젝트에 느낌표 표시 (별 타입이 아닌 경우만)
+          // 별 아이템인 경우 화살표 표시
+          else if (item.starType && this.arrowImage) {
+            // 화살표 렌더링 (아이템 위에 애니메이션과 함께 표시)
+            ctx.drawImage(
+              this.arrowImage,
+              item.x + offsetX + item.width / 2 - 15, // 아이템 중앙 위에 위치
+              item.y + offsetY - 50 + this.animationOffset, // 아이템 위에 위치 + 애니메이션
+              30, // 화살표 크기
+              30,
+            )
+          }
+          // 계단 안내 화살표 - 아래로 (180도 회전)
+          else if (item.itemType === "stairs_guide_down" && this.arrowImage) {
+            // 캔버스 상태 저장
+            ctx.save()
+            
+            // 회전 중심을 화살표 중앙으로 이동
+            const centerX = item.x + offsetX + item.width / 2
+            const centerY = item.y + offsetY + item.height / 2 + this.animationOffset
+            
+            ctx.translate(centerX, centerY)
+            // 180도 회전 (아래쪽을 가리키도록)
+            ctx.rotate(Math.PI)
+            
+            // 화살표 렌더링 (회전된 상태에서 중앙 기준)
+            ctx.drawImage(
+              this.arrowImage,
+              -item.width / 2, // 중앙 기준으로 위치 조정
+              -item.height / 2,
+              item.width,
+              item.height,
+            )
+            
+            // 캔버스 상태 복원
+            ctx.restore()
+          }
+          // 계단 안내 화살표 - 위로 (회전 없음, 원본 방향)
+          else if (item.itemType === "stairs_guide_up" && this.arrowImage) {
+            // 화살표 렌더링 (둥실둥실 효과와 함께)
+            ctx.drawImage(
+              this.arrowImage,
+              item.x + offsetX,
+              item.y + offsetY + this.animationOffset, // 애니메이션 효과
+              item.width,
+              item.height,
+            )
+          }
+          // 상호작용하지 않은 오브젝트에 화살표 표시 (별 타입이 아닌 경우만)
           else if (
             !item.hasInteracted &&
             item.itemType &&
-            (item.itemType === "write" || item.itemType === "pen") &&
-            this.exclamationMark
+            (item.itemType === "write" || item.itemType === "pen" || item.itemType === "book") &&
+            this.blueArrowImage
           ) {
-            // 모든 별이 전달된 상태인지 확인
-            const allStarsDelivered =
-              this.currentGameState &&
-              (this.currentGameState.currentStage === GameStage.REQUEST_INPUT ||
-                this.currentGameState.currentStage === GameStage.NPC_SELECTION ||
-                this.currentGameState.currentStage === GameStage.GAME_COMPLETE ||
-                this.isLaterStage(this.currentGameState.currentStage, GameStage.DELIVER_SAD))
+            // book은 항상 표시, write/pen은 모든 별 전달 후 표시
+            const shouldShow =
+              item.itemType === "book" ||
+              (this.currentGameState &&
+                (this.currentGameState.currentStage === GameStage.REQUEST_INPUT ||
+                  this.currentGameState.currentStage === GameStage.NPC_SELECTION ||
+                  this.currentGameState.currentStage === GameStage.GAME_COMPLETE ||
+                  this.isLaterStage(this.currentGameState.currentStage, GameStage.DELIVER_SAD)))
 
-            // 모든 별이 전달된 상태에서만 느낌표 표시
-            if (allStarsDelivered) {
-              // 느낌표 렌더링 (아이템 위에 표시)
+            if (shouldShow) {
+              // 파란 화살표 렌더링 (아이템 위에 애니메이션과 함께 표시)
               ctx.drawImage(
-                this.exclamationMark,
-                item.x + offsetX + item.width / 2 - 10, // 아이템 중앙 위에 위치
-                item.y + offsetY - 25, // 아이템 위에 위치
-                20, // 느낌표 크기
-                20,
+                this.blueArrowImage,
+                item.x + offsetX + item.width / 2 - 15, // 아이템 중앙 위에 위치
+                item.y + offsetY - 50 + this.animationOffset, // 아이템 위에 위치 + 애니메이션
+                30, // 화살표 크기
+                30,
               )
             }
-          } else if (!item.hasInteracted && item.itemType && this.exclamationMark) {
-            // 느낌표 렌더링 (아이템 위에 표시)
+          } else if (!item.hasInteracted && item.itemType && this.blueArrowImage) {
+            // 파란 화살표 렌더링 (아이템 위에 애니메이션과 함께 표시)
             ctx.drawImage(
-              this.exclamationMark,
-              item.x + offsetX + item.width / 2 - 10, // 아이템 중앙 위에 위치
-              item.y + offsetY - 25, // 아이템 위에 위치
-              20, // 느낌표 크기
-              20,
+              this.blueArrowImage,
+              item.x + offsetX + item.width / 2 - 15, // 아이템 중앙 위에 위치
+              item.y + offsetY - 50 + this.animationOffset, // 아이템 위에 위치 + 애니메이션
+              30, // 화살표 크기
+              30,
             )
           }
         } else {
@@ -435,16 +578,14 @@ export class ItemManager {
     } else {
       // 이미지가 없으면 텍스트로 표시
       ctx.fillStyle = "white"
-      ctx.font = "bold 16px Arial"
+      ctx.font = "bold 14px Arial"
       ctx.textAlign = "center"
-      ctx.fillText("E", x + 15, y + 20)
+      ctx.fillText("줍기", x + 25, y + 18)
 
-      // 원형 배경
-      ctx.beginPath()
-      ctx.arc(x + 15, y + 15, 15, 0, Math.PI * 2)
+      // 사각형 배경
       ctx.strokeStyle = "white"
       ctx.lineWidth = 2
-      ctx.stroke()
+      ctx.strokeRect(x, y, 50, 25)
     }
   }
 

@@ -169,7 +169,7 @@ export default function SelectPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center mb-16">
+        <h1 className="neon-text text-3xl font-bold text-center mb-16">
           {userName ? `${userName}님, ` : ""}당신의 이야기를 들어줄 친구를 선택해주세요
         </h1>
 
@@ -223,12 +223,16 @@ export default function SelectPage() {
           {isSubmitting ? (
             <p className="text-lg">처리 중입니다...</p>
           ) : (
-            <p className="text-lg">
+            <p className="neon-text text-lg font-semibold">
               {selectedNPC
                 ? `${npcs.find((npc) => npc.id === selectedNPC)?.name}와(과) 함께 이야기를 나눕니다...`
-                : "캐릭터를 클릭하여 선택해주세요"}
+                : "캐릭터를 클릭하여 선택해주세요."}
             </p>
+            
+          
           )}
+          <p className="neon-text-subtle mt-4">각 캐릭터는 고유한 성격을 가지고 있습니다.</p>
+          <p className="neon-text-subtle">선택한 캐릭터에 따라 다른 답변을 받아보실 수 있습니다.</p>
         </div>
       </div>
 
@@ -237,6 +241,74 @@ export default function SelectPage() {
           image-rendering: pixelated;
           image-rendering: -moz-crisp-edges;
           image-rendering: crisp-edges;
+        }
+
+        /* 네온사인 효과 - 강한 버전 */
+        .neon-text {
+          text-shadow: 
+            0 0 7px rgba(255, 255, 255, 0.8),
+            0 0 10px rgba(255, 255, 255, 0.8),
+            0 0 21px rgba(255, 255, 255, 0.6),
+            0 0 42px rgba(59, 130, 246, 0.5),
+            0 0 82px rgba(59, 130, 246, 0.3),
+            0 0 92px rgba(59, 130, 246, 0.2),
+            0 0 102px rgba(59, 130, 246, 0.1),
+            0 0 151px rgba(59, 130, 246, 0.05);
+          animation: neonPulse 2s ease-in-out infinite;
+        }
+
+        /* 네온사인 효과 - 약한 버전 */
+        .neon-text-subtle {
+          text-shadow: 
+            0 0 5px rgba(255, 255, 255, 0.5),
+            0 0 10px rgba(255, 255, 255, 0.3),
+            0 0 15px rgba(255, 255, 255, 0.2),
+            0 0 20px rgba(59, 130, 246, 0.2);
+          animation: neonPulseSubtle 3s ease-in-out infinite;
+        }
+
+        /* 네온 펄스 애니메이션 - 강한 버전 */
+        @keyframes neonPulse {
+          0%, 100% {
+            text-shadow: 
+              0 0 7px rgba(255, 255, 255, 0.8),
+              0 0 10px rgba(255, 255, 255, 0.8),
+              0 0 21px rgba(255, 255, 255, 0.6),
+              0 0 42px rgba(59, 130, 246, 0.5),
+              0 0 82px rgba(59, 130, 246, 0.3),
+              0 0 92px rgba(59, 130, 246, 0.2),
+              0 0 102px rgba(59, 130, 246, 0.1),
+              0 0 151px rgba(59, 130, 246, 0.05);
+          }
+          50% {
+            text-shadow: 
+              0 0 10px rgba(255, 255, 255, 1),
+              0 0 20px rgba(255, 255, 255, 0.9),
+              0 0 30px rgba(255, 255, 255, 0.7),
+              0 0 50px rgba(59, 130, 246, 0.7),
+              0 0 90px rgba(59, 130, 246, 0.5),
+              0 0 100px rgba(59, 130, 246, 0.3),
+              0 0 120px rgba(59, 130, 246, 0.2),
+              0 0 160px rgba(59, 130, 246, 0.1);
+          }
+        }
+
+        /* 네온 펄스 애니메이션 - 약한 버전 */
+        @keyframes neonPulseSubtle {
+          0%, 100% {
+            text-shadow: 
+              0 0 5px rgba(255, 255, 255, 0.5),
+              0 0 10px rgba(255, 255, 255, 0.3),
+              0 0 15px rgba(255, 255, 255, 0.2),
+              0 0 20px rgba(59, 130, 246, 0.2);
+          }
+          50% {
+            text-shadow: 
+              0 0 7px rgba(255, 255, 255, 0.7),
+              0 0 14px rgba(255, 255, 255, 0.5),
+              0 0 21px rgba(255, 255, 255, 0.3),
+              0 0 28px rgba(59, 130, 246, 0.3);
+          }
         }
       `}</style>
     </main>
