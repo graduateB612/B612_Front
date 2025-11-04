@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import localFont from "next/font/local"
 import "./globals.css"
+import InactivityTimer from "./components/inactivity-timer"
 
 // // PF Stardust 3.0 폰트 설정
 // const pfStardust = localFont({
@@ -41,7 +42,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={` ${neodgm.variable}`}>
-      <body style={{ fontFamily: " var(--font-neodgm), sans-serif" }}>{children}</body>
+      <body style={{ fontFamily: " var(--font-neodgm), sans-serif" }}>
+        <InactivityTimer />
+        {children}
+      </body>
     </html>
   )
 }

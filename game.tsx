@@ -839,8 +839,8 @@ export default function Game() {
 
       setKeysPressed((prev) => ({ ...prev, [e.key]: true }))
 
-      // E키 입력 감지 (상호작용)
-      if (e.key === "e" || e.key === "E") {
+      // 스페이스바 입력 감지 (상호작용)
+      if (e.key === " ") {
         // 상호작용 가능한 아이템이 있는지 확인
         if (interactableItem && itemManagerRef.current) {
           // 아이템과 상호작용
@@ -1263,7 +1263,7 @@ export default function Game() {
               zIndex: 20,
             }}
           >
-            E키를 눌러 상호작용
+            스페이스바를 눌러 상호작용
           </div>
         )}
 

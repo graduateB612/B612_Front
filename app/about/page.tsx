@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import HeroSection from "../components/hero-section"
 import Header from "../components/header"
 import SectionFrame from "../components/section-frame"
+import ScrollIndicator from "../components/scroll-indicator"
 import React from "react"
 
 export default function AboutPage() {
@@ -90,6 +91,9 @@ export default function AboutPage() {
       <div className="fixed inset-0 -z-10 bg-black pointer-events-none"></div>
       <Header />
 
+      {/* 스크롤 인디케이터 - 첫 번째 섹션에만 표시 */}
+      {currentSection === 0 && <ScrollIndicator />}
+
       {/* 섹션 1: 기존 히어로 */}
       <SectionFrame withPattern={false} transparent>
         <div className="relative">
@@ -157,6 +161,13 @@ export default function AboutPage() {
                   <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 z-20 blink" style={{ animationDelay: '0.75s' }}>
                     <div className="w-0 h-0 border-l-[24px] border-l-transparent border-r-[24px] border-r-transparent border-b-[36px] border-b-[#D2B48C]"
                          style={{ filter: 'drop-shadow(0 0 8px rgba(210, 180, 140, 0.8))' }}></div>
+                    {/* CLICK 텍스트 */}
+                    <div className="absolute top-12 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                      <span className="text-[#D2B48C] text-xl font-semibold tracking-wider" 
+                            style={{ filter: 'drop-shadow(0 0 4px rgba(210, 180, 140, 0.6))' }}>
+                        CLICK
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
