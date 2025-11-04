@@ -161,6 +161,13 @@ export default function AboutPage() {
                   <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 z-20 blink" style={{ animationDelay: '0.75s' }}>
                     <div className="w-0 h-0 border-l-[24px] border-l-transparent border-r-[24px] border-r-transparent border-b-[36px] border-b-[#D2B48C]"
                          style={{ filter: 'drop-shadow(0 0 8px rgba(210, 180, 140, 0.8))' }}></div>
+                    {/* CLICK 텍스트 */}
+                    <div className="absolute top-12 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                      <span className="text-[#D2B48C] text-xl font-semibold tracking-wider" 
+                            style={{ filter: 'drop-shadow(0 0 4px rgba(210, 180, 140, 0.6))' }}>
+                        CLICK
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
