@@ -16,6 +16,7 @@ export class NPCManager {
   private npcs: NPC[] = []
   private imageCache: Record<string, HTMLImageElement> = {}
   private interactionIndicator: HTMLImageElement | null = null
+  private redArrowImage: HTMLImageElement | null = null // 빨간 화살표 이미지 추가
   private isDebugMode = false // 디버그 모드 플래그
   private collectedStars: Set<StarType> = new Set() // 수집한 별 목록
   private deliveredStars: Set<StarType> = new Set() // 전달한 별 목록
@@ -23,12 +24,16 @@ export class NPCManager {
   private allStarsDeliveredFlag = false // 모든 별이 전달되었는지 여부
   private foxDialogueInProgress = false // 여우 대화 진행 중 여부
   private foxDialogueQueue: { text: string; background: string }[] = [] // 여우 대화 큐
+  private animationOffset = 0 // 화살표 애니메이션용 오프셋
+  private lastAnimationTime = 0 // 마지막 애니메이션 시간
 
   constructor() {
     // NPC 초기화
     this.initializeNPCs()
     // 상호작용 표시 이미지 로드
     this.loadInteractionIndicator()
+    // 빨간 화살표 이미지 로드
+    this.loadRedArrowImage()
     // 게임 상태 로드
     this.loadGameState()
 
@@ -305,6 +310,15 @@ export class NPCManager {
     img.src = "/image/e_key.png"
   }
 
+  private loadRedArrowImage(): void {
+    // 빨간 화살표 이미지 로드
+    const img = new Image()
+    img.onload = () => {
+      this.redArrowImage = img
+    }
+    img.src = "/image/arrow-red.png"
+  }
+
   // 안전한 로그 출력 함수 - 디버그 모드에서만 출력
   private safeLog(...args: unknown[]): void {
     if (this.isDebugMode) {
@@ -316,6 +330,11 @@ export class NPCManager {
   // NPC 이미지 프리로드
   public preloadImages(): Promise<void> {
     this.safeLog("NPC 이미지 프리로드 시작...")
+
+    // 빨간 화살표 이미지 프리로드
+    const redArrowImg = new Image()
+    redArrowImg.src = "/image/arrow-red.png"
+    this.imageCache["/image/arrow-red.png"] = redArrowImg
 
     const promises = this.npcs.map((npc) => {
       return new Promise<void>((resolve) => {
@@ -360,6 +379,13 @@ export class NPCManager {
       return
     }
 
+    // 애니메이션 오프셋 업데이트 (위아래 움직임)
+    const now = Date.now()
+    if (now - this.lastAnimationTime > 50) {
+      this.animationOffset = Math.sin(now / 300) * 10 // -10 ~ 10 픽셀 범위로 움직임
+      this.lastAnimationTime = now
+    }
+
     // 모든 NPC 렌더링 (별 전달 여부와 관계없이)
     this.npcs.forEach((npc) => {
       const img = this.imageCache[npc.imagePath]
@@ -377,6 +403,23 @@ export class NPCManager {
         ) {
           // 상호작용 가능 표시 (E키)
           this.renderInteractionIndicator(ctx, npc.x + offsetX, npc.y + offsetY - 30)
+        }
+        // 플레이어가 멀리 있지만 별을 수집했고 전달하지 않은 경우 빨간 화살표 표시
+        else if (
+          !this.isPlayerNearNPC(playerX, playerY, npc) &&
+          npc.acceptsStarType &&
+          this.collectedStars.has(npc.acceptsStarType) &&
+          !this.deliveredStars.has(npc.acceptsStarType) &&
+          this.redArrowImage
+        ) {
+          // 빨간 화살표 렌더링 (NPC 위에 애니메이션과 함께 표시)
+          ctx.drawImage(
+            this.redArrowImage,
+            npc.x + offsetX + npc.width / 2 - 25, // NPC 중앙 위에 위치
+            npc.y + offsetY - 70 + this.animationOffset, // NPC 위에 위치 + 애니메이션
+            50, // 화살표 크기 (40 * 1.25 = 50)
+            50,
+          )
         }
       } else {
         // 이미지가 없는 경우 플레이스홀더 사각형 그리기

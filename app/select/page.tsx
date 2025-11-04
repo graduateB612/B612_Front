@@ -226,9 +226,13 @@ export default function SelectPage() {
             <p className="text-lg">
               {selectedNPC
                 ? `${npcs.find((npc) => npc.id === selectedNPC)?.name}와(과) 함께 이야기를 나눕니다...`
-                : "캐릭터를 클릭하여 선택해주세요"}
+                : "캐릭터를 클릭하여 선택해주세요."}
             </p>
+            
+          
           )}
+          <p>각 캐릭터는 고유한 성격을 가지고 있습니다.</p>
+          <p className=" text-gray-300">선택한 캐릭터에 따라 다른 답변을 받아보실 수 있습니다.</p>
         </div>
       </div>
 
